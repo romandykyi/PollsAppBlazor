@@ -1,0 +1,30 @@
+﻿@page "/polls/"
+@using System.Net.Http.Json
+@using PollsAppBlazor.Shared
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@inject HttpClient httpClient
+
+<MudDataGrid Items="@polls" Filterable="false" SortMode="@SortMode.None" Groupable="false">
+	<Columns>
+		<PropertyColumn Property="x => x.Title" />
+		<PropertyColumn Property="x => x.Creator" Title="Published by" />
+		<PropertyColumn Property="x => x.CreationDate.AsTimeAgo()" Title="Published" />
+	</Columns>
+</MudDataGrid>
+
+@code {
+	public IEnumerable<PollPreviewDto>? polls;
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			polls = await httpClient.GetFromJsonAsync<IEnumerable<PollPreviewDto>>("api/polls");
+		}
+		catch (AccessTokenNotAvailableException exception)
+		{
+			exception.Redirect();
+		}
+	}
+}
