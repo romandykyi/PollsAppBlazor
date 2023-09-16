@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using PollsAppBlazor.Server.Data;
 using PollsAppBlazor.Server.Extensions;
@@ -13,7 +11,6 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 	options.UseSqlServer(connectionString));
 
-//builder.Services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
 builder.Services.AddScoped<IPollsService, PollsService>();
 builder.Services.AddScoped<IOptionsService, OptionsService>();
 builder.Services.AddScoped<IVotesService, VotesService>();
@@ -43,7 +40,7 @@ if (app.Environment.IsDevelopment())
 {
 	app.UseSwagger();
 	app.UseSwaggerUI();
-	
+
 
 	app.UseMigrationsEndPoint();
 	app.UseWebAssemblyDebugging();
