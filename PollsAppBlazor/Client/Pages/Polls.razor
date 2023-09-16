@@ -3,7 +3,7 @@
 @using PollsAppBlazor.Shared
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@inject HttpClient httpClient
+@inject PublicClient PublicClient
 
 <MudDataGrid Items="@polls" Filterable="false" SortMode="@SortMode.None" Groupable="false">
 	<Columns>
@@ -20,7 +20,7 @@
 	{
 		try
 		{
-			polls = await httpClient.GetFromJsonAsync<IEnumerable<PollPreviewDto>>("api/polls");
+			polls = await PublicClient.Client.GetFromJsonAsync<IEnumerable<PollPreviewDto>>("api/polls");
 		}
 		catch (AccessTokenNotAvailableException exception)
 		{
