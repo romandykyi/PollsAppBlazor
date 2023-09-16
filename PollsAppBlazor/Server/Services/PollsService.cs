@@ -2,12 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using PollsAppBlazor.Server.Data;
 using PollsAppBlazor.Server.Models;
-using PollsAppBlazor.Shared;
+using PollsAppBlazor.Shared.Polls;
 using System.Text.Json.Serialization;
 
 namespace PollsAppBlazor.Server.Services
 {
-	public class PollsService : IPollsService
+    public class PollsService : IPollsService
 	{
 		// We need a crator ID for some checks later, so this class is introduced to avoid
 		// additional DB queries

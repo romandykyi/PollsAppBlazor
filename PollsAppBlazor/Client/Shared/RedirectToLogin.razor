@@ -1,9 +1,9 @@
 ﻿@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@inject NavigationManager Navigation
+@inject NavigationManager NavigationManager
 
 @code {
     protected override void OnInitialized()
     {
-        Navigation.NavigateToLogin("authentication/login");
+        NavigationManager.NavigateToLogin("users/login");
     }
 }

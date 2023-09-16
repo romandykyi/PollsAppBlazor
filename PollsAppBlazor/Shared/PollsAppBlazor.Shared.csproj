@@ -11,6 +11,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Using Include="System.ComponentModel.DataAnnotations"/>
+		<Using Include="System.ComponentModel.DataAnnotations" />
 	</ItemGroup>
 </Project>

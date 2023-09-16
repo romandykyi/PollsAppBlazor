@@ -1,8 +1,8 @@
-﻿using PollsAppBlazor.Shared;
+﻿using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.Server.Services
 {
-	public interface IOptionsService
+    public interface IOptionsService
 	{
 		/// <summary>
 		/// Get ID of a Poll that contains the Option.

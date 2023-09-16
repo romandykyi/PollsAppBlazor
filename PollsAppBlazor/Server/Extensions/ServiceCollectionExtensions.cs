@@ -30,7 +30,7 @@ namespace PollsAppBlazor.Server.Extensions
 		public static IServiceCollection AddCustomizedIdentity(this IServiceCollection services)
 		{
 			services
-				.AddDefaultIdentity<ApplicationUser>(options =>
+				.AddIdentity<ApplicationUser, IdentityRole>(options =>
 				{
 					options.Password.RequireDigit = true;
 					options.Password.RequireLowercase = true;
@@ -38,8 +38,10 @@ namespace PollsAppBlazor.Server.Extensions
 					options.Password.RequireNonAlphanumeric = false;
 					options.Password.RequiredLength = 8;
 					options.Password.RequiredUniqueChars = 3;
+
+					options.User.RequireUniqueEmail = true;
+					options.User.AllowedUserNameCharacters = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890_";
 				})
-				.AddRoles<IdentityRole>()
 				.AddEntityFrameworkStores<ApplicationDbContext>();
 
 			services.AddIdentityServer()

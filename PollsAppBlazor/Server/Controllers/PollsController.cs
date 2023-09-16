@@ -1,14 +1,13 @@
 ﻿using Duende.IdentityServer.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PollsAppBlazor.Server.Extensions;
 using PollsAppBlazor.Server.Policy;
 using PollsAppBlazor.Server.Services;
-using PollsAppBlazor.Shared;
+using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.Server.Controllers
 {
-	[ApiController]
+    [ApiController]
 	[Route("api/polls")]
 	// doesn't work with Swagger: [AutoValidateAntiforgeryToken]
 	public class PollsController : ControllerBase

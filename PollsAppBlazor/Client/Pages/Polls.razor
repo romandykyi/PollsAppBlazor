@@ -1,6 +1,6 @@
 ﻿@page "/polls/"
 @using System.Net.Http.Json
-@using PollsAppBlazor.Shared
+@using PollsAppBlazor.Shared.Polls
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @inject PublicClient PublicClient
@@ -20,7 +20,7 @@
 	{
 		try
 		{
-			polls = await PublicClient.Client.GetFromJsonAsync<IEnumerable<PollPreviewDto>>("api/polls");
+			polls = await PublicClient.Client.GetFromJsonAsync<IEnumerable<PollPreviewDto>>("/api/polls");
 		}
 		catch (AccessTokenNotAvailableException exception)
 		{

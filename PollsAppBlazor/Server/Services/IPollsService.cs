@@ -1,8 +1,8 @@
-﻿using PollsAppBlazor.Shared;
+﻿using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.Server.Services
 {
-	public interface IPollsService
+    public interface IPollsService
 	{
 		/// <summary>
 		/// Get ID of user who created the Poll.

@@ -1,10 +1,10 @@
-﻿using PollsAppBlazor.Shared;
+﻿using PollsAppBlazor.Shared.Polls;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PollsAppBlazor.Server.Models
 {
-	public class Poll
+    public class Poll
 	{
 		[Key]
 		public int Id { get; set; }

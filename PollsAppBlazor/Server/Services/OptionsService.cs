@@ -1,11 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PollsAppBlazor.Server.Data;
 using PollsAppBlazor.Server.Models;
-using PollsAppBlazor.Shared;
+using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.Server.Services
 {
-	public class OptionsService : IOptionsService
+    public class OptionsService : IOptionsService
 	{
 		private readonly ApplicationDbContext _dataContext;
 

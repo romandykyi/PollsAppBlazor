@@ -3,11 +3,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PollsAppBlazor.Server.Policy;
 using PollsAppBlazor.Server.Services;
-using PollsAppBlazor.Shared;
+using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.Server.Controllers
 {
-	[ApiController]
+    [ApiController]
 	[Route("api/options")]
 	// doesn't work with Swagger: [AutoValidateAntiforgeryToken]
 	public class OptionsController : ControllerBase

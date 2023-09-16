@@ -1,0 +1,69 @@
+﻿@page "/users/login"
+@using PollsAppBlazor.Shared.Users
+@inject PublicClient PublicClient
+@inject NavigationManager NavigationManager
+
+<AuthorizeView>
+	<Authorized>
+		<h3>Log In</h3>
+		<p>
+			You are already logged in!
+		</p>
+	</Authorized>
+	<NotAuthorized>
+		<MudPaper Class="pa-4">
+			<h3>Log In</h3>
+			<MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+				<MudTextField T="string" Label="Username or Email" @bind-Value="@user.EmailOrUsername"
+							  Required="true" RequiredError="Username or Email is required!" />
+				<MudTextField T="string" Label="Password" @bind-Value="@user.Password"
+							  Required="true" InputType="InputType.Password"
+							  RequiredError="Password is required!" />
+			</MudForm>
+			<div class="d-flex">
+				<MudStack>
+					<MudLink Href="/users/forgot-password">Forgot password?</MudLink>
+					<MudLink Href="/users/register">Create a new account</MudLink>
+				</MudStack>
+			</div>
+			<div class="d-flex align-center justify-space-between">
+				<MudCheckBox T="bool" Label="Remember me" @bind-Checked="user.RememberMe" />
+				<MudButton Variant="Variant.Filled" Color="Color.Primary"
+						   Disabled="@(!success)" Class="ml-auto" OnClick="LogIn">
+					Log In
+				</MudButton>
+			</div>
+		</MudPaper>
+	</NotAuthorized>
+</AuthorizeView>
+
+@code {
+	private bool success;
+	private string[] errors = { };
+	private MudForm form = null!;
+	[SupplyParameterFromQuery]
+	[Parameter]
+	public string? redirectUrl { get; set; }
+
+	private UserLoginDto user = new();
+
+	private async Task LogIn()
+	{
+		await form.Validate();
+		if (!form.IsValid) return;
+
+		try
+		{
+			var response = await PublicClient.Client.PostAsJsonAsync("/api/users/login", user);
+			if (response.IsSuccessStatusCode)
+			{
+				NavigationManager.NavigateTo("/polls", true);
+			}
+		}
+		catch (Exception)
+		{
+			errors = new[] { "a little oopsie(" };
+		}
+	}
+
+}

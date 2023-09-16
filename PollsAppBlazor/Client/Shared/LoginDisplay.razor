@@ -1,21 +1,40 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
-@inject NavigationManager Navigation
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+@inject HttpClient HttpClient
+@inject ISnackbar Snackbar
 
 <AuthorizeView>
-    <Authorized>
-        <a href="authentication/profile">Hello, @context.User.Identity?.Name!</a>
-        <button class="nav-link btn btn-link" @onclick="BeginLogOut">Log out</button>
-    </Authorized>
-    <NotAuthorized>
-        <a href="authentication/register">Register</a>
-        <a href="authentication/login">Log in</a>
-    </NotAuthorized>
+	<Authorized>
+		<a href="authentication/profile">Hello, @context.User.Identity?.Name!</a>
+		<button class="nav-link btn btn-link" @onclick="LogOut">Log out</button>
+	</Authorized>
+	<NotAuthorized>
+		<a href="/users/register">Register</a>
+		<a href="/users/login">Log in</a>
+	</NotAuthorized>
 </AuthorizeView>
 
-@code{
-    private void BeginLogOut()
-    {
-        Navigation.NavigateToLogout("authentication/logout");
-    }
+@code {
+	private async Task LogOut()
+	{
+		var parameters = new DialogParameters<DialogTemplate>();
+		parameters.Add(x => x.ContentText, "Are you sure you want to Log out?");
+		parameters.Add(x => x.Color, Color.Success);
+
+		DialogOptions options = new() { Position = DialogPosition.TopCenter };
+
+		var dialog = await DialogService.ShowAsync<DialogTemplate>("Log out confirmation", parameters, options);
+		var result = await dialog.Result;
+
+		if (result.Canceled) return;
+
+		var httpResponse = await HttpClient.PostAsync("/api/users/logout", null);
+		if (httpResponse.IsSuccessStatusCode)
+		{
+			NavigationManager.NavigateTo("/", true);
+			StateHasChanged();
+		}
+	}
 }

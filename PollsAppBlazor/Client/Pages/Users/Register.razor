@@ -1,0 +1,102 @@
+﻿@page "/users/register"
+@using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+@using PollsAppBlazor.Shared.Users
+@inject PublicClient PublicClient
+@inject NavigationManager NavigationManager
+
+<AuthorizeView>
+	<Authorized>
+		<h3>Register</h3>
+		<p>
+			You are already registered!
+		</p>
+	</Authorized>
+	<NotAuthorized>
+		<MudPaper Class="pa-4">
+			<h3>Register</h3>
+			<MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+				<MudTextField T="string" Label="Username" @bind-Value="user.Username"
+							  Validation="@(new Func<string, IEnumerable<string>>(UserNameValidation))"
+							  Required="true" RequiredError="Username is required!" />
+				<MudTextField T="string" Label="Email" @bind-Value="user.Email"
+							  InputType="InputType.Email"
+							  Required="true" RequiredError="Email is required!" />
+				<MudTextField T="string" Label="Password" @ref="passwordField" @bind-Value="user.Password"
+							  InputType="InputType.Password"
+							  Validation="@(new Func<string, IEnumerable<string>>(PasswordStrengthValidation))"
+							  Required="true" RequiredError="Password is required!" />
+				<MudTextField T="string" Label="Confirm password"
+							  HelperText="Repeat the password" InputType="InputType.Password"
+							  Validation="@(new Func<string, string?>(PasswordMatchValidation))" />
+			</MudForm>
+			<div class="d-flex">
+				<MudLink Href="/users/login">I already have an account</MudLink>
+				<MudButton Variant="Variant.Filled" Color="Color.Primary"
+						   Disabled="@(!success)" Class="ml-auto" OnClick="Submit">
+					Register
+				</MudButton>
+			</div>
+		</MudPaper>
+	</NotAuthorized>
+</AuthorizeView>
+
+@code {
+	private bool success;
+	private string[] errors = { };
+	private MudTextField<string> passwordField = null!;
+	private MudForm form = null!;
+
+	private UserRegisterDto user = new();
+
+	private IEnumerable<string> UserNameValidation(string userName)
+	{
+		if (string.IsNullOrWhiteSpace(userName))
+		{
+			yield return "Username is required!";
+			yield break;
+		}
+		if (!Regex.IsMatch(userName, @"^[a-zA-Z]+"))
+			yield return "Username must start with letter";
+		if (!Regex.IsMatch(userName, @"^[a-zA-Z]*$"))
+			yield return "Username must be alphanumeric, underscores are allowed";
+	}
+
+	private IEnumerable<string> PasswordStrengthValidation(string password)
+	{
+		if (string.IsNullOrWhiteSpace(password))
+		{
+			yield return "Password is required!";
+			yield break;
+		}
+		if (password.Length < 8)
+			yield return "Password must be at least of length 8";
+		if (!Regex.IsMatch(password, @"[A-Z]"))
+			yield return "Password must contain at least one capital letter";
+		if (!Regex.IsMatch(password, @"[a-z]"))
+			yield return "Password must contain at least one lowercase, uppercase";
+		if (!Regex.IsMatch(password, @"[0-9]"))
+			yield return "Password must contain at least one digit";
+		if (password.Distinct().Count() < 3)
+			yield return "Password must contain at least three unique characters";
+	}
+
+	private string? PasswordMatchValidation(string arg)
+	{
+		if (passwordField.Value != arg)
+			return "Passwords don't match";
+		return null;
+	}
+
+	private async Task Submit()
+	{
+		success = true;
+		StateHasChanged();
+
+		var response = await PublicClient.Client.PostAsJsonAsync("/api/users/register", user);
+		if (response.IsSuccessStatusCode)
+		{
+			NavigationManager.NavigateTo("/polls", true);
+		}
+	}
+}
