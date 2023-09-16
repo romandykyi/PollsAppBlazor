@@ -47,7 +47,7 @@ namespace PollsAppBlazor.Server.Controllers
 		}
 
 		/// <summary>
-		/// Gets Polls list for home page
+		/// Gets latest Polls list
 		/// </summary>
 		/// <response code="200">Returns Polls list</response>
 		[HttpGet]
