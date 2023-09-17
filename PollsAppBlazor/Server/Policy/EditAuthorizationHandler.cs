@@ -38,7 +38,7 @@ namespace PollsAppBlazor.Server.Policy
 			}
 			var idValue = httpContext.GetRouteData().Values[idName] ??
 				throw new InvalidOperationException("Cannot get poll id from HTTP context");
-			
+
 			return Convert.ToInt32(idValue);
 		}
 	}

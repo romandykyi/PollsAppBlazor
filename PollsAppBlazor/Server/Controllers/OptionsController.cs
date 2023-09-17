@@ -7,7 +7,7 @@ using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.Server.Controllers
 {
-    [ApiController]
+	[ApiController]
 	[Route("api/options")]
 	// doesn't work with Swagger: [AutoValidateAntiforgeryToken]
 	public class OptionsController : ControllerBase
@@ -15,7 +15,7 @@ namespace PollsAppBlazor.Server.Controllers
 		private readonly IOptionsService _optionsService;
 		private readonly IVotesService _votesService;
 
-		public OptionsController(IOptionsService optionsService, IVotesService votesService) 
+		public OptionsController(IOptionsService optionsService, IVotesService votesService)
 		{
 			_optionsService = optionsService;
 			_votesService = votesService;

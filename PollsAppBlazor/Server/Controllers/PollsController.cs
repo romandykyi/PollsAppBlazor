@@ -7,7 +7,7 @@ using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.Server.Controllers
 {
-    [ApiController]
+	[ApiController]
 	[Route("api/polls")]
 	// doesn't work with Swagger: [AutoValidateAntiforgeryToken]
 	public class PollsController : ControllerBase

@@ -1,7 +1,7 @@
-﻿using Microsoft.Extensions.Caching.Memory;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using PollsAppBlazor.Server.Data;
 using PollsAppBlazor.Server.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace PollsAppBlazor.Server.Services
 {
@@ -11,7 +11,7 @@ namespace PollsAppBlazor.Server.Services
 
 		private readonly IMemoryCache _memoryCache;
 		private readonly IConfiguration _configuration;
-		private readonly ApplicationDbContext _dataContext; 
+		private readonly ApplicationDbContext _dataContext;
 
 		public VotesService(ApplicationDbContext dataContext, IMemoryCache memoryCache, IConfiguration configuration)
 		{
