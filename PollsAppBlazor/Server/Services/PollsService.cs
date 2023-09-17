@@ -62,11 +62,26 @@ namespace PollsAppBlazor.Server.Services
 					}).ToList()
 				}).FirstOrDefaultAsync();
 
-			if (poll == null) return poll;
+			if (poll == null) return null;
 
-			// Check whether user can view votes(they created this poll or voted on it)
-			if (userId != null && (poll.CreatorId == userId ||
-				await _votesService.GetVotedOptionAsync(pollId, userId) != null))
+			// Determine poll status
+			if (userId != null)
+			{
+				// If user created this Poll
+				if (poll.CreatorId == userId)
+				{
+					poll.IsOwnedByCurrentUser = true;
+					poll.AreVotesVisible = true;
+				}
+				// If user has voted
+				int? votedOptionId = await _votesService.GetVotedOptionAsync(pollId, userId);
+				if (votedOptionId != null)
+				{
+					poll.AreVotesVisible = true;
+					poll.VotedOptionId = votedOptionId;
+				}
+			}
+			if (poll.AreVotesVisible)
 			{
 				// Add votes counts to options
 				for (int i = 0; i < poll.Options.Count; i++)
