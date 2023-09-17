@@ -13,12 +13,7 @@
 	<NotAuthorized>
 		<MudPaper Class="pa-4">
 			<h3>Log In</h3>
-			@if (serverError != null)
-			{
-				<MudAlert Severity="Severity.Error">
-					@serverError
-				</MudAlert>
-			}
+			<ErrorsList Errors="@serverErrors" />
 			<MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
 				<MudTextField T="string" Label="Username or Email" @bind-Value="@user.EmailOrUsername"
 							  Required="true" RequiredError="Username or Email is required!" />
@@ -48,7 +43,7 @@
 	private string[] errors = { };
 	private MudForm form = null!;
 
-	private string? serverError;
+	private string[]? serverErrors { get; set; }
 
 	private UserLoginDto user = new();
 
@@ -57,9 +52,9 @@
 		await form.Validate();
 		if (!form.IsValid) return;
 
+		var response = await PublicClient.Client.PostAsJsonAsync("/api/users/login", user);
 		try
 		{
-			var response = await PublicClient.Client.PostAsJsonAsync("/api/users/login", user);
 			response.EnsureSuccessStatusCode();
 
 			// Navigate to another page with force reload
@@ -67,12 +62,11 @@
 		}
 		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.BadRequest)
 		{
-			serverError = "Invalid login attempt";
+			serverErrors = await response.Content.ExtractErrorsAsync().ToArrayAsync();
 		}
 		catch (HttpRequestException)
 		{
-			serverError = "An unexpected error has occured";
+			serverErrors = new[] { "An unexpected error has occured" };
 		}
 	}
-
 }

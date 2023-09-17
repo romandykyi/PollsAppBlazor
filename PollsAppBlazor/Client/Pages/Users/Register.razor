@@ -16,13 +16,7 @@
 	<NotAuthorized>
 		<MudPaper Class="pa-4">
 			<h3>Register</h3>
-			@if (serverErrors != null)
-			{
-				@foreach (var error in serverErrors)
-				{
-					<MudAlert Severity="Severity.Error">@error</MudAlert>
-				}
-			}
+			<ErrorsList Errors="@serverErrors" />
 			<MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
 				<MudTextField T="string" Label="Username" @bind-Value="user.Username"
 							  Validation="@(new Func<string, IEnumerable<string>>(UserNameValidation))"
