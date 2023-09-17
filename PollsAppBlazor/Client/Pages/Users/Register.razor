@@ -1,6 +1,7 @@
 ﻿@page "/users/register"
 @using System.Text.RegularExpressions
 @using System.ComponentModel.DataAnnotations
+@using System.Text.Json
 @using PollsAppBlazor.Shared.Users
 @inject PublicClient PublicClient
 @inject NavigationManager NavigationManager
@@ -15,12 +16,20 @@
 	<NotAuthorized>
 		<MudPaper Class="pa-4">
 			<h3>Register</h3>
+			@if (serverErrors != null)
+			{
+				@foreach (var error in serverErrors)
+				{
+					<MudAlert Severity="Severity.Error">@error</MudAlert>
+				}
+			}
 			<MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
 				<MudTextField T="string" Label="Username" @bind-Value="user.Username"
 							  Validation="@(new Func<string, IEnumerable<string>>(UserNameValidation))"
 							  Required="true" RequiredError="Username is required!" />
 				<MudTextField T="string" Label="Email" @bind-Value="user.Email"
 							  InputType="InputType.Email"
+							  Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})"
 							  Required="true" RequiredError="Email is required!" />
 				<MudTextField T="string" Label="Password" @ref="passwordField" @bind-Value="user.Password"
 							  InputType="InputType.Password"
@@ -47,6 +56,8 @@
 	private MudTextField<string> passwordField = null!;
 	private MudForm form = null!;
 
+	private string[]? serverErrors;
+
 	private UserRegisterDto user = new();
 
 	private IEnumerable<string> UserNameValidation(string userName)
@@ -58,7 +69,7 @@
 		}
 		if (!Regex.IsMatch(userName, @"^[a-zA-Z]+"))
 			yield return "Username must start with letter";
-		if (!Regex.IsMatch(userName, @"^[a-zA-Z]*$"))
+		if (!Regex.IsMatch(userName, @"^[a-zA-Z0-9_]*$"))
 			yield return "Username must be alphanumeric, underscores are allowed";
 	}
 
@@ -90,13 +101,25 @@
 
 	private async Task Submit()
 	{
-		success = true;
-		StateHasChanged();
+		await form.Validate();
+		if (!form.IsValid) return;
 
-		var response = await PublicClient.Client.PostAsJsonAsync("/api/users/register", user);
-		if (response.IsSuccessStatusCode)
+		HttpResponseMessage response;
+		response = await PublicClient.Client.PostAsJsonAsync("/api/users/register", user);
+		try
 		{
+			response.EnsureSuccessStatusCode();
+
+			// Navigate to another page with force reload
 			NavigationManager.NavigateTo("/polls", true);
+		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.BadRequest)
+		{
+			serverErrors = await response.Content.ExtractErrorsAsync().ToArrayAsync();
+		}
+		catch (HttpRequestException)
+		{
+			serverErrors = new[] { "An unexpected error has occured" };
 		}
 	}
 }
