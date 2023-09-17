@@ -41,9 +41,6 @@
 	private bool success;
 	private string[] errors = { };
 	private MudForm form = null!;
-	[SupplyParameterFromQuery]
-	[Parameter]
-	public string? redirectUrl { get; set; }
 
 	private UserLoginDto user = new();
 
