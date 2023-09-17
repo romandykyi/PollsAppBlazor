@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PollsAppBlazor.Server.Models;
+using PollsAppBlazor.Shared.Polls;
 using PollsAppBlazor.Shared.Users;
 
 namespace PollsAppBlazor.Server.Controllers
@@ -26,8 +27,16 @@ namespace PollsAppBlazor.Server.Controllers
 			_signInManager = signInManager;
 		}
 
+		/// <summary>
+		/// Logs in a user
+		/// </summary>
+		/// <response code="204">Success</response>
+		/// <response code="400">Invalid login attempt</response>
 		[HttpPost]
 		[Route("login")]
+		[AllowAnonymous]
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public async Task<IActionResult> LogIn([FromBody] UserLoginDto login)
 		{
 			if (ModelState.IsValid)
@@ -48,8 +57,16 @@ namespace PollsAppBlazor.Server.Controllers
 			return BadRequest(ModelState);
 		}
 
+		/// <summary>
+		/// Registers a user
+		/// </summary>
+		/// <response code="204">Success</response>
+		/// <response code="400">
+		/// Register failed, body contains arrays of errors
+		/// </response>
 		[HttpPost]
 		[Route("register")]
+		[AllowAnonymous]
 		public async Task<IActionResult> Register([FromBody] UserRegisterDto user)
 		{
 			if (ModelState.IsValid)
@@ -75,9 +92,16 @@ namespace PollsAppBlazor.Server.Controllers
 			return BadRequest(ModelState);
 		}
 
+		/// <summary>
+		/// Logs out a user
+		/// </summary>
+		/// <response code="204">Success</response>
+		/// <response code="401">Unauthorized user call</response>
 		[HttpPost]
 		[Route("logout")]
 		[Authorize]
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 		public async Task<IActionResult> LogOut()
 		{
 			await _signInManager.SignOutAsync();

@@ -30,6 +30,7 @@ namespace PollsAppBlazor.Server.Controllers
 		/// <response code="200">Returns requested Poll</response>
 		/// <response code="404">The Poll does not exist</response>
 		[HttpGet]
+		[AllowAnonymous]
 		[Route("{pollId}")]
 		[ProducesResponseType(typeof(PollViewDto), StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -50,6 +51,7 @@ namespace PollsAppBlazor.Server.Controllers
 		/// </summary>
 		/// <response code="200">Returns Polls list</response>
 		[HttpGet]
+		[AllowAnonymous]
 		[ProducesResponseType(typeof(IEnumerable<PollPreviewDto>), StatusCodes.Status200OK)]
 		public async Task<IActionResult> Get()
 		{
@@ -65,8 +67,8 @@ namespace PollsAppBlazor.Server.Controllers
 		/// <response code="400">
 		/// Malformed or invalid input. 
 		/// <br />
-		/// The response includes the "errors" key with an array of errors, 
-		/// where each element's key represents an invalid property, 
+		/// The response includes the "errors" key with properties that contain arrays of 
+		/// validation errors
 		/// and the corresponding value describes the reason for the error
 		/// </response>
 		/// <response code="401">Unauthorized user call</response>
@@ -101,9 +103,8 @@ namespace PollsAppBlazor.Server.Controllers
 		/// <response code="400">
 		/// Malformed or invalid input. 
 		/// <br />
-		/// The response includes the "errors" key with an array of errors, 
-		/// where each element's key represents an invalid property, 
-		/// and the corresponding value describes the reason for the error
+		/// The response includes the "errors" key with properties that contain arrays of 
+		/// validation errors
 		/// </response>
 		/// <response code="401">Unauthorized user call</response>
 		/// <response code="403">User lacks permission to edit this Poll</response>

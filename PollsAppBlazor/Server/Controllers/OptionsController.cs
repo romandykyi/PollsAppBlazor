@@ -30,9 +30,8 @@ namespace PollsAppBlazor.Server.Controllers
 		/// <response code="400">
 		/// Malformed or invalid input. 
 		/// <br />
-		/// The response includes the "errors" key with an array of errors, 
-		/// where each element's key represents an invalid property, 
-		/// and the corresponding value describes the reason for the error
+		/// The response includes the "errors" key with properties that contain arrays of 
+		/// validation errors
 		/// </response>
 		/// <response code="401">Unauthorized user call</response>
 		/// <response code="403">User lacks permission to edit this Option</response>
