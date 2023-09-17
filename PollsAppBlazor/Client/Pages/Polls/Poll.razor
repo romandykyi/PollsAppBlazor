@@ -1,0 +1,100 @@
+﻿@page "/polls/{pollId:int}"
+@using Microsoft.AspNetCore.Authorization
+@using PollsAppBlazor.Shared.Polls
+@inject PublicClient PublicClient
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@attribute [Authorize]
+
+@if (poll == null)
+{
+	<p>
+		Loading...
+	</p>
+}
+else
+{
+	<h2>@poll.Title</h2>
+	<div class="creator">@poll.Creator</div>
+	<div class="cretatedDate">@poll.CreationDate.AsTimeAgo()</div>
+
+	@if (!string.IsNullOrEmpty(poll.Description))
+	{
+		<p>@poll.Description</p>
+	}
+
+	<MudRadioGroup @bind-SelectedOption="@selectedOptionId"
+				   ReadOnly="@hasUserVoted">
+		@foreach (var option in poll.Options)
+		{
+			<MudRadio Option="@((int?)option.Id)" Class="d-block"
+					  Color="Color.Primary">
+				@option.Description
+			</MudRadio>
+		}
+	</MudRadioGroup>
+	<MudButton OnClick="Vote" Disabled="@(hasUserVoted || selectedOptionId == null)"
+			   Color="Color.Primary">
+		Vote
+	</MudButton>
+}
+
+@code {
+	private PollViewDto poll { get; set; } = null!;
+
+	private int? selectedOptionId { get; set; }
+	private bool hasUserVoted => poll.VotedOptionId != null;
+
+	[Parameter]
+	public int pollId { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			poll = (await PublicClient.Client.GetFromJsonAsync<PollViewDto>($"/api/polls/{pollId}"))!;
+			selectedOptionId = poll.VotedOptionId;
+		}
+		catch (HttpRequestException e)
+		{
+			switch (e.StatusCode)
+			{
+				case HttpStatusCode.NotFound:
+					NavigationManager.NavigateTo("/polls/error404");
+					break;
+				default:
+					Snackbar.UnexpectedError();
+					break;
+			}
+		}
+	}
+
+	private async void Vote()
+	{
+		// Make sure that user has selected option
+		if (selectedOptionId == null) return;
+
+		try
+		{
+			var response = await PublicClient.Client.PostAsync($"api/options/{selectedOptionId}/vote", null);
+			response.EnsureSuccessStatusCode();
+			Snackbar.Add("Your vote was saved", Severity.Success);
+
+			poll.VotedOptionId = selectedOptionId; // Update selected option client-side
+			StateHasChanged();
+		}
+		catch (HttpRequestException e)
+		{
+			switch (e.StatusCode)
+			{
+				case HttpStatusCode.Forbidden:
+					Snackbar.Add("You have already voted!", Severity.Warning,
+						options => options.CloseAfterNavigation = true);
+					break;
+				default:
+					Snackbar.UnexpectedError();
+					break;
+			}
+		}
+	}
+}

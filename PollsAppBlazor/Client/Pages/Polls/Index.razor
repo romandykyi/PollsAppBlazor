@@ -4,17 +4,25 @@
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @inject PublicClient PublicClient
+@inject NavigationManager NavigationManager
 
-<MudDataGrid Items="@polls" Filterable="false" SortMode="@SortMode.None" Groupable="false">
+<MudDataGrid 
+	T="PollPreviewDto" Items="@polls" Filterable="false" SortMode="@SortMode.None" 
+	Groupable="false" RowClick="SelectPoll">
 	<Columns>
-		<PropertyColumn Property="x => x.Title" />
-		<PropertyColumn Property="x => x.Creator" Title="Published by" />
-		<PropertyColumn Property="x => x.CreationDate.AsTimeAgo()" Title="Published" />
+		<PropertyColumn Property="p => p!.Title" />
+		<PropertyColumn Property="p => p!.Creator" Title="Published by" />
+		<PropertyColumn Property="p => p!.CreationDate.AsTimeAgo()" Title="Published" />
 	</Columns>
 </MudDataGrid>
 
 @code {
 	public IEnumerable<PollPreviewDto>? polls;
+
+	private void SelectPoll(DataGridRowClickEventArgs<PollPreviewDto> e)
+	{
+		NavigationManager.NavigateTo($"/polls/{e.Item.Id}");
+	}
 
 	protected override async Task OnInitializedAsync()
 	{
