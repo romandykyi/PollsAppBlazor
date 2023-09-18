@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using PollsAppBlazor.Server.Models;
-using PollsAppBlazor.Server.Policy;
+using PollsAppBlazor.Shared.Users;
 
 namespace PollsAppBlazor.Server.Extensions
 {
-	public static class WebApplicationExtensions
+    public static class WebApplicationExtensions
 	{
 		public static async void CreateRoles(this WebApplication app)
 		{

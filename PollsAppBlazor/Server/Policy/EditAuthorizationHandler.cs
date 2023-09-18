@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using PollsAppBlazor.Shared.Users;
 using System.Security.Claims;
 
 namespace PollsAppBlazor.Server.Policy
 {
-	public abstract class EditAuthorizationHandler<TRequirement> : AuthorizationHandler<TRequirement>
+    public abstract class EditAuthorizationHandler<TRequirement> : AuthorizationHandler<TRequirement>
 		where TRequirement : IAuthorizationRequirement
 	{
 		/// <summary>
