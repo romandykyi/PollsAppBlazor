@@ -1,0 +1,85 @@
+﻿@page "/polls/{pollId:int}/edit"
+@using Microsoft.AspNetCore.Authorization
+@using PollsAppBlazor.Shared.Polls
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
+@attribute [Authorize]
+
+<h2>Edit Poll</h2>
+@if (poll == null)
+{
+	<p>
+		Loading...
+	</p>
+}
+else
+{
+	<ErrorsList Errors="serverErrors" />
+	<PollForm CanEditOptions="false" SubmitButtonText="Edit" Poll="@poll"
+			  OnSubmit="Submit" />
+}
+
+@code {
+	private string _defaultTitle { get; set; } = null!;
+	private string? _defaultDescription { get; set; }
+
+	private bool changeSomethingWarning = false;
+	private string[]? serverErrors { get; set; }
+
+	private PollCreationDto? poll { get; set; }
+
+	[Parameter]
+	public int pollId { get; set; }
+
+	protected override async Task OnInitializedAsync()
+	{
+		var response = await HttpClient.GetAsync($"/api/polls/{pollId}/edit");
+		try
+		{
+			response.EnsureSuccessStatusCode();
+
+			poll = await response.Content.ReadFromJsonAsync<PollCreationDto>();
+			_defaultTitle = poll!.Title;
+			_defaultDescription = poll!.Description;
+		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.Forbidden)
+		{
+			NavigationManager.NavigateTo("/polls/forbidden");
+		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
+		{
+			NavigationManager.NavigateTo("/polls/error404");
+		}
+	}
+
+	private async Task Submit()
+	{
+		PollEditDto editDto = new()
+		{
+			Title = _defaultTitle != poll!.Title ? poll!.Title : null,
+			Description = _defaultDescription != poll!.Description ? poll!.Description : null
+		};
+
+		var response = await HttpClient.PatchAsJsonAsync($"/api/polls/{pollId}", editDto);
+		try
+		{
+			response.EnsureSuccessStatusCode();
+
+			NavigationManager.NavigateTo($"/polls/{pollId}");
+			Snackbar.Add("Poll was successfully edited", Severity.Success);
+		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
+		{
+			Snackbar.Add("Poll doesn't exist anymore", Severity.Error);
+		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.BadRequest)
+		{
+			serverErrors = await response.Content.ExtractErrorsAsync().ToArrayAsync();
+		}
+		catch (HttpRequestException)
+		{
+			Snackbar.UnexpectedError();
+		}
+	}
+}
