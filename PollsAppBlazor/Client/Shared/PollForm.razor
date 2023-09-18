@@ -8,8 +8,7 @@
 				  Label="Title" MaxLength="@PollCreationDto.TitleMaxSize" />
 	<MudTextField @bind-Value="Poll.Description" For="@(() => Poll.Description)"
 				  Label="Description" MaxLength="@PollCreationDto.DescriptionMaxSize"
-				  HelperText="Optional description"
-				  Lines="3" />
+				  HelperText="Optional description" />
 
 	<MudStack AlignItems="AlignItems.Center" Row="true">
 		<h3>Options</h3>
@@ -35,22 +34,21 @@
 								  ReadOnly="@(!CanEditOptions)" />
 					@if (CanEditOptions)
 					{
-						<MudButtonGroup Color="Color.Secondary" Variant="Variant.Filled"
-										Size="Size.Small">
+						<MudButtonGroup OverrideStyles="false">
 							<MudIconButton Icon="@Icons.Material.Filled.ArrowUpward"
+										   Color="Color.Secondary" Variant="Variant.Filled"
 										   OnClick="@(() => ReplaceOptions(index, index - 1))"
-										   Disabled="@(index <= 0)" />
+										   Disabled="@(index <= 0)" Size="Size.Small" />
 							<MudIconButton Icon="@Icons.Material.Filled.ArrowDownward"
+										   Color="Color.Secondary" Variant="Variant.Filled"
 										   OnClick="@(() => ReplaceOptions(index, index + 1))"
-										   Disabled="@(index >= options.Count - 1)" />
+										   Disabled="@(index >= options.Count - 1)" Size="Size.Small" />
+							<MudIconButton Icon="@Icons.Material.Filled.RemoveCircleOutline"
+										   Color="Color.Error" Variant="Variant.Filled"
+										   Size="Size.Small"
+										   Disabled="@(Poll.Options.Count <= PollCreationDto.MinOptionsCount)"
+										   OnClick="@(() => RemoveOption(index))" />
 						</MudButtonGroup>
-						<MudButton Color="Color.Error" Variant="Variant.Filled"
-								   StartIcon="@Icons.Material.Filled.RemoveCircleOutline"
-								   Size="Size.Small"
-								   Disabled="@(Poll.Options.Count <= PollCreationDto.MinOptionsCount)"
-								   OnClick="@(() => RemoveOption(index))">
-							Remove
-						</MudButton>
 					}
 				</MudStack>
 			</li>
