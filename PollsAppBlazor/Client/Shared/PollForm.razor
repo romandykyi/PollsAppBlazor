@@ -63,7 +63,7 @@
 </EditForm>
 
 @code {
-	private List<OptionCreationDto> options = null!;
+	private IList<OptionCreationDto> options = null!;
 
 	[Parameter]
 	public PollCreationDto Poll { get; set; } = null!;
@@ -82,7 +82,11 @@
 			throw new NullReferenceException("Poll is not set to the form");
 		}
 		// Make sure that options is a list, because we need index access
-		if (Poll.Options is not IList<OptionCreationDto> options)
+		if (Poll.Options is IList<OptionCreationDto> optionsList)
+		{
+			options = optionsList;
+		}
+		else
 		{
 			Poll.Options = options = Poll.Options.ToList();
 		}
