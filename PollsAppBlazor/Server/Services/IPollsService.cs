@@ -45,6 +45,15 @@ namespace PollsAppBlazor.Server.Services
 		Task<PollViewDto> CreatePollAsync(PollCreationDto poll, string creatorId);
 
 		/// <summary>
+		/// Get an editing representation of the Poll by its ID.
+		/// </summary>
+		/// <param name="pollId">ID of the Poll we need to get</param>
+		/// <returns>
+		/// editing representation of the Poll, or <see langword="null" /> if Poll was not found
+		/// </returns>
+		Task<PollCreationDto?> GetForEditById(int pollId);
+
+		/// <summary>
 		/// Edit a Poll.
 		/// </summary>
 		/// <param name="poll">Updated values of the Poll</param>

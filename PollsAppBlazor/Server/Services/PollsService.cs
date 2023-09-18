@@ -139,6 +139,25 @@ namespace PollsAppBlazor.Server.Services
 		}
 
 		/// <inheritdoc />
+		public async Task<PollCreationDto?> GetForEditById(int pollId)
+		{
+			return await _dataContext.Polls
+				.AsNoTracking()
+				.Include(p => p.Options)
+				.Where(p => p.Id == pollId)
+				.Select(p => new PollCreationDto()
+				{
+					Title = p.Title,
+					Description = p.Description,
+					Options = p.Options!.Select(o => new OptionCreationDto()
+					{
+						Description = o.Description
+					}).ToList()
+				})
+				.FirstOrDefaultAsync();
+		}
+
+		/// <inheritdoc />
 		public async Task<bool> EditPollAsync(PollEditDto poll, int pollId)
 		{
 			Poll? actualPoll = await _dataContext.Polls

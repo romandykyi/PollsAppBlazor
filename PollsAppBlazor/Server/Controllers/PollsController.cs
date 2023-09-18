@@ -109,7 +109,7 @@ namespace PollsAppBlazor.Server.Controllers
 		/// <response code="401">Unauthorized user call</response>
 		/// <response code="403">User lacks permission to edit this Poll</response>
 		/// <response code="404">The Poll does not exist</response>
-		[HttpPatch()]
+		[HttpPatch]
 		[Authorize(Policy = Policies.CanEditPoll)]
 		[Route("{pollId}")]
 		[ProducesResponseType(typeof(PollViewDto), StatusCodes.Status204NoContent)]
@@ -128,6 +128,33 @@ namespace PollsAppBlazor.Server.Controllers
 				return NoContent();
 			}
 			return NotFound();
+		}
+
+		/// <summary>
+		/// Gets an editing representation for the Poll
+		/// </summary>
+		/// <response code="200">
+		/// Returns requested editing representation of the Poll
+		/// </response>
+		/// <response code="401">Unauthorized user call</response>
+		/// <response code="403">User lacks permission to edit this Poll</response>
+		/// <response code="404">The Poll does not exist</response>
+		[HttpGet]
+		[Authorize(Policy = Policies.CanEditPoll)]
+		[Route("{pollId}/edit")]
+		[ProducesResponseType(typeof(PollViewDto), StatusCodes.Status200OK)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		public async Task<IActionResult> GetEdit([FromRoute] int pollId)
+		{
+			PollCreationDto? result = await _pollsService.GetForEditById(pollId);
+			if (result == null)
+			{
+				return NotFound();
+			}
+
+			return Ok(result);
 		}
 
 		/// <summary>
