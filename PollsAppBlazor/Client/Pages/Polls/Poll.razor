@@ -4,15 +4,21 @@
 @inject PublicClient PublicClient
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 @attribute [Authorize]
 
 <style>
 	.createdDate, .creator {
-		font-size: 18px;
+		font-size: 16px;
 		color: #808080;
 	}
 
+	.creator {
+		margin-bottom: 10px;
+	}
+
 	.description {
+		margin-top: 5px;
 		font-size: 20px;
 	}
 </style>
@@ -29,6 +35,22 @@ else
 	<div class="createdDate">Created @poll.CreationDate.AsTimeAgo()</div>
 	<div class="creator">by @poll.Creator</div>
 
+	@if (poll.CurrentUserCanEdit)
+	{
+		<MudStack Row="true" Spacing="1">
+			<MudButton Variant="Variant.Outlined" Color="Color.Primary"
+					   StartIcon="@Icons.Material.Filled.Edit"
+					   Href="@($"polls/{pollId}/edit")">
+				Edit
+			</MudButton>
+			<MudButton Variant="Variant.Outlined" Color="Color.Error"
+					   StartIcon="@Icons.Material.Filled.Delete"
+					   OnClick="Delete">
+				Delete
+			</MudButton>
+		</MudStack>
+	}
+
 	@if (!string.IsNullOrEmpty(poll.Description))
 	{
 		<div class="description">
@@ -41,7 +63,7 @@ else
 		@foreach (var option in poll.Options)
 		{
 			<MudRadio Option="@((int?)option.Id)" Class="d-block"
-					  Color="Color.Primary">
+					  Color="@Color.Primary">
 				@option.Description
 			</MudRadio>
 		}
@@ -79,6 +101,33 @@ else
 					Snackbar.UnexpectedError();
 					break;
 			}
+		}
+	}
+
+	private async void Delete()
+	{
+		var parameters = new DialogParameters<DialogTemplate>();
+		parameters.Add(x => x.ContentText, $"Are you sure you want to Delete poll \"{poll.Title}\"?");
+		parameters.Add(x => x.Color, Color.Error);
+
+		DialogOptions options = new() { Position = DialogPosition.TopCenter };
+
+		var dialog = await DialogService.ShowAsync<DialogTemplate>("Confirm Delete", parameters, options);
+		var result = await dialog.Result;
+
+		if (result.Canceled) return;
+
+		var response = await PublicClient.Client.DeleteAsync($"api/polls/{pollId}");
+		try
+		{
+			response.EnsureSuccessStatusCode();
+
+			NavigationManager.NavigateTo("/polls");
+			Snackbar.Add("Poll was successfully deleted", Severity.Success);
+		}
+		catch (HttpRequestException)
+		{
+			Snackbar.UnexpectedError();
 		}
 	}
 
