@@ -6,6 +6,17 @@
 @inject ISnackbar Snackbar
 @attribute [Authorize]
 
+<style>
+	.createdDate, .creator {
+		font-size: 18px;
+		color: #808080;
+	}
+
+	.description {
+		font-size: 20px;
+	}
+</style>
+
 @if (poll == null)
 {
 	<p>
@@ -15,12 +26,14 @@
 else
 {
 	<h2>@poll.Title</h2>
-	<div class="creator">@poll.Creator</div>
-	<div class="cretatedDate">@poll.CreationDate.AsTimeAgo()</div>
+	<div class="createdDate">Created @poll.CreationDate.AsTimeAgo()</div>
+	<div class="creator">by @poll.Creator</div>
 
 	@if (!string.IsNullOrEmpty(poll.Description))
 	{
-		<p>@poll.Description</p>
+		<div class="description">
+			@poll.Description
+		</div>
 	}
 
 	<MudRadioGroup @bind-SelectedOption="@selectedOptionId"
@@ -34,7 +47,7 @@ else
 		}
 	</MudRadioGroup>
 	<MudButton OnClick="Vote" Disabled="@(hasUserVoted || selectedOptionId == null)"
-			   Color="Color.Primary">
+			   Color="Color.Success" Variant="Variant.Filled">
 		Vote
 	</MudButton>
 }
