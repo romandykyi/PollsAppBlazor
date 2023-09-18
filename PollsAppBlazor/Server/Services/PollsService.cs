@@ -182,6 +182,8 @@ namespace PollsAppBlazor.Server.Services
 		public async Task<bool> DeletePollAsync(int pollId)
 		{
 			Poll? poll = await _dataContext.Polls
+				.Include(p => p.Options)
+				.Include(p => p.Votes)
 				.FirstOrDefaultAsync(p => p.Id == pollId);
 			if (poll == null)
 			{

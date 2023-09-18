@@ -22,53 +22,21 @@ namespace PollsAppBlazor.Server.Data
 		{
 			base.OnModelCreating(builder);
 
-			//// Poll->Options
-			//builder.Entity<Poll>()
-			//	.HasMany(p => p.Options)
-			//	.WithOne(o => o.Poll)
-			//	.HasForeignKey(o => o.PollId)
-			//	.IsRequired()
-			//	.OnDelete(DeleteBehavior.Cascade);
-
-			//// Poll->Votes
-			//builder.Entity<Poll>()
-			//	.HasMany(p => p.Votes)
-			//	.WithOne(v => v.Poll)
-			//	.HasForeignKey(v => v.PollId)
-			//	.IsRequired()
-			//	.OnDelete(DeleteBehavior.Cascade);
-
-			//// Options->Votes
-			//builder.Entity<Option>()
-			//	.HasMany(o => o.Votes)
-			//	.WithOne(v => v.Option)
-			//	.HasForeignKey(v => v.OptionId)
-			//	.IsRequired()
-			//	.OnDelete(DeleteBehavior.Cascade);
-
 			// Vote->Poll
 			builder.Entity<Vote>()
 				.HasOne(v => v.Poll)
 				.WithMany(p => p.Votes)
 				.HasForeignKey(v => v.PollId)
-				.IsRequired(false)
-				.OnDelete(DeleteBehavior.NoAction);
+				.IsRequired()
+				.OnDelete(DeleteBehavior.ClientCascade);
 
 			// Vote->Option
 			builder.Entity<Vote>()
 				.HasOne(v => v.Option)
 				.WithMany(p => p.Votes)
 				.HasForeignKey(v => v.OptionId)
-				.IsRequired(false)
-				.OnDelete(DeleteBehavior.NoAction);
-
-			//// User->Votes
-			//builder.Entity<ApplicationUser>()
-			//	.HasMany(u => u.Votes)
-			//	.WithOne(v => v.User)
-			//	.HasForeignKey(v => v.UserId)
-			//	.IsRequired()
-			//	.OnDelete(DeleteBehavior.Cascade);
+				.IsRequired()
+				.OnDelete(DeleteBehavior.ClientCascade);
 		}
 	}
 }
