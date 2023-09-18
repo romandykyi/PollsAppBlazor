@@ -83,18 +83,14 @@ else
 			poll.VotedOptionId = selectedOptionId; // Update selected option client-side
 			StateHasChanged();
 		}
-		catch (HttpRequestException e)
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.Forbidden)
 		{
-			switch (e.StatusCode)
-			{
-				case HttpStatusCode.Forbidden:
-					Snackbar.Add("You have already voted!", Severity.Warning,
-						options => options.CloseAfterNavigation = true);
-					break;
-				default:
-					Snackbar.UnexpectedError();
-					break;
-			}
+			Snackbar.Add("You have already voted!", Severity.Warning,
+				options => options.CloseAfterNavigation = true);
+		}
+		catch (HttpRequestException)
+		{
+			Snackbar.UnexpectedError();
 		}
 	}
 }
