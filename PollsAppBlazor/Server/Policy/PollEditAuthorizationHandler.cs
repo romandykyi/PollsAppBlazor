@@ -22,17 +22,12 @@ namespace PollsAppBlazor.Server.Policy
 		protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
 			TRequirement requirement)
 		{
-			if (!MustBeCreator(context.User))
-			{
-				// User is permitted to edit any Poll
-				context.Succeed(requirement);
-				return;
-			}
+			if (BasicCheck(context, requirement)) return;
 
 			// Check whether user is a creator of the Poll
 			int pollId = GetIntIdFromRoute(context, "pollId");
 			string? creatorId = await _pollsService.GetCreatorIdAsync(pollId);
-			if (creatorId != null && creatorId == context.User.GetSubjectId())
+			if (creatorId == context.User.GetSubjectId())
 			{
 				context.Succeed(requirement);
 			}

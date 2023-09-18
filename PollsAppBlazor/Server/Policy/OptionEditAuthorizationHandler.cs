@@ -22,12 +22,7 @@ namespace PollsAppBlazor.Server.Policy
 		protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
 			OptionEditAuthorizationRequirement requirement)
 		{
-			if (!MustBeCreator(context.User))
-			{
-				// User is permitted to edit any Option
-				context.Succeed(requirement);
-				return;
-			}
+			if (BasicCheck(context, requirement)) return;
 
 			int optionId = GetIntIdFromRoute(context, "optionId");
 

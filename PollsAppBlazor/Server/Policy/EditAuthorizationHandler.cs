@@ -1,25 +1,36 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using PollsAppBlazor.Shared.Users;
-using System.Security.Claims;
+﻿using Duende.IdentityServer.Extensions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace PollsAppBlazor.Server.Policy
 {
-    public abstract class EditAuthorizationHandler<TRequirement> : AuthorizationHandler<TRequirement>
+	public abstract class EditAuthorizationHandler<TRequirement> : AuthorizationHandler<TRequirement>
 		where TRequirement : IAuthorizationRequirement
 	{
 		/// <summary>
-		/// Checks if user needs to be creator in order to edit something.
+		/// Perform a basic edit permission check.
 		/// </summary>
-		/// <param name="user">User that needs to be checked</param>
+		/// <remarks>
+		/// Will fail if user is not authenticated and succeed if user can edit any item.
+		/// </remarks>
+		/// <param name="context"></param>
+		/// <param name="requirement"></param>
 		/// <returns>
-		/// <see langword="true" /> if user must be creator in order to edit something;
-		/// otherwise <see langword="false"/> if user can edit something without being creator
-		/// (e.g. user is Administrator or Moderator).
+		/// <see langword="true" /> if no further checks are needed;
+		/// otherwise <see langword="false"/>
 		/// </returns>
-		protected bool MustBeCreator(ClaimsPrincipal user)
+		protected bool BasicCheck(AuthorizationHandlerContext context, TRequirement requirement)
 		{
-			return !user.IsInRole(Roles.Administrator) &&
-				!user.IsInRole(Roles.Moderator);
+			if (context.User.Identity == null || !context.User.IsAuthenticated())
+			{
+				context.Fail();
+				return true;
+			}
+			if (Policies.UserCanEditAnything(context.User))
+			{
+				context.Succeed(requirement);
+				return true;
+			}
+			return false;
 		}
 
 		/// <summary>
