@@ -7,7 +7,7 @@
 
 <AuthorizeView>
 	<Authorized>
-		<a href="authentication/profile">Hello, @context.User.Identity?.Name!</a>
+		Hello, @context.User.Identity?.Name!
 		<button class="nav-link btn btn-link" @onclick="LogOut">Log out</button>
 	</Authorized>
 	<NotAuthorized>
@@ -21,7 +21,7 @@
 	{
 		var parameters = new DialogParameters<DialogTemplate>();
 		parameters.Add(x => x.ContentText, "Are you sure you want to Log out?");
-		parameters.Add(x => x.Color, Color.Success);
+		parameters.Add(x => x.Color, Color.Error);
 
 		DialogOptions options = new() { Position = DialogPosition.TopCenter };
 
@@ -31,10 +31,16 @@
 		if (result.Canceled) return;
 
 		var httpResponse = await HttpClient.PostAsync("/api/users/logout", null);
-		if (httpResponse.IsSuccessStatusCode)
+		try
 		{
+			httpResponse.EnsureSuccessStatusCode();
+
 			NavigationManager.NavigateTo("/", true);
 			StateHasChanged();
+		}
+		catch (HttpRequestException)
+		{
+			Snackbar.UnexpectedError();
 		}
 	}
 }
