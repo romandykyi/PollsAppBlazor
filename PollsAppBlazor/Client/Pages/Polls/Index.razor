@@ -2,15 +2,25 @@
 @using System.Net.Http.Json
 @using PollsAppBlazor.Shared.Polls
 @using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @inject PublicClient PublicClient
-@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
 
-<MudDataGrid 
-	T="PollPreviewDto" Items="@polls" Filterable="false" SortMode="@SortMode.None" 
-	Groupable="false" RowClick="SelectPoll">
+<MudButton Variant="Variant.Filled" Color="Color.Success"
+		   StartIcon="@Icons.Material.Filled.AddCircleOutline" Href="/polls/create">
+	Create
+</MudButton>
+@if (polls == null)
+{
+	<p>Loading...</p>
+}
+<MudDataGrid T="PollPreviewDto" Items="@polls" Filterable="false" SortMode="@SortMode.None"
+			 Groupable="false">
 	<Columns>
-		<PropertyColumn Property="p => p!.Title" />
+		<PropertyColumn Property="p => p!.Title">
+			<CellTemplate>
+				<MudLink Href="@($"/polls/{context.Item!.Id}")">@context.Item!.Title</MudLink>
+			</CellTemplate>
+		</PropertyColumn>
 		<PropertyColumn Property="p => p!.Creator" Title="Published by" />
 		<PropertyColumn Property="p => p!.CreationDate.AsTimeAgo()" Title="Published" />
 	</Columns>
@@ -19,20 +29,15 @@
 @code {
 	public IEnumerable<PollPreviewDto>? polls;
 
-	private void SelectPoll(DataGridRowClickEventArgs<PollPreviewDto> e)
-	{
-		NavigationManager.NavigateTo($"/polls/{e.Item.Id}");
-	}
-
 	protected override async Task OnInitializedAsync()
 	{
 		try
 		{
 			polls = await PublicClient.Client.GetFromJsonAsync<IEnumerable<PollPreviewDto>>("/api/polls");
 		}
-		catch (AccessTokenNotAvailableException exception)
+		catch (HttpRequestException)
 		{
-			exception.Redirect();
+			Snackbar.UnexpectedError();
 		}
 	}
 }
