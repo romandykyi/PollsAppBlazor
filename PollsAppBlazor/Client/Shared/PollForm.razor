@@ -1,0 +1,120 @@
+﻿@using PollsAppBlazor.Shared.Polls
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+
+<EditForm Model="@Poll" OnValidSubmit="OnValidSubmit" style="max-width: 640px">
+	<DataAnnotationsValidator />
+	<MudTextField @bind-Value="Poll.Title" For="@(() => Poll.Title)"
+				  Label="Title" MaxLength="@PollCreationDto.TitleMaxSize" />
+	<MudTextField @bind-Value="Poll.Description" For="@(() => Poll.Description)"
+				  Label="Description" MaxLength="@PollCreationDto.DescriptionMaxSize"
+				  HelperText="Optional description"
+				  Lines="3" />
+
+	<MudStack AlignItems="AlignItems.Center" Row="true">
+		<h3>Options</h3>
+		<MudSpacer />
+		@if (CanAddOptions)
+		{
+			<MudButton Variant="Variant.Filled" Color="Color.Success"
+					   Disabled="@(Poll.Options.Count >= PollCreationDto.MaxOptionsCount)"
+					   OnClick="AddNewOption" Size="Size.Small"
+					   StartIcon="@Icons.Material.Filled.AddCircleOutline">
+				Add
+			</MudButton>
+		}
+	</MudStack>
+	<ol>
+		@for (int i = 0; i < options.Count; i++)
+		{
+			var option = options[i];
+			int index = i; // Prevent bug with delegates scope
+			<li>
+				<MudStack AlignItems="AlignItems.End" Row="true" Spacing="1">
+					<MudTextField @bind-Value="option.Description" For="@(() => option.Description)" />
+					@if (CanAddOptions)
+					{
+						<MudButtonGroup Color="Color.Secondary" Variant="Variant.Filled"
+										Size="Size.Small" OverrideStyles="false">
+							<MudIconButton Icon="@Icons.Material.Filled.ArrowUpward"
+										   OnClick="@(() => ReplaceOptions(index, index - 1))"
+										   Disabled="@(index <= 0)" />
+							<MudIconButton Icon="@Icons.Material.Filled.ArrowDownward"
+										   OnClick="@(() => ReplaceOptions(index, index + 1))"
+										   Disabled="@(index >= options.Count - 1)" />
+						</MudButtonGroup>
+						<MudButton Color="Color.Error" Variant="Variant.Filled"
+								   StartIcon="@Icons.Material.Filled.RemoveCircleOutline"
+								   Size="Size.Small"
+								   Disabled="@(Poll.Options.Count <= PollCreationDto.MinOptionsCount)"
+								   OnClick="@(() => RemoveOption(index))">
+							Remove
+						</MudButton>
+					}
+				</MudStack>
+			</li>
+		}
+	</ol>
+	<MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
+			   Color="Color.Primary" Class="ml-auto">
+		@SubmitButtonText
+	</MudButton>
+</EditForm>
+
+@code {
+	private List<OptionCreationDto> options = null!;
+
+	[Parameter]
+	public PollCreationDto Poll { get; set; } = null!;
+	[Parameter]
+	public bool CanAddOptions { get; set; }
+	[Parameter]
+	public string SubmitButtonText { get; set; } = "Submit";
+
+	[Parameter]
+	public EventCallback OnSubmit { get; set; }
+
+	protected override void OnInitialized()
+	{
+		if (Poll == null)
+		{
+			throw new NullReferenceException("Poll is not set to the form");
+		}
+		// Make options a list for index access needed for editing
+		Poll.Options = options = Poll.Options.ToList();
+	}
+
+	private async Task OnValidSubmit(EditContext context)
+	{
+		StateHasChanged();
+
+		await OnSubmit.InvokeAsync();
+	}
+
+	private void AddNewOption()
+	{
+		if (options.Count >= PollCreationDto.MaxOptionsCount)
+		{
+			Snackbar.Add("Limit of options is reached", Severity.Warning, options => options.CloseAfterNavigation = true);
+			return;
+		}
+
+		options.Add(new() { Description = "Option" });
+	}
+
+	private void RemoveOption(int optionIndex)
+	{
+		if (options.Count <= PollCreationDto.MinOptionsCount)
+		{
+			Snackbar.Add("Minimum 2 options are required", Severity.Warning, options => options.CloseAfterNavigation = true);
+			return;
+		}
+
+		options.RemoveAt(optionIndex);
+	}
+
+	private void ReplaceOptions(int option1Index, int option2Index)
+	{
+		(options[option1Index], options[option2Index]) = (options[option2Index], options[option1Index]);
+	}
+}
