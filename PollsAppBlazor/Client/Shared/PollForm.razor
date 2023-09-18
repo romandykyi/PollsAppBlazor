@@ -14,7 +14,7 @@
 	<MudStack AlignItems="AlignItems.Center" Row="true">
 		<h3>Options</h3>
 		<MudSpacer />
-		@if (CanAddOptions)
+		@if (CanEditOptions)
 		{
 			<MudButton Variant="Variant.Filled" Color="Color.Success"
 					   Disabled="@(Poll.Options.Count >= PollCreationDto.MaxOptionsCount)"
@@ -31,11 +31,12 @@
 			int index = i; // Prevent bug with delegates scope
 			<li>
 				<MudStack AlignItems="AlignItems.End" Row="true" Spacing="1">
-					<MudTextField @bind-Value="option.Description" For="@(() => option.Description)" />
-					@if (CanAddOptions)
+					<MudTextField @bind-Value="option.Description" For="@(() => option.Description)"
+								  ReadOnly="@CanEditOptions" />
+					@if (CanEditOptions)
 					{
 						<MudButtonGroup Color="Color.Secondary" Variant="Variant.Filled"
-										Size="Size.Small" OverrideStyles="false">
+										Size="Size.Small">
 							<MudIconButton Icon="@Icons.Material.Filled.ArrowUpward"
 										   OnClick="@(() => ReplaceOptions(index, index - 1))"
 										   Disabled="@(index <= 0)" />
@@ -67,7 +68,7 @@
 	[Parameter]
 	public PollCreationDto Poll { get; set; } = null!;
 	[Parameter]
-	public bool CanAddOptions { get; set; }
+	public bool CanEditOptions { get; set; }
 	[Parameter]
 	public string SubmitButtonText { get; set; } = "Submit";
 
@@ -80,8 +81,11 @@
 		{
 			throw new NullReferenceException("Poll is not set to the form");
 		}
-		// Make options a list for index access needed for editing
-		Poll.Options = options = Poll.Options.ToList();
+		// Make sure that options is a list, because we need index access
+		if (Poll.Options is not IList<OptionCreationDto> options)
+		{
+			Poll.Options = options = Poll.Options.ToList();
+		}
 	}
 
 	private async Task OnValidSubmit(EditContext context)
