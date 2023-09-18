@@ -42,6 +42,13 @@ namespace PollsAppBlazor.Server.Controllers
 			{
 				return NotFound();
 			}
+			// PollsService only checks whether user is an owner,
+			// but administrators and moderators can edit too.
+			// This probably needs to be refactored
+			if (!result.CurrentUserCanEdit && Policies.UserCanEditAnything(User))
+			{
+				result.CurrentUserCanEdit = true;
+			}
 
 			return Ok(result);
 		}

@@ -69,7 +69,7 @@ namespace PollsAppBlazor.Server.Services
 				// If user created this Poll
 				if (poll.CreatorId == userId)
 				{
-					poll.IsOwnedByCurrentUser = true;
+					poll.CurrentUserCanEdit = true;
 					poll.AreVotesVisible = true;
 				}
 				// If user has voted
