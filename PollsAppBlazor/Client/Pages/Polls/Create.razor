@@ -1,0 +1,53 @@
+﻿@page "/polls/create"
+@using Microsoft.AspNetCore.Authorization
+@using PollsAppBlazor.Shared.Polls
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+@inject HttpClient HttpClient
+@attribute [Authorize]
+
+<h2>Create Poll</h2>
+<ErrorsList Errors="serverErrors" />
+<PollForm CanEditOptions="true" SubmitButtonText="Create" Poll="@poll"
+		  OnSubmit="Submit" />
+
+@code {
+	private string _defaultTitle { get; set; } = null!;
+	private string? _defaultDescription { get; set; }
+
+	private bool changeSomethingWarning = false;
+	private string[]? serverErrors { get; set; }
+
+	private PollCreationDto? poll { get; set; } = new()
+		{
+			Title = "My new Poll",
+			Description = string.Empty,
+			Options = new List<OptionCreationDto>()
+				{
+					new() {Description = "Option A"},
+					new() {Description = "Option B"},
+					new() {Description = "Option C"}
+				}
+		};
+
+	private async Task Submit()
+	{
+		var response = await HttpClient.PostAsJsonAsync($"/api/polls", poll);
+		try
+		{
+			response.EnsureSuccessStatusCode();
+			var result = await response.Content.ReadFromJsonAsync<PollViewDto>();
+
+			NavigationManager.NavigateTo($"/polls/{result!.Id}");
+			Snackbar.Add("Poll was successfully created", Severity.Success);
+		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.BadRequest)
+		{
+			serverErrors = await response.Content.ExtractErrorsAsync().ToArrayAsync();
+		}
+		catch (HttpRequestException)
+		{
+			Snackbar.UnexpectedError();
+		}
+	}
+}
