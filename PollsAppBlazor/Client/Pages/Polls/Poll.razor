@@ -90,17 +90,13 @@ else
 			poll = (await PublicClient.Client.GetFromJsonAsync<PollViewDto>($"/api/polls/{pollId}"))!;
 			selectedOptionId = poll.VotedOptionId;
 		}
-		catch (HttpRequestException e)
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
 		{
-			switch (e.StatusCode)
-			{
-				case HttpStatusCode.NotFound:
-					NavigationManager.NavigateTo("/polls/error404");
-					break;
-				default:
-					Snackbar.UnexpectedError();
-					break;
-			}
+			NavigationManager.NavigateTo("/polls/error404");
+		}
+		catch (HttpRequestException)
+		{
+			Snackbar.UnexpectedError();
 		}
 	}
 
