@@ -10,8 +10,21 @@
 				  Label="Description" MaxLength="@PollCreationDto.DescriptionMaxSize"
 				  HelperText="Optional description" />
 
+	<MudStack Row="true">
+		<MudCheckBox @bind-Checked="hasExpiryDate" Disabled="@(!CanEditOptions)"
+					 Label="Has expire date" Color="Color.Primary" />
+		<Info Message="The date after which the poll becomes unavailable for new votes, and old votes become visible to everyone" />
+	</MudStack>
+
+	@if (hasExpiryDate)
+	{
+		<MudDatePicker @bind-Date="expiryDate" Disabled="@(!CanEditOptions)"
+					   Label="Expiry date" Placeholder="Select Date"
+					   IsDateDisabledFunc="IsDateInvalid" />
+	}
+
 	<MudStack AlignItems="AlignItems.Center" Row="true">
-		<h3>Options</h3>
+		<MudText Typo="Typo.h4">Options</MudText>
 		<MudSpacer />
 		@if (CanEditOptions)
 		{
@@ -67,6 +80,8 @@
 </EditForm>
 
 @code {
+	private bool hasExpiryDate = false;
+	private DateTime? expiryDate = DateTime.Now + TimeSpan.FromDays(1);
 	private IList<OptionCreationDto> options = null!;
 
 	[Parameter]
@@ -87,6 +102,11 @@
 		{
 			throw new NullReferenceException("Poll is not set to the form");
 		}
+		if (Poll.ExpiryDate != null)
+		{
+			hasExpiryDate = true;
+			expiryDate = Poll.ExpiryDate.Value.UtcDateTime;
+		}
 		// Make sure that options is a list, because we need index access
 		if (Poll.Options is IList<OptionCreationDto> optionsList)
 		{
@@ -100,6 +120,10 @@
 
 	private async Task OnValidSubmit(EditContext context)
 	{
+		if (CanEditOptions)
+		{
+			Poll.ExpiryDate = hasExpiryDate ? expiryDate + TimeSpan.FromHours(1) : null;
+		}
 		StateHasChanged();
 
 		await OnSubmit.InvokeAsync();
@@ -130,5 +154,14 @@
 	private void ReplaceOptions(int option1Index, int option2Index)
 	{
 		(options[option1Index], options[option2Index]) = (options[option2Index], options[option1Index]);
+	}
+
+	private bool IsDateInvalid(DateTime date)
+	{
+		if (!CanEditOptions) return false;
+
+		long timeTicks = (date - DateTime.Now).Ticks;
+		return timeTicks < PollCreationDto.MinExpiryDurationTicks ||
+						timeTicks > PollCreationDto.MaxExpiryDurationTicks;
 	}
 }

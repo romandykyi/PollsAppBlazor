@@ -1,0 +1,16 @@
+﻿<MudCheckBox @bind-Checked="_opened" Color="Color.Info"
+			 CheckedIcon="@Icons.Material.Filled.Info" UncheckedIcon="@Icons.Material.Outlined.Info" />
+<MudPopover Open="@_opened" Fixed="true" Class="px-4 pt-4"
+			AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopLeft">
+	<div class="d-flex flex-column">
+		<MudText>@Message</MudText>
+		<MudButton OnClick="@(() => _opened = false)" Class="ml-auto mr-n3 mb-1" Color="Color.Error">Close</MudButton>
+	</div>
+</MudPopover>
+
+@code {
+	private bool _opened { get; set; }
+
+	[Parameter]
+	public string Message { get; set; } = string.Empty;
+}

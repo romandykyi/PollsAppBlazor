@@ -114,7 +114,9 @@ namespace PollsAppBlazor.Server.Controllers
 		/// validation errors
 		/// </response>
 		/// <response code="401">Unauthorized user call</response>
-		/// <response code="403">User lacks permission to edit this Poll</response>
+		/// <response code="403">
+		/// User lacks permission to edit this Poll or Poll is not active
+		/// </response>
 		/// <response code="404">The Poll does not exist</response>
 		[HttpPatch]
 		[Authorize(Policy = Policies.CanEditPoll)]
@@ -130,11 +132,12 @@ namespace PollsAppBlazor.Server.Controllers
 			{
 				return BadRequest(ModelState);
 			}
-			if (await _pollsService.EditPollAsync(poll, pollId))
+			return await _pollsService.EditPollAsync(poll, pollId) switch
 			{
-				return NoContent();
-			}
-			return NotFound();
+				true => NoContent(),
+				false => Forbid(),
+				_ => NotFound()
+			};
 		}
 
 		/// <summary>

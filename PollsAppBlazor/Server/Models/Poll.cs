@@ -15,6 +15,10 @@ namespace PollsAppBlazor.Server.Models
 		public string? Description { get; set; }
 
 		public DateTimeOffset CreationDate { get; set; }
+		public DateTimeOffset? ExpiryDate { get; set; }
+
+		[NotMapped]
+		public bool IsActive => ExpiryDate == null || DateTimeOffset.Now < ExpiryDate;
 
 		[ForeignKey(nameof(Creator))]
 		public string CreatorId { get; set; } = null!;

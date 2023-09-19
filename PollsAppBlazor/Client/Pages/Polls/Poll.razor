@@ -16,11 +16,6 @@
 	.creator {
 		margin-bottom: 10px;
 	}
-
-	.description {
-		margin-top: 5px;
-		font-size: 20px;
-	}
 </style>
 
 @if (poll == null)
@@ -33,14 +28,24 @@ else
 {
 	<h2>@poll.Title</h2>
 	<div class="createdDate">Created @poll.CreationDate.AsTimeAgo()</div>
+	@if (poll.ExpiryDate != null && !poll.IsExpired)
+	{
+		<div class="createdDate">Expires @poll.ExpiryDate.Value.AsExpiryDuration()</div>
+	}
 	<div class="creator">by @poll.Creator</div>
+
+	@if (poll.IsExpired)
+	{
+		<MudAlert Severity="Severity.Info">This poll expired @poll.ExpiryDate!.Value.AsTimeAgo()</MudAlert>
+	}
 
 	@if (poll.CurrentUserCanEdit)
 	{
 		<MudStack Row="true" Spacing="1">
 			<MudButton Variant="Variant.Outlined" Color="Color.Primary"
 					   StartIcon="@Icons.Material.Filled.Edit"
-					   Href="@($"polls/{pollId}/edit")">
+					   Href="@($"polls/{pollId}/edit")"
+					   Disabled="@poll.IsExpired">
 				Edit
 			</MudButton>
 			<MudButton Variant="Variant.Outlined" Color="Color.Error"
@@ -168,7 +173,7 @@ else
 
 	private async Task Vote()
 	{
-		// Make sure that user has selected option
+		// Make sure that user has selected an option
 		if (selectedOptionId == null) return;
 
 		try
@@ -182,7 +187,7 @@ else
 		}
 		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.Forbidden)
 		{
-			Snackbar.Add("You cannot vote anymore!", Severity.Warning,
+			Snackbar.Add("You cannot vote anymore", Severity.Warning,
 				options => options.CloseAfterNavigation = true);
 		}
 		catch (HttpRequestException)

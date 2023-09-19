@@ -34,6 +34,17 @@ namespace PollsAppBlazor.Server.Services
 				.Select(p => p.CreatorId)
 				.FirstOrDefaultAsync();
 		}
+		
+		/// <inheritdoc />
+		public async Task<bool> IsPollActiveAsync(int pollId)
+		{
+			// Assuming that poll exists
+			return await _dataContext.Polls
+				.AsNoTracking()
+				.Where(p => p.Id == pollId)
+				.Select(p => p.IsActive)
+				.FirstAsync();
+		}
 
 		/// <inheritdoc />
 		public async Task<PollViewDto?> GetByIdAsync(int pollId, string? userId = null)
@@ -51,6 +62,7 @@ namespace PollsAppBlazor.Server.Services
 					Title = p.Title,
 					Description = p.Description,
 					CreationDate = p.CreationDate,
+					ExpiryDate = p.ExpiryDate,
 					Creator = p.Creator!.UserName!,
 					CreatorId = p.CreatorId,
 					// Select options
@@ -79,6 +91,10 @@ namespace PollsAppBlazor.Server.Services
 					poll.AreVotesVisible = true;
 					poll.VotedOptionId = votedOptionId;
 				}
+				else
+				{
+					poll.AreVotesVisible = poll.IsExpired;
+				}
 			}
 			if (poll.AreVotesVisible)
 			{
@@ -99,6 +115,7 @@ namespace PollsAppBlazor.Server.Services
 			return await _dataContext.Polls
 				.Include(p => p.Creator)
 				.AsNoTracking()
+				.Where(p => p.ExpiryDate == null || DateTimeOffset.Now < p.ExpiryDate)
 				.OrderByDescending(p => p.CreationDate)
 				.Select(p => new PollPreviewDto()
 				{
@@ -120,6 +137,7 @@ namespace PollsAppBlazor.Server.Services
 				Title = poll.Title,
 				Description = poll.Description,
 				CreationDate = DateTimeOffset.Now,
+				ExpiryDate = poll.ExpiryDate,
 				CreatorId = creatorId
 			};
 			_dataContext.Add(newPoll);
@@ -149,6 +167,7 @@ namespace PollsAppBlazor.Server.Services
 				{
 					Title = p.Title,
 					Description = p.Description,
+					ExpiryDate = p.ExpiryDate,
 					Options = p.Options!.Select(o => new OptionCreationDto()
 					{
 						Description = o.Description
@@ -158,7 +177,7 @@ namespace PollsAppBlazor.Server.Services
 		}
 
 		/// <inheritdoc />
-		public async Task<bool> EditPollAsync(PollEditDto poll, int pollId)
+		public async Task<bool?> EditPollAsync(PollEditDto poll, int pollId)
 		{
 			Poll? actualPoll = await _dataContext.Polls
 				.FirstOrDefaultAsync(p => p.Id == pollId);
@@ -166,6 +185,11 @@ namespace PollsAppBlazor.Server.Services
 			if (actualPoll == null)
 			{
 				// Poll doesn't exist
+				return null;
+			}
+			if (!actualPoll.IsActive)
+			{
+				// Poll is not active
 				return false;
 			}
 

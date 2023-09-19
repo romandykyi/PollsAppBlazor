@@ -15,6 +15,16 @@ namespace PollsAppBlazor.Server.Services
 		Task<string?> GetCreatorIdAsync(int pollId);
 
 		/// <summary>
+		/// Check whether Poll is available for voting
+		/// </summary>
+		/// <param name="pollId"></param>
+		/// <returns>
+		/// <see langword="true" /> if Poll is available for voting,
+		/// <see langword="false" /> otherwise
+		/// </returns>
+		Task<bool> IsPollActiveAsync(int pollId);
+
+		/// <summary>
 		/// Get a Poll by its ID.
 		/// </summary>
 		/// <param name="pollId">ID of the Poll we need to get</param>
@@ -60,9 +70,10 @@ namespace PollsAppBlazor.Server.Services
 		/// <param name="pollId">ID of the Poll</param>
 		/// <returns>
 		/// <see langword="true" /> if the Poll was succesfully edited;
-		/// otherwise <see langword="false"/> if the Poll was not found.
+		/// <see langword="false"/> if the Poll is not active;
+		/// otherwise <see langword="null"/> if the Poll was not found
 		/// </returns>
-		Task<bool> EditPollAsync(PollEditDto poll, int pollId);
+		Task<bool?> EditPollAsync(PollEditDto poll, int pollId);
 
 		/// <summary>
 		/// Delete a Poll by its ID.
