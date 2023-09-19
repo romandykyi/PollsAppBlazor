@@ -1,6 +1,6 @@
 ﻿namespace PollsAppBlazor.Client.Extensions
 {
-    public static class DataTimeExtensions
+    public static class DateTimeOffsetExtensions
     {
         public static string AsTimeAgo(this DateTimeOffset dateTime)
         {
