@@ -73,7 +73,6 @@ namespace PollsAppBlazor.Server.Extensions
 		public static IServiceCollection AddCustomizedAuthorization(this IServiceCollection services)
 		{
 			services.AddTransient<IAuthorizationHandler, PollEditAuthorizationHandler>();
-			services.AddTransient<IAuthorizationHandler, OptionEditAuthorizationHandler>();
 
 			services.AddAuthorization(options =>
 			{
@@ -81,11 +80,6 @@ namespace PollsAppBlazor.Server.Extensions
 				{
 					policy.RequireAuthenticatedUser();
 					policy.AddRequirements(new PollEditAuthorizationRequirement());
-				});
-				options.AddPolicy(Policies.CanEditOption, policy =>
-				{
-					policy.RequireAuthenticatedUser();
-					policy.AddRequirements(new OptionEditAuthorizationRequirement());
 				});
 			});
 

@@ -6,10 +6,9 @@ namespace PollsAppBlazor.Server.Policy
 	public static class Policies
 	{
 		public const string CanEditPoll = "CanEditPoll";
-		public const string CanEditOption = "CanEditOption";
 
 		/// <summary>
-		/// Checks if user can edit any item(e.g. Poll, Vote) without being a creator of it.
+		/// Checks if user can edit any item(e.g. Poll) without being a creator of it.
 		/// </summary>
 		/// <param name="user">User that needs to be checked</param>
 		/// <returns>

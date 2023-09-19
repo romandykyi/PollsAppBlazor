@@ -1,9 +1,7 @@
 ﻿using Duende.IdentityServer.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PollsAppBlazor.Server.Policy;
 using PollsAppBlazor.Server.Services;
-using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.Server.Controllers
 {
@@ -19,42 +17,6 @@ namespace PollsAppBlazor.Server.Controllers
 		{
 			_optionsService = optionsService;
 			_votesService = votesService;
-		}
-
-		/// <summary>
-		/// Edits an Option
-		/// </summary>
-		/// <response code="204">
-		/// The Option was successfully edited
-		/// </response>
-		/// <response code="400">
-		/// Malformed or invalid input. 
-		/// <br />
-		/// The response includes the "errors" key with properties that contain arrays of 
-		/// validation errors
-		/// </response>
-		/// <response code="401">Unauthorized user call</response>
-		/// <response code="403">User lacks permission to edit this Option</response>
-		/// <response code="404">The Option does not exist</response>
-		[HttpPut]
-		[Authorize(Policy = Policies.CanEditOption)]
-		[Route("{optionId}")]
-		[ProducesResponseType(StatusCodes.Status204NoContent)]
-		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
-		[ProducesResponseType(StatusCodes.Status403Forbidden)]
-		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		public async Task<IActionResult> Edit([FromBody] OptionEditDto option, [FromRoute] int optionId)
-		{
-			if (!ModelState.IsValid)
-			{
-				return BadRequest(ModelState);
-			}
-			if (await _optionsService.EditOptionAsync(option, optionId))
-			{
-				return NoContent();
-			}
-			return NotFound();
 		}
 
 		/// <summary>
