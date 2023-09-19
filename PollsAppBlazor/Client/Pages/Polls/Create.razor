@@ -9,7 +9,7 @@
 <h2>Create Poll</h2>
 <ErrorsList Errors="serverErrors" />
 <PollForm CanEditOptions="true" SubmitButtonText="Create" Poll="@poll"
-		  OnSubmit="Submit" />
+		  OnSubmit="Submit" OnCancel="Cancel" />
 
 @code {
 	private string _defaultTitle { get; set; } = null!;
@@ -48,5 +48,10 @@
 		{
 			Snackbar.UnexpectedError();
 		}
+	}
+
+	private void Cancel()
+	{
+		NavigationManager.NavigateTo($"/polls");
 	}
 }

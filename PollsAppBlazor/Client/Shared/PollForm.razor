@@ -54,10 +54,16 @@
 			</li>
 		}
 	</ol>
-	<MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
-			   Color="Color.Primary" Class="ml-auto">
-		@SubmitButtonText
-	</MudButton>
+	<MudButtonGroup OverrideStyles="false">
+		<MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
+				   Color="Color.Primary" Class="ml-auto">
+			@SubmitButtonText
+		</MudButton>
+		<MudButton Variant="Variant.Filled" Color="Color.Error"
+				   Class="ml-auto" OnClick="@(async () => await OnCancel.InvokeAsync())">
+			Cancel
+		</MudButton>
+	</MudButtonGroup>
 </EditForm>
 
 @code {
@@ -72,6 +78,8 @@
 
 	[Parameter]
 	public EventCallback OnSubmit { get; set; }
+	[Parameter]
+	public EventCallback OnCancel { get; set; }
 
 	protected override void OnInitialized()
 	{

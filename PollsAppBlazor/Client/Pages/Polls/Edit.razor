@@ -17,7 +17,7 @@ else
 {
 	<ErrorsList Errors="serverErrors" />
 	<PollForm CanEditOptions="false" SubmitButtonText="Edit" Poll="@poll"
-			  OnSubmit="Submit" />
+			  OnSubmit="Submit" OnCancel="Cancel" />
 }
 
 @code {
@@ -80,5 +80,10 @@ else
 		{
 			Snackbar.UnexpectedError();
 		}
+	}
+
+	private void Cancel()
+	{
+		NavigationManager.NavigateTo($"/polls/{pollId}");
 	}
 }
