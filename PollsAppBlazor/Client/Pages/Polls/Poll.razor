@@ -182,7 +182,7 @@ else
 		}
 		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.Forbidden)
 		{
-			Snackbar.Add("You have already voted!", Severity.Warning,
+			Snackbar.Add("You cannot vote anymore!", Severity.Warning,
 				options => options.CloseAfterNavigation = true);
 		}
 		catch (HttpRequestException)
