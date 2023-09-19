@@ -58,32 +58,66 @@ else
 		</div>
 	}
 
-	<MudRadioGroup @bind-SelectedOption="@selectedOptionId"
-				   ReadOnly="@hasUserVoted">
-		@foreach (var option in poll.Options)
-		{
-			<MudRadio Option="@((int?)option.Id)" Class="d-block"
-					  Color="@Color.Primary">
-				@option.Description
-			</MudRadio>
-		}
-	</MudRadioGroup>
-	<MudButton OnClick="Vote" Disabled="@(hasUserVoted || selectedOptionId == null)"
-			   Color="Color.Success" Variant="Variant.Filled">
-		Vote
-	</MudButton>
+	@if (!viewResults)
+	{
+		<MudRadioGroup @bind-SelectedOption="@selectedOptionId"
+					   ReadOnly="@userHasVoted">
+			@foreach (var option in poll.Options)
+			{
+				var radioColor = option.Id == poll.VotedOptionId ? Color.Success : Color.Primary;
+				<MudRadio Option="@((int?)option.Id)" Class="d-block"
+						  Color="@radioColor">
+					@option.Description
+				</MudRadio>
+			}
+		</MudRadioGroup>
+		<MudStack Row="true" Spacing="1">
+			<MudButton OnClick="Vote" Disabled="@(userHasVoted || selectedOptionId == null)"
+					   Color="Color.Success" Variant="Variant.Filled">
+				Vote
+			</MudButton>
+			<MudButton OnClick="@(() => viewResults = true)" Disabled="@(!poll.AreVotesVisible)"
+					   Color="Color.Primary" Variant="Variant.Filled">
+				View results
+			</MudButton>
+		</MudStack>
+	}
+	else
+	{
+		<MudGrid>
+			<MudItem xs="12" sm="6">
+				<MudDataGrid T="OptionViewDto" Items="@poll.Options" Filterable="false"
+							 SortMode="SortMode.Single" Groupable="false">
+					<Columns>
+						<PropertyColumn Property="o => o!.Description" Title="Option" />
+						<PropertyColumn Property="o => o!.VotesCount" Title="Votes" />
+					</Columns>
+				</MudDataGrid>
+			</MudItem>
+			<MudItem xs="12" sm="6">
+				<MudChart ChartType="ChartType.Pie"
+						  InputData="@poll.Options.Select(o => (double)o.VotesCount!).ToArray()"
+						  InputLabels="@poll.Options.Select(o => o.Description).ToArray()" />
+			</MudItem>
+		</MudGrid>
+		<MudButton OnClick="@(() => viewResults = false)"
+				   Color="Color.Primary" Variant="Variant.Filled">
+			Back
+		</MudButton>
+	}
 }
 
 @code {
 	private PollViewDto poll { get; set; } = null!;
 
 	private int? selectedOptionId { get; set; }
-	private bool hasUserVoted => poll.VotedOptionId != null;
+	private bool viewResults { get; set; } = false;
+	private bool userHasVoted => poll.VotedOptionId != null;
 
 	[Parameter]
 	public int pollId { get; set; }
 
-	protected override async Task OnInitializedAsync()
+	private async Task UpdatePoll()
 	{
 		try
 		{
@@ -100,7 +134,12 @@ else
 		}
 	}
 
-	private async void Delete()
+	protected override async Task OnInitializedAsync()
+	{
+		await UpdatePoll();
+	}
+
+	private async Task Delete()
 	{
 		var parameters = new DialogParameters<DialogTemplate>();
 		parameters.Add(x => x.ContentText, $"Are you sure you want to Delete poll \"{poll.Title}\"?");
@@ -127,7 +166,7 @@ else
 		}
 	}
 
-	private async void Vote()
+	private async Task Vote()
 	{
 		// Make sure that user has selected option
 		if (selectedOptionId == null) return;
@@ -138,7 +177,7 @@ else
 			response.EnsureSuccessStatusCode();
 			Snackbar.Add("Your vote was saved", Severity.Success);
 
-			poll.VotedOptionId = selectedOptionId; // Update selected option client-side
+			await UpdatePoll(); // Update poll view
 			StateHasChanged();
 		}
 		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.Forbidden)
