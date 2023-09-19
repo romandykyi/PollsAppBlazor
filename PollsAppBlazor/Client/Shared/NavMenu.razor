@@ -1,6 +1,6 @@
 ﻿<div class="top-row ps-3 navbar navbar-dark">
 	<div class="container-fluid">
-		<a class="navbar-brand" href="">PollsAppBlazor</a>
+		<a class="navbar-brand" href="">Polls App Blazor</a>
 		<button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
 			<span class="navbar-toggler-icon"></span>
 		</button>
@@ -8,18 +8,19 @@
 </div>
 
 <div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-	<nav class="flex-column">
-		<div class="nav-item px-3">
-			<NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-				<span class="oi oi-home" aria-hidden="true"></span> Home
-			</NavLink>
-		</div>
-		<div class="nav-item px-3">
-			<NavLink class="nav-link" href="polls">
-				<span class="oi oi-list-rich" aria-hidden="true"></span> Polls
-			</NavLink>
-		</div>
-	</nav>
+	<MudNavMenu>
+		<MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">
+			Home
+		</MudNavLink>
+		<MudNavGroup Title="Polls" Icon="@Icons.Material.Filled.ListAlt">
+			<MudNavLink Href="/polls" Icon="@Icons.Material.Filled.Whatshot" Match="NavLinkMatch.All">
+				Latest
+			</MudNavLink>
+			<MudNavLink Href="/polls/create" Icon="@Icons.Material.Filled.AddCircle" Match="NavLinkMatch.All">
+				Create new
+			</MudNavLink>
+		</MudNavGroup>
+	</MudNavMenu>
 </div>
 
 @code {
