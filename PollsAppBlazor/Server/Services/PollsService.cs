@@ -91,10 +91,10 @@ namespace PollsAppBlazor.Server.Services
 					poll.AreVotesVisible = true;
 					poll.VotedOptionId = votedOptionId;
 				}
-				else
-				{
-					poll.AreVotesVisible = poll.IsExpired;
-				}
+			}
+			if (!poll.AreVotesVisible)
+			{
+				poll.AreVotesVisible = poll.IsExpired;
 			}
 			if (poll.AreVotesVisible)
 			{
