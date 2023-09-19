@@ -30,7 +30,7 @@
 
 		if (result.Canceled) return;
 
-		var httpResponse = await HttpClient.PostAsync("/api/users/logout", null);
+		var httpResponse = await HttpClient.PostAsync("/api/auth/logout", null);
 		try
 		{
 			httpResponse.EnsureSuccessStatusCode();

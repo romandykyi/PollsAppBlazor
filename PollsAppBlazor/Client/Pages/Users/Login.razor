@@ -51,7 +51,7 @@
 		await form.Validate();
 		if (!form.IsValid) return;
 
-		var response = await PublicClient.Client.PostAsJsonAsync("/api/users/login", user);
+		var response = await PublicClient.Client.PostAsJsonAsync("/api/auth/login", user);
 		try
 		{
 			response.EnsureSuccessStatusCode();

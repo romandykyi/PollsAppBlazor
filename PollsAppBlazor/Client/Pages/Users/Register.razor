@@ -99,7 +99,7 @@
 		if (!form.IsValid) return;
 
 		HttpResponseMessage response;
-		response = await PublicClient.Client.PostAsJsonAsync("/api/users/register", user);
+		response = await PublicClient.Client.PostAsJsonAsync("/api/auth/register", user);
 		try
 		{
 			response.EnsureSuccessStatusCode();

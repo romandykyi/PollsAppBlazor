@@ -2,21 +2,20 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using PollsAppBlazor.Server.Models;
-using PollsAppBlazor.Shared.Polls;
 using PollsAppBlazor.Shared.Users;
 
 namespace PollsAppBlazor.Server.Controllers
 {
-	[Route("api/users")]
+	[Route("api/auth")]
 	// doesn't work with Swagger: [AutoValidateAntiforgeryToken]
-	public class UsersController : ControllerBase
+	public class AuthController : ControllerBase
 	{
 		private readonly SignInManager<ApplicationUser> _signInManager;
 		private readonly UserManager<ApplicationUser> _userManager;
 		private readonly IUserStore<ApplicationUser> _userStore;
 		private readonly IUserEmailStore<ApplicationUser> _emailStore;
 
-		public UsersController(
+		public AuthController(
 			UserManager<ApplicationUser> userManager,
 			IUserStore<ApplicationUser> userStore,
 			SignInManager<ApplicationUser> signInManager)
