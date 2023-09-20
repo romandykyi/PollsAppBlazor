@@ -36,13 +36,12 @@ namespace PollsAppBlazor.Server.Services
 		Task<PollViewDto?> GetByIdAsync(int pollId, string? userId = null);
 
 		/// <summary>
-		/// Get newest Polls.
+		/// Get Polls that meet filter.
 		/// </summary>
-		/// <param name="count">Maximum number of Polls to be returned</param>
 		/// <returns>
-		/// <paramref name="count"/> or less newest Polls
+		/// Polls that match given filter.
 		/// </returns>
-		Task<IEnumerable<PollPreviewDto>> GetNewestPollsAsync(int count);
+		Task<PollsPage> GetPollsAsync(PollsPageFilter filter);
 
 		/// <summary>
 		/// Create a Poll.

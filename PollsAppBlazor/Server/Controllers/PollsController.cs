@@ -1,5 +1,6 @@
 ﻿using Duende.IdentityServer.Extensions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using PollsAppBlazor.Server.Policy;
 using PollsAppBlazor.Server.Services;
@@ -34,7 +35,7 @@ namespace PollsAppBlazor.Server.Controllers
 		[Route("{pollId}")]
 		[ProducesResponseType(typeof(PollViewDto), StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status404NotFound)]
-		public async Task<IActionResult> Get([FromRoute] int pollId)
+		public async Task<IActionResult> GetById([FromRoute] int pollId)
 		{
 			string? userId = User.IsAuthenticated() ? User.GetSubjectId() : null;
 			PollViewDto? result = await _pollsService.GetByIdAsync(pollId, userId);
@@ -54,15 +55,27 @@ namespace PollsAppBlazor.Server.Controllers
 		}
 
 		/// <summary>
-		/// Gets latest Polls list
+		/// Gets Polls page with a filter
 		/// </summary>
-		/// <response code="200">Returns Polls list</response>
+		/// <response code="200">Returns Polls page that match the filter</response>
+		/// <response code="400">
+		/// Malformed or invalid input. 
+		/// <br />
+		/// The response includes the "errors" key with properties that contain arrays of 
+		/// validation errors
+		/// and the corresponding value describes the reason for the error
+		/// </response>
 		[HttpGet]
 		[AllowAnonymous]
-		[ProducesResponseType(typeof(IEnumerable<PollPreviewDto>), StatusCodes.Status200OK)]
-		public async Task<IActionResult> Get()
+		[ProducesResponseType(typeof(PollsPage), StatusCodes.Status200OK)]
+		[ProducesResponseType(typeof(BadRequest), StatusCodes.Status400BadRequest)]
+		public async Task<IActionResult> Get([FromQuery] PollsPageFilter filter)
 		{
-			return Ok(await _pollsService.GetNewestPollsAsync(10));
+			if (!ModelState.IsValid)
+			{
+				return BadRequest();
+			}
+			return Ok(await _pollsService.GetPollsAsync(filter));
 		}
 
 		/// <summary>
@@ -95,7 +108,7 @@ namespace PollsAppBlazor.Server.Controllers
 			PollViewDto result = await _pollsService.CreatePollAsync(poll, userId);
 			var routeValues = new { pollId = result.Id };
 
-			return CreatedAtAction(nameof(Get), routeValues, result);
+			return CreatedAtAction(nameof(GetById), routeValues, result);
 		}
 
 		/// <summary>

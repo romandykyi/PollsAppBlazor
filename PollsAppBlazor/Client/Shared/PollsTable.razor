@@ -1,0 +1,108 @@
+﻿@using PollsAppBlazor.Shared.Polls
+@using System.Net.Http.Json
+@inject PublicClient PublicClient
+@inject ISnackbar Snackbar
+
+<MudButton Variant="Variant.Filled" Color="Color.Success"
+		   StartIcon="@Icons.Material.Filled.AddCircleOutline" Href="/polls/create">
+	Create
+</MudButton>
+<EditForm Model="@Filter" OnSubmit="Update" Context="formContext">
+	<DataAnnotationsValidator />
+	<MudGrid>
+		@if (ShowPublishedByColumn)
+		{
+
+			<MudItem xs="12" sm="7" lg="3">
+				<MudTextField @bind-Value="Filter.Creator" For="@(() => Filter.Creator)"
+							  Label="Creator" MaxLength="@PollCreationDto.TitleMaxSize" />
+			</MudItem>
+		}
+		<MudItem xs="12" sm="5" lg="2">
+			<MudSelect @bind-Value="Filter.PageSize" For="@(() => Filter.PageSize)"
+					   Label="Polls per page" Style="width: 120px">
+				<MudSelectItem Value="10">10</MudSelectItem>
+				<MudSelectItem Value="25">25</MudSelectItem>
+				<MudSelectItem Value="50">50</MudSelectItem>
+				<MudSelectItem Value="50">100</MudSelectItem>
+			</MudSelect>
+		</MudItem>
+		<MudItem xs="12" sm="6" lg="4">
+			<MudCheckBox @bind-Checked="Filter.ShowExpired" For="@(() => Filter.ShowExpired)"
+						 Label="Show expired polls" Color="Color.Primary" />
+		</MudItem>
+		<MudItem xs="12">
+			<MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
+					   Color="Color.Primary" StartIcon="@Icons.Material.Filled.Search">
+				Find
+			</MudButton>
+		</MudItem>
+	</MudGrid>
+</EditForm>
+
+@if (page == null)
+{
+	<MudText>Loading...</MudText>
+}
+else if (!page.Polls.Any())
+{
+	<MudText>No polls were found😥</MudText>
+}
+else
+{
+	<MudDataGrid T="PollPreviewDto" Items="@(page.Polls)" Filterable="false" SortMode="@SortMode.None"
+				 Groupable="false">
+		<Columns>
+			<PropertyColumn Property="p => p!.Title">
+				<CellTemplate>
+					<MudLink Href="@($"/polls/{context.Item!.Id}")">@context.Item!.Title</MudLink>
+				</CellTemplate>
+			</PropertyColumn>
+			@if (ShowPublishedByColumn)
+			{
+				<PropertyColumn Property="p => p!.Creator" Title="Published by" />
+			}
+			<PropertyColumn Property="p => p!.CreationDate.AsTimeAgo()" Title="Published" />
+		</Columns>
+	</MudDataGrid>
+	<div class="d-flex flex-column align-center">
+		<MudPagination @bind-Selected="Filter.Page" Count="@pagesCount" />
+	</div>
+}
+
+@code {
+	private PollsPage? page;
+	private int pagesCount => page != null ? page.TotalPollsCount / Filter.PageSize : 0;
+
+	[Parameter]
+	public PollsPageFilter Filter { get; set; } = new()
+		{
+			PageSize = 25
+		};
+	[Parameter]
+	public bool ShowPublishedByColumn { get; set; } = true;
+	[Parameter]
+	public string HttpGetPath { get; set; } = null!;
+
+	private async Task Update()
+	{
+		if (HttpGetPath == null)
+		{
+			throw new NullReferenceException($"{nameof(HttpGetPath)} is null");
+		}
+		try
+		{
+			string uri = $"{HttpGetPath}?{Filter.ToQueryString()}";
+			page = await PublicClient.Client.GetFromJsonAsync<PollsPage>(uri);
+		}
+		catch (HttpRequestException)
+		{
+			Snackbar.UnexpectedError();
+		}
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		await Update();
+	}
+}

@@ -34,7 +34,7 @@ namespace PollsAppBlazor.Server.Services
 				.Select(p => p.CreatorId)
 				.FirstOrDefaultAsync();
 		}
-		
+
 		/// <inheritdoc />
 		public async Task<bool> IsPollActiveAsync(int pollId)
 		{
@@ -110,22 +110,49 @@ namespace PollsAppBlazor.Server.Services
 		}
 
 		/// <inheritdoc />
-		public async Task<IEnumerable<PollPreviewDto>> GetNewestPollsAsync(int count)
+		public async Task<PollsPage> GetPollsAsync(PollsPageFilter filter)
 		{
-			return await _dataContext.Polls
+			var query = _dataContext.Polls
 				.Include(p => p.Creator)
-				.AsNoTracking()
-				.Where(p => p.ExpiryDate == null || DateTimeOffset.Now < p.ExpiryDate)
-				.OrderByDescending(p => p.CreationDate)
-				.Select(p => new PollPreviewDto()
-				{
-					Id = p.Id,
-					Title = p.Title,
-					CreationDate = p.CreationDate,
-					Creator = p.Creator!.UserName!
-				})
-				.Take(count)
-				.ToListAsync();
+				.AsNoTracking();
+
+			// Don't show expired Polls
+			if (!filter.ShowExpired)
+			{
+				query = query
+					.Where(p => p.ExpiryDate == null || DateTimeOffset.Now < p.ExpiryDate);
+			}
+			// Only polls that was created by certain user
+			if (filter.Creator != null)
+			{
+				query = query
+					.Where(p => p.Creator!.UserName == filter.Creator);
+			}
+			// Sort by the date
+			query = query.OrderByDescending(p => p.CreationDate);
+
+			// Count all matching Polls
+			int count = await query.CountAsync();
+
+			// Select only needed data
+			var filteredQuery = query.Select(p => new PollPreviewDto()
+			{
+				Id = p.Id,
+				Title = p.Title,
+				CreationDate = p.CreationDate,
+				Creator = p.Creator!.UserName!
+			});
+
+			// Apply pagination
+			filteredQuery = filteredQuery
+				.Skip(filter.PageSize * (filter.Page - 1))
+				.Take(filter.PageSize);
+
+			return new()
+			{
+				TotalPollsCount = count,
+				Polls = await filteredQuery.ToListAsync()
+			};
 		}
 
 		/// <inheritdoc />
