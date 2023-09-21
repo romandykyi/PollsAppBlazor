@@ -22,6 +22,10 @@ namespace PollsAppBlazor.Shared.Polls
 		/// Optional username of the creator of returned Polls.
 		/// </summary>
 		public string? Creator { get; set; }
+		/// <summary>
+		/// Sort mode for polls.
+		/// </summary>
+		public PollsSortMode SortMode { get; set; } = PollsSortMode.Newest;
 
 		/// <summary>
 		/// Page number, counting from 1.

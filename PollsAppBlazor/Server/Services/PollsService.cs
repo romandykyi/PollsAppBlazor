@@ -1,5 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
+using MudBlazor;
 using PollsAppBlazor.Server.Data;
 using PollsAppBlazor.Server.Models;
 using PollsAppBlazor.Shared.Polls;
@@ -130,8 +131,14 @@ namespace PollsAppBlazor.Server.Services
 				query = query
 					.Where(p => p.Creator!.UserName!.Contains(filter.Creator));
 			}
-			// Sort by the date
-			query = query.OrderByDescending(p => p.CreationDate);
+			// Sort
+			query = filter.SortMode switch
+			{
+				PollsSortMode.MostVoted => query.OrderByDescending(p => p.Votes!.Count),
+				PollsSortMode.Oldest => query.OrderBy(p => p.CreationDate),
+				// Newest
+				_ => query.OrderByDescending(p => p.CreationDate)
+			};
 
 			// Count all matching Polls
 			int count = await query.CountAsync();
