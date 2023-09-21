@@ -44,6 +44,14 @@ namespace PollsAppBlazor.Server.Services
 		Task<PollsPage> GetPollsAsync(PollsPageFilter filter);
 
 		/// <summary>
+		/// Get Polls, created by the user, that meet filter.
+		/// </summary>
+		/// <returns>
+		/// Polls that match given filter and are created by the user.
+		/// </returns>
+		Task<PollsPage> GetUserPollsAsync(PollsPageFilter filter, string creatorId);
+
+		/// <summary>
 		/// Create a Poll.
 		/// </summary>
 		/// <param name="poll">Poll DTO used for its creation</param>
