@@ -22,7 +22,7 @@
 			<MudTextField @bind-Value="Filter.Creator" For="@(() => Filter.Creator)"
 						  Label="Creator" />
 		</MudItem>
-		<MudItem lg="12">
+		<MudItem xs="12">
 			<MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
 					   Color="Color.Primary" StartIcon="@Icons.Material.Filled.Search">
 				Find
@@ -30,6 +30,15 @@
 		</MudItem>
 	</MudGrid>
 	<MudGrid>
+		<MudItem xs="12" sm="5" lg="2">
+			<MudSelect @bind-Value="Filter.SortMode" @bind-Value:after="UpdateToFirstPage"
+					   For="@(() => Filter.SortMode)"
+					   Label="Sort mode">
+				<MudSelectItem Value="@PollsSortMode.Newest">Newest</MudSelectItem>
+				<MudSelectItem Value="@PollsSortMode.Oldest">Oldest</MudSelectItem>
+				<MudSelectItem Value="@PollsSortMode.MostVoted">Most voted</MudSelectItem>
+			</MudSelect>
+		</MudItem>
 		<MudItem xs="12" sm="5" lg="2">
 			<MudSelect @bind-Value="Filter.PageSize" @bind-Value:after="UpdateToFirstPage"
 					   For="@(() => Filter.PageSize)"
