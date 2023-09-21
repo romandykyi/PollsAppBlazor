@@ -15,6 +15,10 @@ namespace PollsAppBlazor.Shared.Polls
 		/// </remarks>
 		public bool ShowExpired { get; set; } = false;
 		/// <summary>
+		/// Optional title of returned Polls
+		/// </summary>
+		public string? Title { get; set; }
+		/// <summary>
 		/// Optional username of the creator of returned Polls.
 		/// </summary>
 		public string? Creator { get; set; }

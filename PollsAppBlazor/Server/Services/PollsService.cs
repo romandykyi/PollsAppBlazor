@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.EntityFrameworkCore;
 using PollsAppBlazor.Server.Data;
 using PollsAppBlazor.Server.Models;
 using PollsAppBlazor.Shared.Polls;
@@ -122,11 +123,17 @@ namespace PollsAppBlazor.Server.Services
 				query = query
 					.Where(p => p.ExpiryDate == null || DateTimeOffset.Now < p.ExpiryDate);
 			}
-			// Only polls that was created by certain user
+			// Search by title
+			if (filter.Title != null)
+			{
+				query = query
+					.Where(p => p.Title!.Contains(filter.Title));
+			}
+			// Search by creator
 			if (filter.Creator != null)
 			{
 				query = query
-					.Where(p => p.Creator!.UserName == filter.Creator);
+					.Where(p => p.Creator!.UserName!.Contains(filter.Creator));
 			}
 			// Sort by the date
 			query = query.OrderByDescending(p => p.CreationDate);
