@@ -71,6 +71,7 @@ else
 				<PropertyColumn Property="p => p!.Creator" Title="Published by" />
 			}
 			<PropertyColumn Property="p => p!.CreationDate.AsTimeAgo()" Title="Published" />
+			<PropertyColumn Property="p => p!.VotesCount" Title="Votes" />
 			<PropertyColumn Property="p => p!.ExpiryDate" Title="Status">
 				<CellTemplate>
 					@if (context.Item!.ExpiryDate == null)
