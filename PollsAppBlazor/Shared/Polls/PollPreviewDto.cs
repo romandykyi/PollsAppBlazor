@@ -8,5 +8,6 @@
 		public string Creator { get; set; } = null!;
 		public DateTimeOffset CreationDate { get; set; }
 		public DateTimeOffset? ExpiryDate { get; set; }
+		public int VotesCount { get; set; }
 	}
 }

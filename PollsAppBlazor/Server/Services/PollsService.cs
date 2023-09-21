@@ -143,7 +143,8 @@ namespace PollsAppBlazor.Server.Services
 				Title = p.Title,
 				CreationDate = p.CreationDate,
 				ExpiryDate = p.ExpiryDate,
-				Creator = p.Creator!.UserName!
+				Creator = p.Creator!.UserName!,
+				VotesCount = p.Votes!.Count
 			});
 
 			// Apply pagination
@@ -164,6 +165,7 @@ namespace PollsAppBlazor.Server.Services
 			return await FilterPollsAsync(filter,
 				_dataContext.Polls
 				.Include(p => p.Creator)
+				.Include(p => p.Votes)
 				.AsNoTracking());
 		}
 
@@ -173,6 +175,7 @@ namespace PollsAppBlazor.Server.Services
 			filter.Creator = null;
 			return await FilterPollsAsync(filter,
 				_dataContext.Polls
+				.Include(p => p.Votes)
 				.AsNoTracking()
 				.Where(p => p.CreatorId == creatorId));
 		}
