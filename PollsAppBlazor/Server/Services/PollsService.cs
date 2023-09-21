@@ -147,6 +147,7 @@ namespace PollsAppBlazor.Server.Services
 				Id = p.Id,
 				Title = p.Title,
 				CreationDate = p.CreationDate,
+				ExpiryDate = p.ExpiryDate,
 				Creator = p.Creator!.UserName!
 			});
 

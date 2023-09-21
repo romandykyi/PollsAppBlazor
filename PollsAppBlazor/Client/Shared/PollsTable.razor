@@ -63,6 +63,26 @@ else
 				<PropertyColumn Property="p => p!.Creator" Title="Published by" />
 			}
 			<PropertyColumn Property="p => p!.CreationDate.AsTimeAgo()" Title="Published" />
+			<PropertyColumn Property="p => p!.CreationDate.AsTimeAgo()" Title="Status">
+				<CellTemplate>
+					@if (context.Item!.ExpiryDate == null)
+					{
+						<MudChip Color="Color.Success">active</MudChip>
+					}
+					else if (context.Item!.ExpiryDate < DateTimeOffset.Now)
+					{
+						<MudChip Color="Color.Warning">
+							expired @context.Item!.ExpiryDate.Value.AsTimeAgo()
+						</MudChip>
+					}
+					else
+					{
+						<MudChip Color="Color.Default">
+							expires @context.Item!.ExpiryDate.Value.AsExpiryDuration()
+						</MudChip>
+					}
+				</CellTemplate>
+			</PropertyColumn>
 		</Columns>
 	</MudDataGrid>
 	<div class="d-flex flex-column align-center">
