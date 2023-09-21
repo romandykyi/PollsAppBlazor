@@ -97,10 +97,13 @@ namespace PollsAppBlazor.Server.Extensions
 			}
 
 			// Random polls
+			DateTimeOffset minExpiryDate = DateTimeOffset.Now - TimeSpan.FromDays(90),
+				maxExpiryDate = DateTimeOffset.Now + TimeSpan.FromDays(90);
 			var pollFaker = new Faker<Poll>()
 				.RuleFor(p => p.CreatorId, f => f.Random.CollectionItem(usersIds))
 				.RuleFor(p => p.CreationDate, f => f.Date.RecentOffset(365))
-				.RuleFor(p => p.ExpiryDate, f => f.Random.Number(1) == 1 ? f.Date.SoonOffset(120) : null)
+				.RuleFor(p => p.ExpiryDate,
+						 f => f.Random.Number(1) == 1 ? f.Date.BetweenOffset(minExpiryDate, maxExpiryDate) : null)
 				.RuleFor(p => p.Title, f => f.Commerce.ProductName())
 				.RuleFor(p => p.Description,
 				f => f.Random.Number(1) == 1 ? string.Join(' ', f.Lorem.Words(5)) : null);
