@@ -25,7 +25,19 @@
 }
 else
 {
-	<h2>@poll.Title</h2>
+	<h2>
+		@poll.Title
+		@if (isInFavorites != null)
+		{
+			<MudCheckBox T="bool" Class="d-inline-flex"
+						 Checked="@(isInFavorites == true)"
+						 CheckedChanged="UpdateFavoritesStatus"
+						 CheckedIcon="@Icons.Material.Filled.Star"
+						 UncheckedIcon="@Icons.Material.Filled.StarBorder"
+						 Color="Color.Warning"
+						 UnCheckedColor="Color.Default" />
+		}
+	</h2>
 	<div class="createdDate">Created @poll.CreationDate.AsTimeAgo()</div>
 	@if (poll.ExpiryDate != null && !poll.IsExpired)
 	{
@@ -126,6 +138,8 @@ else
 	private bool viewResults { get; set; } = false;
 	private bool userHasVoted => poll.VotedOptionId != null;
 
+	private bool? isInFavorites { get; set; }
+
 	[Parameter]
 	public int pollId { get; set; }
 
@@ -149,6 +163,23 @@ else
 	protected override async Task OnInitializedAsync()
 	{
 		await UpdatePoll();
+
+		try
+		{
+			var response = await PublicClient.Client.GetAsync($"api/user/favorites/{pollId}");
+			response.EnsureSuccessStatusCode();
+
+			var result = await response.Content.ReadFromJsonAsync<FavoriteDto>();
+			isInFavorites = result!.IsFavorite;
+		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			isInFavorites = null;
+		}
+		catch (HttpRequestException)
+		{
+			Snackbar.UnexpectedError();
+		}
 	}
 
 	private async Task Delete()
@@ -227,6 +258,27 @@ else
 		{
 			Snackbar.Add("You cannot vote anymore", Severity.Warning,
 				options => options.CloseAfterNavigation = true);
+		}
+		catch (HttpRequestException)
+		{
+			Snackbar.UnexpectedError();
+		}
+	}
+
+	private async Task UpdateFavoritesStatus(bool favorite)
+	{
+		isInFavorites = favorite;
+
+		string uri = $"api/user/favorites/{pollId}";
+		var http = PublicClient.Client;
+
+		HttpResponseMessage response = favorite ?
+					await http.PutAsync(uri, null) : await http.DeleteAsync(uri);
+		try
+		{
+			response.EnsureSuccessStatusCode();
+			Snackbar.Add(favorite ? "Poll was added to favorites" : "Poll was removed from favotires",
+						Severity.Info);
 		}
 		catch (HttpRequestException)
 		{

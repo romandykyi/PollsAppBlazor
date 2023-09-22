@@ -16,6 +16,13 @@
 			<MudNavLink Href="/polls" Icon="@Icons.Material.Filled.Whatshot" Match="NavLinkMatch.All">
 				Latest
 			</MudNavLink>
+			<AuthorizeView>
+				<Authorized>
+					<MudNavLink Href="/polls/favorites" Icon="@Icons.Material.Filled.Star" Match="NavLinkMatch.All">
+						Favorites
+					</MudNavLink>
+				</Authorized>
+			</AuthorizeView>
 			<MudNavLink Href="/polls/create" Icon="@Icons.Material.Filled.AddCircle" Match="NavLinkMatch.All">
 				Create new
 			</MudNavLink>
