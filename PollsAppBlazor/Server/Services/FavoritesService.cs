@@ -16,7 +16,7 @@ namespace PollsAppBlazor.Server.Services
 
 		private async Task<bool> DoesExistAsync(int pollId, string userId)
 		{
-			return !await _context.Favorites
+			return await _context.Favorites
 				.AsNoTracking()
 				.AnyAsync(f => f.PollId == pollId && f.UserId == userId);
 		}
