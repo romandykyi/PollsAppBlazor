@@ -104,8 +104,7 @@ else
 		</Columns>
 	</MudDataGrid>
 	<div class="d-flex mt-5 flex-column align-center">
-		<MudPagination @bind-Selected="Filter.Page"
-		@bind-Selected:after="Update"
+		<MudPagination @bind-Selected="Filter.Page" @bind-Selected:after="Update"
 					   Count="@pagesCount" />
 	</div>
 }
