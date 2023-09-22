@@ -1,7 +1,19 @@
-﻿namespace PollsAppBlazor.Server.Services
+﻿using PollsAppBlazor.Shared.Polls;
+
+namespace PollsAppBlazor.Server.Services
 {
 	public interface IFavoritesService
 	{
+		/// <summary>
+		/// Get a Poll favorite status for the user.
+		/// </summary>
+		/// <remarks>
+		/// This method doesn't check whether Poll exists.
+		/// </remarks>
+		/// <param name="pollId">ID of the Poll to be checked</param>
+		/// <param name="userId">ID the user</param>
+		Task<FavoriteDto> GetFavorite(int pollId, string userId);
+
 		/// <summary>
 		/// Add a Poll to favorites for the user.
 		/// </summary>

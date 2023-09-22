@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PollsAppBlazor.Server.Data;
 using PollsAppBlazor.Server.Models;
+using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.Server.Services
 {
@@ -13,16 +14,36 @@ namespace PollsAppBlazor.Server.Services
 			_context = context;
 		}
 
+		private async Task<bool> DoesExistAsync(int pollId, string userId)
+		{
+			return !await _context.Favorites
+				.AsNoTracking()
+				.AnyAsync(f => f.PollId == pollId && f.UserId == userId);
+		}
+
+		/// <inheritdoc />
+		public async Task<FavoriteDto> GetFavorite(int pollId, string userId)
+		{
+			return new()
+			{
+				PollId = pollId,
+				IsFavorite = await DoesExistAsync(pollId, userId)
+			};
+		}
+
+		/// <inheritdoc />
 		public async Task<bool> AddToFavoritesAsync(int pollId, string userId)
 		{
 			// If poll doesn't exist
-			if (!await _context.Polls.AnyAsync(p => p.Id == pollId))
+			if (!await _context.Polls
+				.AsNoTracking()
+				.AnyAsync(p => p.Id == pollId))
 			{
 				return false;
 			}
 
 			// If isn't already in favorites
-			if (!await _context.Favorites.AnyAsync(f => f.PollId == pollId && f.UserId == userId))
+			if (!await DoesExistAsync(pollId, userId))
 			{
 				Favorite favorite = new()
 				{
@@ -37,6 +58,7 @@ namespace PollsAppBlazor.Server.Services
 			return true;
 		}
 
+		/// <inheritdoc />
 		public async Task<bool> RemoveFromFavoritesAsync(int pollId, string userId)
 		{
 			var favorite = await _context.Favorites.
