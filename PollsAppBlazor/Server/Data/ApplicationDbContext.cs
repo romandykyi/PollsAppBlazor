@@ -11,6 +11,7 @@ namespace PollsAppBlazor.Server.Data
 		public DbSet<Poll> Polls { get; set; }
 		public DbSet<Option> Options { get; set; }
 		public DbSet<Vote> Votes { get; set; }
+		public DbSet<Favorite> Favorites { get; set; }
 
 		public ApplicationDbContext(
 			DbContextOptions options,
@@ -22,7 +23,15 @@ namespace PollsAppBlazor.Server.Data
 		{
 			base.OnModelCreating(builder);
 
-			// Vote->Poll
+			// User->CreatedPolls
+			builder.Entity<ApplicationUser>()
+				.HasMany(u => u.CreatedPolls)
+				.WithOne(p => p.Creator)
+				.HasForeignKey(p => p.CreatorId)
+				.IsRequired()
+				.OnDelete(DeleteBehavior.Cascade);
+
+			// Votes->Poll
 			builder.Entity<Vote>()
 				.HasOne(v => v.Poll)
 				.WithMany(p => p.Votes)
@@ -30,13 +39,27 @@ namespace PollsAppBlazor.Server.Data
 				.IsRequired()
 				.OnDelete(DeleteBehavior.ClientCascade);
 
-			// Vote->Option
+			// Votes->Option
 			builder.Entity<Vote>()
 				.HasOne(v => v.Option)
 				.WithMany(p => p.Votes)
 				.HasForeignKey(v => v.OptionId)
 				.IsRequired()
 				.OnDelete(DeleteBehavior.ClientCascade);
+
+			// Favorites->Poll
+			builder.Entity<Favorite>()
+				.HasOne(f => f.Poll)
+				.WithMany(p => p.Favorites)
+				.HasForeignKey(f => f.PollId)
+				.IsRequired()
+				.OnDelete(DeleteBehavior.ClientCascade);
+
+			// Users->Polls
+			builder.Entity<ApplicationUser>()
+				.HasMany(u => u.FavoritePolls)
+				.WithMany()
+				.UsingEntity<Favorite>();
 		}
 	}
 }

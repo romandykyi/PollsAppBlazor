@@ -261,6 +261,7 @@ namespace PollsAppBlazor.Server.Services
 			Poll? poll = await _dataContext.Polls
 				.Include(p => p.Options)
 				.Include(p => p.Votes)
+				.Include(p => p.Favorites)
 				.FirstOrDefaultAsync(p => p.Id == pollId);
 			if (poll == null)
 			{

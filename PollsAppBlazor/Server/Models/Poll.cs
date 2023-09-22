@@ -38,5 +38,10 @@ namespace PollsAppBlazor.Server.Models
 		/// All votes related to this poll.
 		/// </summary>
 		public ICollection<Vote>? Votes { get; set; }
+
+		/// <summary>
+		/// All favorites related to this poll.
+		/// </summary>
+		public ICollection<Favorite>? Favorites { get; set; }
 	}
 }

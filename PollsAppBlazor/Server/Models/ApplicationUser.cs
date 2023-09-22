@@ -12,5 +12,13 @@ namespace PollsAppBlazor.Server.Models
 		/// Votes given by this user.
 		/// </summary>
 		public ICollection<Vote>? Votes { get; set; }
+		/// <summary>
+		/// All favorites of this user.
+		/// </summary>
+		public ICollection<Favorite>? Favorites { get; set; }
+		/// <summary>
+		/// All favorite polls of this user.
+		/// </summary>
+		public ICollection<Poll>? FavoritePolls { get; set; }
 	}
 }
