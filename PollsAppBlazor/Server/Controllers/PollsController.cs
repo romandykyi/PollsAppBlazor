@@ -202,5 +202,31 @@ namespace PollsAppBlazor.Server.Controllers
 			}
 			return NotFound();
 		}
+
+		/// <summary>
+		/// Makes a Poll expired
+		/// </summary>
+		/// <response code="204">The Poll was successfully made expired</response>
+		/// <response code="401">Unauthorized user call</response>
+		/// <response code="403">User lacks permission to edit this Poll</response>
+		/// <response code="404">The Poll does not exist</response>
+		/// <response code="422">The Poll is already expired</response>
+		[HttpPatch]
+		[Authorize(Policy = Policies.CanEditPoll)]
+		[Route("{pollId}/expire")]
+		[ProducesResponseType(StatusCodes.Status204NoContent)]
+		[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+		[ProducesResponseType(StatusCodes.Status403Forbidden)]
+		[ProducesResponseType(StatusCodes.Status404NotFound)]
+		[ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+		public async Task<IActionResult> Expire([FromRoute] int pollId)
+		{
+			return await _pollsService.ExpirePollAsync(pollId) switch
+			{
+				true => NoContent(),
+				false => UnprocessableEntity(),
+				null => NotFound()
+			};
+		}
 	}
 }

@@ -91,5 +91,16 @@ namespace PollsAppBlazor.Server.Services
 		/// otherwise <see langword="false"/> if the Poll was not found.
 		/// </returns>
 		Task<bool> DeletePollAsync(int pollId);
+
+		/// <summary>
+		/// Make poll expired.
+		/// </summary>
+		/// <param name="pollId"></param>
+		/// <returns>
+		/// <see langword="true" /> on success;
+		/// <see langword="false" /> if poll is already expired;
+		/// <see langword="null" /> if poll was not found
+		/// </returns>
+		public Task<bool?> ExpirePollAsync(int pollId);
 	}
 }

@@ -52,6 +52,14 @@ else
 					   OnClick="Delete">
 				Delete
 			</MudButton>
+			@if (!poll.IsExpired)
+			{
+				<MudButton Variant="Variant.Outlined" Color="Color.Warning"
+						   StartIcon="@Icons.Material.Filled.Lock"
+						   OnClick="Lock">
+					Lock
+				</MudButton>
+			}
 		</MudStack>
 	}
 
@@ -163,6 +171,33 @@ else
 
 			NavigationManager.NavigateTo("/polls");
 			Snackbar.Add("Poll was successfully deleted", Severity.Success);
+		}
+		catch (HttpRequestException)
+		{
+			Snackbar.UnexpectedError();
+		}
+	}
+
+	private async Task Lock()
+	{
+		var parameters = new DialogParameters<DialogTemplate>();
+		parameters.Add(x => x.ContentText, $"Are you sure you want to Lock poll \"{poll.Title}\"? Results will become visible for everyone and no one will be able to vote.");
+		parameters.Add(x => x.Color, Color.Warning);
+
+		DialogOptions options = new() { Position = DialogPosition.TopCenter };
+
+		var dialog = await DialogService.ShowAsync<DialogTemplate>("Confirm operation", parameters, options);
+		var result = await dialog.Result;
+
+		if (result.Canceled) return;
+
+		var response = await PublicClient.Client.PatchAsync($"api/polls/{pollId}/expire", null);
+		try
+		{
+			response.EnsureSuccessStatusCode();
+
+			await UpdatePoll();
+			Snackbar.Add("Poll was successfully locked", Severity.Success);
 		}
 		catch (HttpRequestException)
 		{

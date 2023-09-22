@@ -1,6 +1,5 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
-using MudBlazor;
 using PollsAppBlazor.Server.Data;
 using PollsAppBlazor.Server.Models;
 using PollsAppBlazor.Shared.Polls;
@@ -279,5 +278,20 @@ namespace PollsAppBlazor.Server.Services
 
 			return true;
 		}
+
+		/// <inheritdoc />
+		public async Task<bool?> ExpirePollAsync(int pollId)
+		{
+			var poll = await _dataContext.Polls.FirstOrDefaultAsync(p => p.Id == pollId);
+			if (poll == null) return null;
+
+			if (!poll.IsActive) return false;
+
+			poll.ExpiryDate = DateTimeOffset.Now;
+			_dataContext.Update(poll);
+			await _dataContext.SaveChangesAsync();
+
+			return true;
+        }
 	}
 }
