@@ -1,4 +1,5 @@
-﻿using PollsAppBlazor.Shared.Polls;
+﻿using PollsAppBlazor.Server.Models;
+using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.Server.Services
 {
@@ -36,20 +37,20 @@ namespace PollsAppBlazor.Server.Services
 		Task<PollViewDto?> GetByIdAsync(int pollId, string? userId = null);
 
 		/// <summary>
+		/// Filter Polls query into page.
+		/// </summary>
+		/// <returns>
+		/// Polls from query that match given filter.
+		/// </returns>
+		Task<PollsPage> FilterPollsAsync(PollsPageFilter filter, IQueryable<Poll> query);
+
+		/// <summary>
 		/// Get Polls that meet filter.
 		/// </summary>
 		/// <returns>
 		/// Polls that match given filter.
 		/// </returns>
 		Task<PollsPage> GetPollsAsync(PollsPageFilter filter);
-
-		/// <summary>
-		/// Get Polls, created by the user, that meet filter.
-		/// </summary>
-		/// <returns>
-		/// Polls that match given filter and are created by the user.
-		/// </returns>
-		Task<PollsPage> GetUserPollsAsync(PollsPageFilter filter, string creatorId);
 
 		/// <summary>
 		/// Create a Poll.

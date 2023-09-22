@@ -111,7 +111,8 @@ namespace PollsAppBlazor.Server.Services
 			return poll;
 		}
 
-		private static async Task<PollsPage> FilterPollsAsync(PollsPageFilter filter, IQueryable<Poll> query)
+		/// <inheritdoc />
+		public async Task<PollsPage> FilterPollsAsync(PollsPageFilter filter, IQueryable<Poll> query)
 		{
 			// Don't show expired Polls
 			if (!filter.ShowExpired)
@@ -174,17 +175,6 @@ namespace PollsAppBlazor.Server.Services
 				.Include(p => p.Creator)
 				.Include(p => p.Votes)
 				.AsNoTracking());
-		}
-
-		/// <inheritdoc />
-		public async Task<PollsPage> GetUserPollsAsync(PollsPageFilter filter, string creatorId)
-		{
-			filter.Creator = null;
-			return await FilterPollsAsync(filter,
-				_dataContext.Polls
-				.Include(p => p.Votes)
-				.AsNoTracking()
-				.Where(p => p.CreatorId == creatorId));
 		}
 
 		/// <inheritdoc />

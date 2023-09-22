@@ -1,7 +1,11 @@
 ﻿using Duende.IdentityServer.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using PollsAppBlazor.Server.Data;
+using PollsAppBlazor.Server.Models;
 using PollsAppBlazor.Server.Services;
 using PollsAppBlazor.Shared.Polls;
 
@@ -11,10 +15,15 @@ namespace PollsAppBlazor.Server.Controllers
 	public class UserController : ControllerBase
 	{
 		private readonly IPollsService _pollsService;
+		private readonly ApplicationDbContext _dataContext;
+		private readonly UserManager<ApplicationUser> _userManager;
 
-		public UserController(IPollsService pollsService)
+		public UserController(IPollsService pollsService, ApplicationDbContext dataContext,
+			UserManager<ApplicationUser> userManager)
 		{
 			_pollsService = pollsService;
+			_dataContext = dataContext;
+			_userManager = userManager;
 		}
 
 		/// <summary>
@@ -44,7 +53,17 @@ namespace PollsAppBlazor.Server.Controllers
 			{
 				return BadRequest(ModelState);
 			}
-			return Ok(await _pollsService.GetUserPollsAsync(filter, User.Identity.GetSubjectId()));
+			string userId = User.Identity.GetSubjectId();
+
+			var user = await _userManager.Users
+				.FirstAsync(u => u.Id == userId);
+
+			var polls = _dataContext
+				.Entry(user)
+				.Collection(user => user.CreatedPolls!)
+				.Query();
+
+			return Ok(await _pollsService.FilterPollsAsync(filter, polls));
 		}
 	}
 }
