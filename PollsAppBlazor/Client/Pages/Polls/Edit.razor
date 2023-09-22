@@ -23,6 +23,7 @@ else
 @code {
 	private string _defaultTitle { get; set; } = null!;
 	private string? _defaultDescription { get; set; }
+	private bool _defaultVisibleBeforeVoting { get; set; }
 
 	private string[]? serverErrors { get; set; }
 
@@ -41,6 +42,7 @@ else
 			poll = await response.Content.ReadFromJsonAsync<PollCreationDto>();
 			_defaultTitle = poll!.Title;
 			_defaultDescription = poll!.Description;
+			_defaultVisibleBeforeVoting = poll!.ResultsVisibleBeforeVoting;
 		}
 		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.Forbidden)
 		{
@@ -57,7 +59,8 @@ else
 		PollEditDto editDto = new()
 		{
 			Title = _defaultTitle != poll!.Title ? poll!.Title : null,
-			Description = _defaultDescription != poll!.Description ? poll!.Description : null
+			Description = _defaultDescription != poll!.Description ? poll!.Description : null,
+			ResultsVisibleBeforeVoting = _defaultVisibleBeforeVoting != poll!.ResultsVisibleBeforeVoting ? poll!.ResultsVisibleBeforeVoting : null
 		};
 
 		var response = await HttpClient.PatchAsJsonAsync($"/api/polls/{pollId}", editDto);

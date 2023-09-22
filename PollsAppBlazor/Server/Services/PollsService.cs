@@ -66,6 +66,7 @@ namespace PollsAppBlazor.Server.Services
 					ExpiryDate = p.ExpiryDate,
 					Creator = p.Creator!.UserName!,
 					CreatorId = p.CreatorId,
+					AreVotesVisible = p.ResultsVisibleBeforeVoting,
 					// Select options
 					Options = p.Options!.Select(o => new OptionViewDto()
 					{
@@ -196,7 +197,8 @@ namespace PollsAppBlazor.Server.Services
 				Description = poll.Description,
 				CreationDate = DateTimeOffset.Now,
 				ExpiryDate = poll.ExpiryDate,
-				CreatorId = creatorId
+				CreatorId = creatorId,
+				ResultsVisibleBeforeVoting = poll.ResultsVisibleBeforeVoting
 			};
 			_dataContext.Add(newPoll);
 			await _dataContext.SaveChangesAsync();
@@ -226,6 +228,7 @@ namespace PollsAppBlazor.Server.Services
 					Title = p.Title,
 					Description = p.Description,
 					ExpiryDate = p.ExpiryDate,
+					ResultsVisibleBeforeVoting = p.ResultsVisibleBeforeVoting,
 					Options = p.Options!.Select(o => new OptionCreationDto()
 					{
 						Description = o.Description
@@ -253,6 +256,8 @@ namespace PollsAppBlazor.Server.Services
 
 			if (poll.Title != null) actualPoll.Title = poll.Title;
 			if (poll.Description != null) actualPoll.Description = poll.Description;
+			if (poll.ResultsVisibleBeforeVoting != null) 
+				actualPoll.ResultsVisibleBeforeVoting = poll.ResultsVisibleBeforeVoting == true;
 
 			_dataContext.Update(actualPoll);
 			await _dataContext.SaveChangesAsync();

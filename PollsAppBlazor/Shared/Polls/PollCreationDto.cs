@@ -16,6 +16,7 @@ namespace PollsAppBlazor.Shared.Polls
 		public string Title { get; set; } = null!;
 		[StringLength(DescriptionMaxSize, ErrorMessage = "Description cannot exceed {1} characters")]
 		public string? Description { get; set; }
+		public bool ResultsVisibleBeforeVoting { get; set; }
 
 		[DateTimeOffsetRange(MinExpiryDurationTicks, MaxExpiryDurationTicks, 
 			ErrorMessage = "The expiry date must be within a range of 1 hour to 100 years from the current time")]

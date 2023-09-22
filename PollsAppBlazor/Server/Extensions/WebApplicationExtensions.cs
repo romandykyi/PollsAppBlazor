@@ -103,10 +103,11 @@ namespace PollsAppBlazor.Server.Extensions
 				.RuleFor(p => p.CreatorId, f => f.Random.CollectionItem(usersIds))
 				.RuleFor(p => p.CreationDate, f => f.Date.RecentOffset(365))
 				.RuleFor(p => p.ExpiryDate,
-						 f => f.Random.Number(1) == 1 ? f.Date.BetweenOffset(minExpiryDate, maxExpiryDate) : null)
+						 f => f.Random.Bool() ? f.Date.BetweenOffset(minExpiryDate, maxExpiryDate) : null)
 				.RuleFor(p => p.Title, f => f.Commerce.ProductName())
+				.RuleFor(p => p.ResultsVisibleBeforeVoting, f => f.Random.Bool())
 				.RuleFor(p => p.Description,
-				f => f.Random.Number(1) == 1 ? string.Join(' ', f.Lorem.Words(5)) : null);
+				f => f.Random.Bool() ? string.Join(' ', f.Lorem.Words(5)) : null);
 			Poll[] polls = pollFaker.GenerateLazy(pollsNumber).ToArray();
 			dbContext.AddRange(polls);
 			dbContext.SaveChanges();

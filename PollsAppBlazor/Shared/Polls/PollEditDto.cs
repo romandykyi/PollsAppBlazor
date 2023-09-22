@@ -7,5 +7,6 @@
 		public string? Title { get; set; }
 		[StringLength(PollCreationDto.DescriptionMaxSize, ErrorMessage = "Description cannot exceed {1} characters")]
 		public string? Description { get; set; }
+		public bool? ResultsVisibleBeforeVoting { get; set; }
 	}
 }

@@ -14,6 +14,8 @@ namespace PollsAppBlazor.Server.Models
 		[StringLength(PollCreationDto.DescriptionMaxSize)]
 		public string? Description { get; set; }
 
+		public bool ResultsVisibleBeforeVoting { get; set; }
+
 		public DateTimeOffset CreationDate { get; set; }
 		public DateTimeOffset? ExpiryDate { get; set; }
 
