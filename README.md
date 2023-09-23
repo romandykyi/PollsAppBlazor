@@ -1,6 +1,6 @@
 # PollsAppBlazor
 
-Simple Polls Web App built on ASP.NET Core and Blazor WebAssembly. This project is currently in active development.
+Simple Polls Web App built on ASP.NET Core and Blazor WebAssembly.
 
 ## Tech Stack
 
@@ -12,6 +12,11 @@ Simple Polls Web App built on ASP.NET Core and Blazor WebAssembly. This project 
 * Entity Framework
 * Swashbuckle
 * SQL Server
+
+## Admin Access
+Login: ```admin```
+
+Password: ```P@ssw0rd1sNotS3cur3^:(```
 
 ## Screenshots
 ![screen1](https://github.com/romandykyi/PollsAppBlazor/assets/94003504/3a4e700f-880f-4487-a67a-6528517a725a)
