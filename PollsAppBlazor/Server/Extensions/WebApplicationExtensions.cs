@@ -8,7 +8,7 @@ using PollsAppBlazor.Shared.Users;
 
 namespace PollsAppBlazor.Server.Extensions
 {
-	public static partial class WebApplicationExtensions
+	public static class WebApplicationExtensions
 	{
 		public static WebApplication CreateRoles(this WebApplication app)
 		{
