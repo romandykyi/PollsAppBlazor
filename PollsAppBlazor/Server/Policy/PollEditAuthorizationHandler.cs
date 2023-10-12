@@ -6,15 +6,15 @@ namespace PollsAppBlazor.Server.Policy
 {
 	public sealed class PollEditAuthorizationHandler : PollEditAuthorizationHandler<PollEditAuthorizationRequirement>
 	{
-		public PollEditAuthorizationHandler(IPollsService pollsService) : base(pollsService) { }
+		public PollEditAuthorizationHandler(PollsService pollsService) : base(pollsService) { }
 	}
 
 	public abstract class PollEditAuthorizationHandler<TRequirement> : EditAuthorizationHandler<TRequirement>
 		where TRequirement : IAuthorizationRequirement
 	{
-		private readonly IPollsService _pollsService;
+		private readonly PollsService _pollsService;
 
-		public PollEditAuthorizationHandler(IPollsService pollsService)
+		public PollEditAuthorizationHandler(PollsService pollsService)
 		{
 			_pollsService = pollsService;
 		}

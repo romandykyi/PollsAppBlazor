@@ -11,10 +11,10 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 	options.UseSqlServer(connectionString));
 
-builder.Services.AddScoped<IPollsService, PollsService>();
-builder.Services.AddScoped<IOptionsService, OptionsService>();
-builder.Services.AddScoped<IVotesService, VotesService>();
-builder.Services.AddScoped<IFavoritesService, FavoritesService>();
+builder.Services.AddScoped<PollsService>();
+builder.Services.AddScoped<OptionsService>();
+builder.Services.AddScoped<VotesService>();
+builder.Services.AddScoped<FavoritesService>();
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 

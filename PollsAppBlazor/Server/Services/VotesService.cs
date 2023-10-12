@@ -5,7 +5,7 @@ using PollsAppBlazor.Server.Models;
 
 namespace PollsAppBlazor.Server.Services
 {
-	public class VotesService : IVotesService
+	public class VotesService
 	{
 		private static string VotesForOption(int optionId) => $"vts:{optionId}";
 
@@ -20,8 +20,14 @@ namespace PollsAppBlazor.Server.Services
 			_configuration = configuration;
 		}
 
-		/// <inheritdoc />
-		public async Task<int> CountVotesAsync(int optionId)
+        /// <summary>
+        /// Count votes for option.
+        /// </summary>
+        /// <param name="optionId">ID of the option which votes need to be count</param>
+        /// <returns>
+        /// Number of votes on the option
+        /// </returns>
+        public async Task<int> CountVotesAsync(int optionId)
 		{
 			// Get value from cache if it's available
 			if (_memoryCache.TryGetValue(VotesForOption(optionId), out int cachedCount))
@@ -43,8 +49,16 @@ namespace PollsAppBlazor.Server.Services
 			return count;
 		}
 
-		/// <inheritdoc />
-		public async Task<int?> GetVotedOptionAsync(int pollId, string userId)
+        /// <summary>
+        /// Get ID of an option which was voted by the user
+        /// </summary>
+        /// <param name="pollId">ID of the poll</param>
+        /// <param name="userId">ID of the user</param>
+        /// <returns>
+        /// ID of voted by user option, or
+        /// <see langword="null" /> if user didn't vote on this poll;
+        /// </returns>
+        public async Task<int?> GetVotedOptionAsync(int pollId, string userId)
 		{
 			return await _dataContext.Votes
 				.AsNoTracking()
@@ -53,8 +67,13 @@ namespace PollsAppBlazor.Server.Services
 				.FirstOrDefaultAsync();
 		}
 
-		/// <inheritdoc />
-		public async Task VoteAsync(int pollId, int optionId, string userId)
+        /// <summary>
+        /// Vote for an option
+        /// </summary>
+        /// <param name="pollId">ID of the poll which contains this option</param>
+        /// <param name="optionId">ID of the option</param>
+        /// <param name="userId">ID of the user who votes</param>
+        public async Task VoteAsync(int pollId, int optionId, string userId)
 		{
 			Vote vote = new()
 			{

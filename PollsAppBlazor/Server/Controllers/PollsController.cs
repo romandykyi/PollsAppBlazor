@@ -13,10 +13,10 @@ namespace PollsAppBlazor.Server.Controllers
 	// doesn't work with Swagger: [AutoValidateAntiforgeryToken]
 	public class PollsController : ControllerBase
 	{
-		private readonly IPollsService _pollsService;
-		private readonly IOptionsService _optionsService;
+		private readonly PollsService _pollsService;
+		private readonly OptionsService _optionsService;
 
-		public PollsController(IPollsService pollsService, IOptionsService optionsService)
+		public PollsController(PollsService pollsService, OptionsService optionsService)
 		{
 			_pollsService = pollsService;
 			_optionsService = optionsService;

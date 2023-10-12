@@ -15,12 +15,12 @@ namespace PollsAppBlazor.Server.Controllers
 	[Route("api/user")]
 	public class UserController : ControllerBase
 	{
-		private readonly IPollsService _pollsService;
-		private readonly IFavoritesService _favoritesService;
+		private readonly PollsService _pollsService;
+		private readonly FavoritesService _favoritesService;
 		private readonly ApplicationDbContext _dataContext;
 		private readonly UserManager<ApplicationUser> _userManager;
 
-		public UserController(IPollsService pollsService, IFavoritesService favoritesService,
+		public UserController(PollsService pollsService, FavoritesService favoritesService,
 			ApplicationDbContext dataContext, UserManager<ApplicationUser> userManager)
 		{
 			_pollsService = pollsService;
