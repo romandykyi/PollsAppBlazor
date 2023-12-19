@@ -20,7 +20,7 @@ namespace PollsAppBlazor.Server.Policy
 		/// </returns>
 		protected bool BasicCheck(AuthorizationHandlerContext context, TRequirement requirement)
 		{
-			if (context.User.Identity == null || !context.User.IsAuthenticated())
+			if (!context.User.IsAuthenticated())
 			{
 				context.Fail();
 				return true;
@@ -48,7 +48,7 @@ namespace PollsAppBlazor.Server.Policy
 			{
 				throw new InvalidOperationException("Cannot get HTTP context");
 			}
-			var idValue = httpContext.GetRouteData().Values[idName] ??
+			var idValue = httpContext.GetRouteValue(idName) ??
 				throw new InvalidOperationException("Cannot get poll id from HTTP context");
 
 			return Convert.ToInt32(idValue);
