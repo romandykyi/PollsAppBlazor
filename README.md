@@ -1,6 +1,6 @@
 # PollsAppBlazor
 
-Simple Polls Web App built on ASP.NET Core and Blazor WebAssembly.
+A simple Polls Web App built on ASP.NET Core and Blazor WebAssembly.
 
 ## Tech Stack
 
