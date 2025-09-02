@@ -9,6 +9,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PollsAppBlazor.Client", "Po
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PollsAppBlazor.Shared", "PollsAppBlazor\Shared\PollsAppBlazor.Shared.csproj", "{460CA612-D7DE-4F4D-A6F1-C10AD327DB0C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PollsAppBlazor.Application", "PollsAppBlazor.Application\PollsAppBlazor.Application.csproj", "{D5AE7DD6-DBF1-4EC0-B36E-DC27D9864395}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PollsAppBlazor.DataAccess", "PollsAppBlazor.DataAccess\PollsAppBlazor.DataAccess.csproj", "{9E889069-1099-488E-8C40-9E25B2273BAE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +31,14 @@ Global
 		{460CA612-D7DE-4F4D-A6F1-C10AD327DB0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{460CA612-D7DE-4F4D-A6F1-C10AD327DB0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{460CA612-D7DE-4F4D-A6F1-C10AD327DB0C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5AE7DD6-DBF1-4EC0-B36E-DC27D9864395}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5AE7DD6-DBF1-4EC0-B36E-DC27D9864395}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5AE7DD6-DBF1-4EC0-B36E-DC27D9864395}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5AE7DD6-DBF1-4EC0-B36E-DC27D9864395}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E889069-1099-488E-8C40-9E25B2273BAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E889069-1099-488E-8C40-9E25B2273BAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E889069-1099-488E-8C40-9E25B2273BAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E889069-1099-488E-8C40-9E25B2273BAE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
