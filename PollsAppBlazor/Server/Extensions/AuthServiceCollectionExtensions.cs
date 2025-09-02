@@ -4,29 +4,11 @@ using PollsAppBlazor.Server.DataAccess;
 using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Server.Policy;
 using System.Net;
-using System.Reflection;
 
 namespace PollsAppBlazor.Server.Extensions;
 
-public static class ServiceCollectionExtensions
+public static class AuthServiceCollectionExtensions
 {
-    public static IServiceCollection AddSwagger(this IServiceCollection services)
-    {
-        services.AddSwaggerGen(options =>
-        {
-            options.SwaggerDoc("v1", new()
-            {
-                Title = "Polls App",
-                Version = "v1"
-            });
-
-            var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-            options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
-        });
-
-        return services;
-    }
-
     public static IServiceCollection AddCustomizedIdentity(this IServiceCollection services)
     {
         services

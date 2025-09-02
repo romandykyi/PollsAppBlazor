@@ -1,38 +1,29 @@
-using Microsoft.EntityFrameworkCore;
-using PollsAppBlazor.Server.DataAccess;
 using PollsAppBlazor.Server.Extensions;
-using PollsAppBlazor.Server.Services;
-using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
+var services = builder.Services;
 
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+builder.ConnectDatabase();
 
-builder.Services.AddScoped<PollsService>();
-builder.Services.AddScoped<OptionsService>();
-builder.Services.AddScoped<VotesService>();
-builder.Services.AddScoped<FavoritesService>();
+services
+    .RegisterRepositories()
+    .RegisterApplicationServices();
 
-builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+services.AddMemoryCache();
 
-builder.Services.AddAntiforgery(options => options.HeaderName = "X-XSRF-Token");
+if (builder.Environment.IsDevelopment())
+{
+    services.AddSwagger();
+    builder.AddDebugOptions();
+}
 
-builder.Services.AddCustomizedIdentity();
-builder.Services.AddCustomizedAuthorization();
+services.AddAntiforgery(options => options.HeaderName = "X-XSRF-Token");
 
-builder.Services
-    .AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-    })
-    .ConfigureApiBehaviorOptions(x => { x.SuppressMapClientErrors = true; });
-builder.Services.AddRazorPages();
+services.AddCustomizedIdentity();
+services.AddCustomizedAuthorization();
 
-builder.Services.AddSwagger();
+services.ConfigureControllers();
 
 var app = builder.Build();
 
@@ -41,7 +32,6 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-
 
     app.UseMigrationsEndPoint();
     app.UseWebAssemblyDebugging();
