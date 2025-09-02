@@ -29,9 +29,9 @@ else
 		@poll.Title
 		@if (isInFavorites != null)
 		{
-			<MudCheckBox T="bool" Class="d-inline-flex"
-						 Checked="@(isInFavorites == true)"
-						 CheckedChanged="UpdateFavoritesStatus"
+			<MudCheckBox Class="d-inline-flex"
+						 @bind-Value="isInFavorites"
+						 @bind-Value:after="OnFavoriteStatusChangedAsync"
 						 CheckedIcon="@Icons.Material.Filled.Star"
 						 UncheckedIcon="@Icons.Material.Filled.StarBorder"
 						 Color="Color.Warning"
@@ -138,7 +138,7 @@ else
 	private bool viewResults { get; set; } = false;
 	private bool userHasVoted => poll.VotedOptionId != null;
 
-	private bool? isInFavorites { get; set; }
+	private bool? isInFavorites { get; set; } = null;
 
 	[Parameter]
 	public int pollId { get; set; }
@@ -174,7 +174,7 @@ else
 		}
 		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.Unauthorized)
 		{
-			isInFavorites = null;
+			isInFavorites = false;
 		}
 		catch (HttpRequestException)
 		{
@@ -188,7 +188,7 @@ else
 		parameters.Add(x => x.ContentText, $"Are you sure you want to Delete poll \"{poll.Title}\"?");
 		parameters.Add(x => x.Color, Color.Error);
 
-		DialogOptions options = new() { Position = DialogPosition.TopCenter };
+		DialogOptions  options = new() { Position = DialogPosition.TopCenter };
 
 		var dialog = await DialogService.ShowAsync<DialogTemplate>("Confirm Delete", parameters, options);
 		var result = await dialog.Result;
@@ -263,6 +263,11 @@ else
 		{
 			Snackbar.UnexpectedError();
 		}
+	}
+
+	private Task OnFavoriteStatusChangedAsync()
+	{
+		return UpdateFavoritesStatus(isInFavorites == true);
 	}
 
 	private async Task UpdateFavoritesStatus(bool favorite)
