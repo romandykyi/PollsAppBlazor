@@ -1,25 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PollsAppBlazor.DataAccess.Repositories.Interfaces;
 using PollsAppBlazor.Server.DataAccess;
-using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.Server.Services;
 
-public class FavoritesService
+public class FavoritesService(IFavoriteRepository favoritesRepository, ApplicationDbContext context)
 {
-    private readonly ApplicationDbContext _context;
-
-    public FavoritesService(ApplicationDbContext context)
-    {
-        _context = context;
-    }
-
-    private async Task<bool> DoesExistAsync(int pollId, string userId)
-    {
-        return await _context.Favorites
-            .AsNoTracking()
-            .AnyAsync(f => f.PollId == pollId && f.UserId == userId);
-    }
+    private readonly IFavoriteRepository _favoriteRepository = favoritesRepository;
+    private readonly ApplicationDbContext _context = context;
 
     /// <summary>
     /// Get a Poll favorite status for the user.
@@ -31,10 +20,11 @@ public class FavoritesService
     /// <param name="userId">ID the user</param>
     public async Task<FavoriteDto> GetFavorite(int pollId, string userId)
     {
+        bool isFavorite = await _favoriteRepository.ExistsAsync(pollId, userId);
         return new()
         {
             PollId = pollId,
-            IsFavorite = await DoesExistAsync(pollId, userId)
+            IsFavorite = isFavorite
         };
     }
 
@@ -60,19 +50,7 @@ public class FavoritesService
             return false;
         }
 
-        // If isn't already in favorites
-        if (!await DoesExistAsync(pollId, userId))
-        {
-            Favorite favorite = new()
-            {
-                PollId = pollId,
-                UserId = userId
-            };
-
-            _context.Add(favorite);
-            await _context.SaveChangesAsync();
-        }
-
+        await _favoriteRepository.AddAsync(pollId, userId);
         return true;
     }
 
@@ -85,20 +63,8 @@ public class FavoritesService
     /// <see langword="true" /> if the Poll was successfully removed from favorites;
     /// otherwise <see langword="false" /> if Poll wasn't in favorites.
     /// </returns>
-    public async Task<bool> RemoveFromFavoritesAsync(int pollId, string userId)
+    public Task<bool> RemoveFromFavoritesAsync(int pollId, string userId)
     {
-        var favorite = await _context.Favorites.
-            FirstOrDefaultAsync(f => f.PollId == pollId && f.UserId == userId);
-
-        // If favorite doesn't exist
-        if (favorite == null)
-        {
-            return false;
-        }
-
-        _context.Remove(favorite);
-        await _context.SaveChangesAsync();
-
-        return true;
+        return _favoriteRepository.RemoveAsync(pollId, userId);
     }
 }
