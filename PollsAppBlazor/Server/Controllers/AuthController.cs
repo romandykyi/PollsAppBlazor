@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using PollsAppBlazor.Server.Models;
+using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Shared.Users;
 
 namespace PollsAppBlazor.Server.Controllers

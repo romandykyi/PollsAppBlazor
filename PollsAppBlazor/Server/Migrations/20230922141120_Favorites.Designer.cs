@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using PollsAppBlazor.Server.Data;
+using PollsAppBlazor.Server.DataAccess;
+using PollsAppBlazor.Server.DataAccess.Models;
 
 #nullable disable
 
@@ -299,7 +300,7 @@ namespace PollsAppBlazor.Server.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("PollsAppBlazor.Server.Models.ApplicationUser", b =>
+            modelBuilder.Entity("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("nvarchar(450)");
@@ -364,7 +365,7 @@ namespace PollsAppBlazor.Server.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("PollsAppBlazor.Server.Models.Favorite", b =>
+            modelBuilder.Entity("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.Favorite", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -388,7 +389,7 @@ namespace PollsAppBlazor.Server.Migrations
                     b.ToTable("Favorites");
                 });
 
-            modelBuilder.Entity("PollsAppBlazor.Server.Models.Option", b =>
+            modelBuilder.Entity("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.Option", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -411,7 +412,7 @@ namespace PollsAppBlazor.Server.Migrations
                     b.ToTable("Options");
                 });
 
-            modelBuilder.Entity("PollsAppBlazor.Server.Models.Poll", b =>
+            modelBuilder.Entity("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.Poll", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -448,7 +449,7 @@ namespace PollsAppBlazor.Server.Migrations
                     b.ToTable("Polls");
                 });
 
-            modelBuilder.Entity("PollsAppBlazor.Server.Models.Vote", b =>
+            modelBuilder.Entity("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.Vote", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -488,7 +489,7 @@ namespace PollsAppBlazor.Server.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("PollsAppBlazor.Server.Models.ApplicationUser", null)
+                    b.HasOne("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -497,7 +498,7 @@ namespace PollsAppBlazor.Server.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("PollsAppBlazor.Server.Models.ApplicationUser", null)
+                    b.HasOne("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -512,7 +513,7 @@ namespace PollsAppBlazor.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("PollsAppBlazor.Server.Models.ApplicationUser", null)
+                    b.HasOne("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -521,22 +522,22 @@ namespace PollsAppBlazor.Server.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
                 {
-                    b.HasOne("PollsAppBlazor.Server.Models.ApplicationUser", null)
+                    b.HasOne("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("PollsAppBlazor.Server.Models.Favorite", b =>
+            modelBuilder.Entity("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.Favorite", b =>
                 {
-                    b.HasOne("PollsAppBlazor.Server.Models.Poll", "Poll")
+                    b.HasOne("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.Poll", "Poll")
                         .WithMany("Favorites")
                         .HasForeignKey("PollId")
                         .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
-                    b.HasOne("PollsAppBlazor.Server.Models.ApplicationUser", "User")
+                    b.HasOne("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.ApplicationUser", "User")
                         .WithMany("Favorites")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -547,9 +548,9 @@ namespace PollsAppBlazor.Server.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("PollsAppBlazor.Server.Models.Option", b =>
+            modelBuilder.Entity("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.Option", b =>
                 {
-                    b.HasOne("PollsAppBlazor.Server.Models.Poll", "Poll")
+                    b.HasOne("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.Poll", "Poll")
                         .WithMany("Options")
                         .HasForeignKey("PollId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -558,9 +559,9 @@ namespace PollsAppBlazor.Server.Migrations
                     b.Navigation("Poll");
                 });
 
-            modelBuilder.Entity("PollsAppBlazor.Server.Models.Poll", b =>
+            modelBuilder.Entity("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.Poll", b =>
                 {
-                    b.HasOne("PollsAppBlazor.Server.Models.ApplicationUser", "Creator")
+                    b.HasOne("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.ApplicationUser", "Creator")
                         .WithMany("CreatedPolls")
                         .HasForeignKey("CreatorId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -569,21 +570,21 @@ namespace PollsAppBlazor.Server.Migrations
                     b.Navigation("Creator");
                 });
 
-            modelBuilder.Entity("PollsAppBlazor.Server.Models.Vote", b =>
+            modelBuilder.Entity("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.Vote", b =>
                 {
-                    b.HasOne("PollsAppBlazor.Server.Models.Option", "Option")
+                    b.HasOne("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.Option", "Option")
                         .WithMany("Votes")
                         .HasForeignKey("OptionId")
                         .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
-                    b.HasOne("PollsAppBlazor.Server.Models.Poll", "Poll")
+                    b.HasOne("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.Poll", "Poll")
                         .WithMany("Votes")
                         .HasForeignKey("PollId")
                         .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
-                    b.HasOne("PollsAppBlazor.Server.Models.ApplicationUser", "User")
+                    b.HasOne("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.ApplicationUser", "User")
                         .WithMany("Votes")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -596,7 +597,7 @@ namespace PollsAppBlazor.Server.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("PollsAppBlazor.Server.Models.ApplicationUser", b =>
+            modelBuilder.Entity("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.ApplicationUser", b =>
                 {
                     b.Navigation("CreatedPolls");
 
@@ -605,12 +606,12 @@ namespace PollsAppBlazor.Server.Migrations
                     b.Navigation("Votes");
                 });
 
-            modelBuilder.Entity("PollsAppBlazor.Server.Models.Option", b =>
+            modelBuilder.Entity("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.Option", b =>
                 {
                     b.Navigation("Votes");
                 });
 
-            modelBuilder.Entity("PollsAppBlazor.Server.Models.Poll", b =>
+            modelBuilder.Entity("PollsAppBlazor.Server.DataAccess.ModelsAccess.Models.Poll", b =>
                 {
                     b.Navigation("Favorites");
 

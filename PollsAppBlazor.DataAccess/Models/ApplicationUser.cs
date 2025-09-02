@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace PollsAppBlazor.Server.Models
+namespace PollsAppBlazor.Server.DataAccess.Models
 {
 	public class ApplicationUser : IdentityUser
 	{
