@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace PollsAppBlazor.Server.Models
+namespace PollsAppBlazor.Server.DataAccess.Models
 {
 	public class Option
 	{

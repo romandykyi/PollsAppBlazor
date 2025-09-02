@@ -1,7 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.EntityFrameworkCore;
-using PollsAppBlazor.Server.Data;
-using PollsAppBlazor.Server.Models;
+using PollsAppBlazor.Server.DataAccess;
+using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Shared.Polls;
 using System.Text.Json.Serialization;
 

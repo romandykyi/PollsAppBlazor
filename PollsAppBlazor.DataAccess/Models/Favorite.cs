@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace PollsAppBlazor.Server.Models
+namespace PollsAppBlazor.Server.DataAccess.Models
 {
 	public class Favorite
 	{
