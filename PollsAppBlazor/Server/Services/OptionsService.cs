@@ -1,16 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
-using PollsAppBlazor.Server.DataAccess;
+﻿using PollsAppBlazor.DataAccess.Repositories.Interfaces;
 
 namespace PollsAppBlazor.Server.Services;
 
-public class OptionsService
+public class OptionsService(IPollOptionRepository repository)
 {
-    private readonly ApplicationDbContext _dataContext;
-
-    public OptionsService(ApplicationDbContext dataContext)
-    {
-        _dataContext = dataContext;
-    }
+    private IPollOptionRepository _repository = repository;
 
     /// <summary>
     /// Get ID of a Poll that contains the Option.
@@ -19,12 +13,8 @@ public class OptionsService
     /// <returns>
     /// ID of the Option or <see langword="null" /> if Option doesn't exist
     /// </returns>
-    public async Task<int?> GetPollIdAsync(int optionId)
+    public Task<int?> GetPollIdAsync(int optionId)
     {
-        return await _dataContext.Options
-            .AsNoTracking()
-            .Where(o => o.Id == optionId)
-            .Select(o => (int?)o.PollId)
-            .FirstOrDefaultAsync();
+        return _repository.GetOptionPollIdAsync(optionId);
     }
 }

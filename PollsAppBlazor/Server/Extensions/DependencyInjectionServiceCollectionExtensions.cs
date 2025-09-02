@@ -9,7 +9,8 @@ public static class DependencyInjectionServiceCollectionExtensions
     public static IServiceCollection RegisterRepositories(this IServiceCollection services)
     {
         return services
-            .AddScoped<IFavoriteRepository, FavoriteRepository>();
+            .AddScoped<IFavoriteRepository, FavoriteRepository>()
+            .AddScoped<IPollOptionRepository, PollOptionRepository>();
     }
 
     public static IServiceCollection RegisterApplicationServices(this IServiceCollection services)
