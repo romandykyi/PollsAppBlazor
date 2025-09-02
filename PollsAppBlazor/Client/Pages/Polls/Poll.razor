@@ -84,12 +84,12 @@ else
 
 	@if (!viewResults)
 	{
-		<MudRadioGroup @bind-SelectedOption="@selectedOptionId"
+		<MudRadioGroup T="@(int?)" @bind-Value="selectedOptionId"
 					   ReadOnly="@userHasVoted" Disabled="@poll.IsExpired">
 			@foreach (var option in poll.Options)
 			{
 				var radioColor = option.Id == poll.VotedOptionId ? Color.Success : Color.Primary;
-				<MudRadio Option="@((int?)option.Id)" Class="d-block"
+				<MudRadio Class="d-block" Value="@((int?)option.Id)"
 						  Color="@radioColor">
 					@option.Description
 				</MudRadio>

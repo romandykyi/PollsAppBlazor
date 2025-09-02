@@ -1,4 +1,4 @@
-﻿<MudCheckBox @bind-Checked="_opened" Color="Color.Info"
+﻿<MudCheckBox T="@(bool)" @bind-Value="_opened" Color="Color.Info"
 			 CheckedIcon="@Icons.Material.Filled.Info" UncheckedIcon="@Icons.Material.Outlined.Info" />
 <MudPopover Open="@_opened" Fixed="true" Class="px-4 pt-4"
 			AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopLeft">

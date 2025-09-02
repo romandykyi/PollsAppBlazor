@@ -3,13 +3,13 @@
         <MudText>@ContentText</MudText>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">@CancelText</MudButton>
-        <MudButton Color="@Color" Variant="Variant.Filled" OnClick="Submit">@SubmitText</MudButton>
+        <MudButton OnClick="@Cancel">@CancelText</MudButton>
+        <MudButton Color="@Color" Variant="Variant.Filled" OnClick="@Submit">@SubmitText</MudButton>
     </DialogActions>
 </MudDialog>
 
 @code {
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = null!;
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
     [Parameter] public string ContentText { get; set; } = null!;
 

@@ -11,7 +11,7 @@
 				  HelperText="Optional description" />
 
 	<MudStack Row="true">
-		<MudCheckBox @bind-Checked="hasExpiryDate" Disabled="@(!CanEditOptions)"
+		<MudCheckBox T="bool" @bind-Value="hasExpiryDate" Disabled="@(!CanEditOptions)"
 					 Label="Has expire date" Color="Color.Primary" />
 		<Info Message="The date after which the poll becomes unavailable for new votes, and old votes become visible to everyone" />
 	</MudStack>
@@ -86,7 +86,7 @@
 </EditForm>
 
 @code {
-	private bool hasExpiryDate = false;
+	private bool hasExpiryDate { get; set; }
 	private DateTime? expiryDate = DateTime.Now + TimeSpan.FromDays(1);
 	private IList<OptionCreationDto> options = null!;
 
