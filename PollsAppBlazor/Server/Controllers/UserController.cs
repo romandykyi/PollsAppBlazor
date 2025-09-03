@@ -49,7 +49,7 @@ public class UserController : ControllerBase
     [ProducesResponseType(typeof(PollsPage), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BadRequest), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(BadRequest), StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetCreatedPolls([FromQuery] PollsPageFilter filter)
+    public async Task<IActionResult> GetCreatedPolls([FromQuery] PollsPagePaginationParameters filter)
     {
         if (!ModelState.IsValid)
         {
@@ -88,7 +88,7 @@ public class UserController : ControllerBase
     [ProducesResponseType(typeof(PollsPage), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BadRequest), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(BadRequest), StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetFavoritePolls([FromQuery] PollsPageFilter filter)
+    public async Task<IActionResult> GetFavoritePolls([FromQuery] PollsPagePaginationParameters filter)
     {
         if (!ModelState.IsValid)
         {

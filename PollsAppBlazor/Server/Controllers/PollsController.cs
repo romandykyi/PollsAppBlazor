@@ -69,7 +69,7 @@ namespace PollsAppBlazor.Server.Controllers
 		[AllowAnonymous]
 		[ProducesResponseType(typeof(PollsPage), StatusCodes.Status200OK)]
 		[ProducesResponseType(typeof(BadRequest), StatusCodes.Status400BadRequest)]
-		public async Task<IActionResult> Get([FromQuery] PollsPageFilter filter)
+		public async Task<IActionResult> Get([FromQuery] PollsPagePaginationParameters filter)
 		{
 			if (!ModelState.IsValid)
 			{
