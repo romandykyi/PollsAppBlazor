@@ -69,7 +69,7 @@ public class PollsService
             .AsNoTracking()
             .Where(p => p.Id == pollId)
             // Select poll
-            .Select(p => new PollViewDtoWithCreatorId()
+            .Select(p => new PollViewDto()
             {
                 Id = p.Id,
                 Title = p.Title,
