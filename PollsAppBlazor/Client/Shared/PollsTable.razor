@@ -114,7 +114,7 @@ else
 	private int pagesCount => page != null ? page.TotalPollsCount / Filter.PageSize : 0;
 
 	[Parameter]
-	public PollsPageFilter Filter { get; set; } = new()
+	public PollsPagePaginationParameters Filter { get; set; } = new()
 		{
 			PageSize = 25
 		};
