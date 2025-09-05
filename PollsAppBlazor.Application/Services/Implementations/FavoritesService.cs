@@ -3,7 +3,7 @@ using PollsAppBlazor.DataAccess.Repositories.Interfaces;
 using PollsAppBlazor.Server.DataAccess;
 using PollsAppBlazor.Shared.Polls;
 
-namespace PollsAppBlazor.Server.Services;
+namespace PollsAppBlazor.Application.Services.Implementations;
 
 public class FavoritesService(IFavoriteRepository favoritesRepository, ApplicationDbContext context)
 {

@@ -1,6 +1,6 @@
-﻿using PollsAppBlazor.DataAccess.Repositories.Implementations;
+﻿using PollsAppBlazor.Application.Services.Implementations;
+using PollsAppBlazor.DataAccess.Repositories.Implementations;
 using PollsAppBlazor.DataAccess.Repositories.Interfaces;
-using PollsAppBlazor.Server.Services;
 
 namespace PollsAppBlazor.Server.Extensions;
 

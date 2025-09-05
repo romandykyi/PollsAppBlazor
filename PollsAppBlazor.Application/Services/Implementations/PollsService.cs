@@ -4,7 +4,7 @@ using PollsAppBlazor.Server.DataAccess;
 using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Shared.Polls;
 
-namespace PollsAppBlazor.Server.Services;
+namespace PollsAppBlazor.Application.Services.Implementations;
 
 public class PollsService
 {

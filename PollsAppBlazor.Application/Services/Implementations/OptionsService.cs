@@ -1,10 +1,10 @@
 ﻿using PollsAppBlazor.DataAccess.Repositories.Interfaces;
 
-namespace PollsAppBlazor.Server.Services;
+namespace PollsAppBlazor.Application.Services.Implementations;
 
 public class OptionsService(IPollOptionRepository repository)
 {
-    private IPollOptionRepository _repository = repository;
+    private readonly IPollOptionRepository _repository = repository;
 
     /// <summary>
     /// Get ID of a Poll that contains the Option.
