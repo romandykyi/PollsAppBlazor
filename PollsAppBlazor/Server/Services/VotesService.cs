@@ -1,24 +1,23 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using PollsAppBlazor.DataAccess.Repositories.Interfaces;
 using PollsAppBlazor.Server.DataAccess;
-using PollsAppBlazor.Server.DataAccess.Models;
 
 namespace PollsAppBlazor.Server.Services;
 
-public class VotesService
+public class VotesService(
+    IVoteRepository voteRepository,
+    ApplicationDbContext dataContext,
+    IMemoryCache memoryCache,
+    IConfiguration configuration
+    )
 {
     private static string VotesForOption(int optionId) => $"vts:{optionId}";
 
-    private readonly IMemoryCache _memoryCache;
-    private readonly IConfiguration _configuration;
-    private readonly ApplicationDbContext _dataContext;
-
-    public VotesService(ApplicationDbContext dataContext, IMemoryCache memoryCache, IConfiguration configuration)
-    {
-        _dataContext = dataContext;
-        _memoryCache = memoryCache;
-        _configuration = configuration;
-    }
+    private readonly IVoteRepository _voteRepository = voteRepository;
+    private readonly IMemoryCache _memoryCache = memoryCache;
+    private readonly IConfiguration _configuration = configuration;
+    private readonly ApplicationDbContext _dataContext = dataContext;
 
     /// <summary>
     /// Count votes for option.
@@ -58,13 +57,9 @@ public class VotesService
     /// ID of voted by user option, or
     /// <see langword="null" /> if user didn't vote on this poll;
     /// </returns>
-    public async Task<int?> GetVotedOptionAsync(int pollId, string userId)
+    public Task<int?> GetVotedOptionAsync(int pollId, string userId)
     {
-        return await _dataContext.Votes
-            .AsNoTracking()
-            .Where(v => v.PollId == pollId && v.UserId == userId)
-            .Select(v => (int?)v.OptionId)
-            .FirstOrDefaultAsync();
+        return _voteRepository.GetVotedOptionAsync(pollId, userId);
     }
 
     /// <summary>
@@ -73,19 +68,8 @@ public class VotesService
     /// <param name="pollId">ID of the poll which contains this option</param>
     /// <param name="optionId">ID of the option</param>
     /// <param name="userId">ID of the user who votes</param>
-    public async Task VoteAsync(int pollId, int optionId, string userId)
+    public Task VoteAsync(int pollId, int optionId, string userId)
     {
-        Vote vote = new()
-        {
-            PollId = pollId,
-            OptionId = optionId,
-            UserId = userId
-        };
-
-        _dataContext.Votes.Add(vote);
-        await _dataContext.SaveChangesAsync();
-
-        // Invalidate the cache
-        _memoryCache.Remove(VotesForOption(optionId));
+        return _voteRepository.VoteAsync(pollId, optionId, userId);
     }
 }
