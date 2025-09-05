@@ -1,9 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
 using PollsAppBlazor.DataAccess.Repositories.Interfaces;
 using PollsAppBlazor.Server.DataAccess;
 
-namespace PollsAppBlazor.Server.Services;
+namespace PollsAppBlazor.Application.Services.Implementations;
 
 public class VotesService(
     IVoteRepository voteRepository,

@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PollsAppBlazor.Application.Services.Implementations;
 using PollsAppBlazor.Server.DataAccess;
 using PollsAppBlazor.Server.DataAccess.Models;
-using PollsAppBlazor.Server.Services;
 using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.Server.Controllers;

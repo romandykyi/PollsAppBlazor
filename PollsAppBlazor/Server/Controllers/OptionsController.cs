@@ -1,7 +1,7 @@
 ﻿using Duende.IdentityServer.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PollsAppBlazor.Server.Services;
+using PollsAppBlazor.Application.Services.Implementations;
 
 namespace PollsAppBlazor.Server.Controllers;
 
