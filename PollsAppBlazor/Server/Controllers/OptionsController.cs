@@ -2,27 +2,18 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PollsAppBlazor.Application.Services.Implementations;
+using PollsAppBlazor.Application.Services.Results;
 
 namespace PollsAppBlazor.Server.Controllers;
 
 [ApiController]
 [Route("api/options")]
 // doesn't work with Swagger: [AutoValidateAntiforgeryToken]
-public class OptionsController : ControllerBase
+public class OptionsController(VotesService votesService) : ControllerBase
 {
-    private readonly PollsService _pollsService;
-    private readonly OptionsService _optionsService;
-    private readonly VotesService _votesService;
+    private readonly VotesService _votesService = votesService;
 
-    public OptionsController(PollsService pollsService,
-        OptionsService optionsService, VotesService votesService)
-    {
-        _pollsService = pollsService;
-        _optionsService = optionsService;
-        _votesService = votesService;
-    }
-
-    private IActionResult ForbidVote(string detail)
+    private ObjectResult ForbidVote(string detail)
     {
         return Problem(
                 type: "/docs/errors/forbidden",
@@ -49,27 +40,13 @@ public class OptionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Vote([FromRoute] int optionId)
     {
-        // Check whether option has Poll assigned to it
-        int? pollId = await _optionsService.GetPollIdAsync(optionId);
-        if (pollId == null)
+        return await _votesService.VoteAsync(optionId, User.GetSubjectId()) switch
         {
-            return NotFound();
-        }
-        // Make sure that poll is active
-        if (await _pollsService.IsPollActiveAsync(pollId.Value) == true)
-        {
-            return ForbidVote("Poll is not active.");
-        }
-        // Make sure that user isn't voting twice
-        string userId = User.GetSubjectId();
-        if (await _votesService.GetVotedOptionAsync(pollId.Value, userId) != null)
-        {
-            return ForbidVote("User cannot vote twice on the same Poll.");
-        }
-
-        // Vote
-        await _votesService.VoteAsync(pollId.Value, optionId, userId);
-
-        return NoContent();
+            VoteServiceResult.Success => NoContent(),
+            VoteServiceResult.PollExpired => ForbidVote("The poll is not available for voting."),
+            VoteServiceResult.PollNotFound => NotFound(),
+            VoteServiceResult.AlreadyVoted => ForbidVote("Cannot vote twice."),
+            _ => throw new InvalidOperationException("Unsupported VoteServiceResult value.")
+        };
     }
 }

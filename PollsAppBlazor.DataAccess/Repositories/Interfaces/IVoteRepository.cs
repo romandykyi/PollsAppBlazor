@@ -19,5 +19,5 @@ public interface IVoteRepository
     /// <param name="pollId">ID of the poll which contains this option.</param>
     /// <param name="optionId">ID of the option.</param>
     /// <param name="userId">ID of the user who votes.</param>
-    Task VoteAsync(int pollId, int optionId, string userId);
+    Task AddVoteAsync(int pollId, int optionId, string userId);
 }

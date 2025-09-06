@@ -18,7 +18,7 @@ public class VoteRepository(ApplicationDbContext dbContext) : IVoteRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task VoteAsync(int pollId, int optionId, string userId)
+    public async Task AddVoteAsync(int pollId, int optionId, string userId)
     {
         Vote vote = new()
         {
