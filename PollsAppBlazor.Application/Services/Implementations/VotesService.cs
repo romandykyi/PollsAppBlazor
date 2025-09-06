@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
+using PollsAppBlazor.Application.Services.Results;
 using PollsAppBlazor.DataAccess.Repositories.Interfaces;
 using PollsAppBlazor.Server.DataAccess;
 
@@ -8,6 +9,8 @@ namespace PollsAppBlazor.Application.Services.Implementations;
 
 public class VotesService(
     IVoteRepository voteRepository,
+    IPollOptionRepository optionRepository,
+    IPollRepository pollRepository,
     ApplicationDbContext dataContext,
     IMemoryCache memoryCache,
     IConfiguration configuration
@@ -16,6 +19,8 @@ public class VotesService(
     private static string VotesForOption(int optionId) => $"vts:{optionId}";
 
     private readonly IVoteRepository _voteRepository = voteRepository;
+    private readonly IPollOptionRepository _optionRepository = optionRepository;
+    private readonly IPollRepository _pollsService = pollRepository;
     private readonly IMemoryCache _memoryCache = memoryCache;
     private readonly IConfiguration _configuration = configuration;
     private readonly ApplicationDbContext _dataContext = dataContext;
@@ -66,11 +71,30 @@ public class VotesService(
     /// <summary>
     /// Vote for an option
     /// </summary>
-    /// <param name="pollId">ID of the poll which contains this option</param>
     /// <param name="optionId">ID of the option</param>
     /// <param name="userId">ID of the user who votes</param>
-    public Task VoteAsync(int pollId, int optionId, string userId)
+    public async Task<VoteServiceResult> VoteAsync(int optionId, string userId)
     {
-        return _voteRepository.VoteAsync(pollId, optionId, userId);
+        // Check whether option has Poll assigned to it
+        int? pollId = await _optionRepository.GetOptionPollIdAsync(optionId);
+        if (pollId == null)
+        {
+            return VoteServiceResult.PollNotFound;
+        }
+        // Make sure that poll is active
+        if (await _pollsService.IsPollActiveAsync(pollId.Value) != true)
+        {
+            return VoteServiceResult.PollExpired;
+        }
+        // Make sure that user isn't voting twice
+        if (await _voteRepository.GetVotedOptionAsync(pollId.Value, userId) != null)
+        {
+            return VoteServiceResult.AlreadyVoted;
+        }
+
+        // Vote
+        await _voteRepository.AddVoteAsync(pollId.Value, optionId, userId);
+
+        return VoteServiceResult.Success; ;
     }
 }
