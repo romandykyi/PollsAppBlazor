@@ -1,6 +1,5 @@
 ﻿namespace PollsAppBlazor.Shared.Options;
-
-public class OptionViewDto
+internal class OptionWithVotesViewDto
 {
     public required int Id { get; set; }
 
