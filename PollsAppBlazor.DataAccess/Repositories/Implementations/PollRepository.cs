@@ -9,9 +9,10 @@ using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.DataAccess.Repositories.Implementations;
 
-public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
+public class PollRepository(ApplicationDbContext dbContext, IVoteRepository voteRepository) : IPollRepository
 {
     private readonly ApplicationDbContext _dbContext = dbContext;
+    private readonly IVoteRepository _voteRepository = voteRepository;
 
     public Task<string?> GetCreatorIdAsync(int pollId)
     {
@@ -31,12 +32,12 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
             .FirstOrDefaultAsync();
     }
 
-    public Task<PollViewDto?> GetByIdAsync(int pollId, bool includeVotes = false)
+    public async Task<PollViewDto?> GetByIdAsync(int pollId)
     {
-        return _dbContext.Polls
+        return await _dbContext.Polls
             .AsNoTracking()
             .Where(p => p.Id == pollId)
-            .Select(p => p.ToPollViewDto(includeVotes))
+            .Select(p => p.ToPollViewDto())
             .FirstOrDefaultAsync();
     }
 

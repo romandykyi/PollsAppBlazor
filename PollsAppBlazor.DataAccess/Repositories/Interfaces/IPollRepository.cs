@@ -29,13 +29,10 @@ public interface IPollRepository
     /// Gets the poll by its ID.
     /// </summary>
     /// <param name="pollId">ID of the Poll we need to get</param>
-    /// <param name="includeVotes">
-    /// A flag indicating whether the votes must be retrieved.
-    /// </param>
     /// <returns>
     /// View of the Poll, or <see langword="null" /> if Poll was not found.
     /// </returns>
-    Task<PollViewDto?> GetByIdAsync(int pollId, bool includeVotes = false);
+    Task<PollViewDto?> GetByIdAsync(int pollId);
 
     /// <summary>
     /// Gets an editing representation of the poll by its ID.

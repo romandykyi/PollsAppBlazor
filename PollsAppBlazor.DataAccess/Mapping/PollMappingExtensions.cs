@@ -1,11 +1,12 @@
 ﻿using PollsAppBlazor.Server.DataAccess.Models;
+using PollsAppBlazor.Shared.Options;
 using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.DataAccess.Mapping;
 
 public static class PollMappingExtensions
 {
-    public static PollViewDto ToPollViewDto(this Poll poll, bool countVotes)
+    public static PollViewDto ToPollViewDto(this Poll poll)
     {
         return new PollViewDto()
         {
@@ -16,13 +17,12 @@ public static class PollMappingExtensions
             ExpiryDate = poll.ExpiryDate,
             Creator = poll.Creator!.UserName!,
             CreatorId = poll.CreatorId,
-            AreVotesVisible = poll.ResultsVisibleBeforeVoting,
+            ResultsVisibleBeforeVoting = poll.ResultsVisibleBeforeVoting,
             // Select options
             Options = poll.Options!.Select(o => new OptionViewDto()
             {
                 Id = o.Id,
-                Description = o.Description,
-                VotesCount = countVotes ? o.Votes!.Count : null
+                Description = o.Description
             }).ToList()
         };
     }
