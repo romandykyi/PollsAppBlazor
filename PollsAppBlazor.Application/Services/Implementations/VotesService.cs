@@ -26,11 +26,11 @@ public class VotesService(
     private readonly ApplicationDbContext _dataContext = dataContext;
 
     /// <summary>
-    /// Count votes for option.
+    /// Counts votes for the option.
     /// </summary>
-    /// <param name="optionId">ID of the option which votes need to be count</param>
+    /// <param name="optionId">ID of the option which votes to count.</param>
     /// <returns>
-    /// Number of votes on the option
+    /// Number of votes for the option.
     /// </returns>
     public async Task<int> CountVotesAsync(int optionId)
     {
@@ -55,13 +55,12 @@ public class VotesService(
     }
 
     /// <summary>
-    /// Get ID of an option which was voted by the user
+    /// Gets ID of an option which was voted by the user
     /// </summary>
-    /// <param name="pollId">ID of the poll</param>
-    /// <param name="userId">ID of the user</param>
+    /// <param name="pollId">ID of the poll.</param>
+    /// <param name="userId">ID of the user.</param>
     /// <returns>
-    /// ID of voted by user option, or
-    /// <see langword="null" /> if user didn't vote on this poll;
+    /// ID of the voted option, or <see langword="null" /> if user didn't vote on this poll.
     /// </returns>
     public Task<int?> GetVotedOptionAsync(int pollId, string userId)
     {
@@ -69,10 +68,10 @@ public class VotesService(
     }
 
     /// <summary>
-    /// Vote for an option
+    /// Adds a user vote for the option
     /// </summary>
-    /// <param name="optionId">ID of the option</param>
-    /// <param name="userId">ID of the user who votes</param>
+    /// <param name="optionId">ID of the option.</param>
+    /// <param name="userId">ID of the voter.</param>
     public async Task<VoteServiceResult> VoteAsync(int optionId, string userId)
     {
         // Check whether option has Poll assigned to it
