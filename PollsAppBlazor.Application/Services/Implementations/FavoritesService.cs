@@ -11,13 +11,13 @@ public class FavoritesService(IFavoriteRepository favoritesRepository, Applicati
     private readonly ApplicationDbContext _context = context;
 
     /// <summary>
-    /// Get a Poll favorite status for the user.
+    /// Gets the poll favorite status for the user.
     /// </summary>
     /// <remarks>
-    /// This method doesn't check whether Poll exists.
+    /// This method doesn't check whether the poll exists.
     /// </remarks>
-    /// <param name="pollId">ID of the Poll to be checked</param>
-    /// <param name="userId">ID the user</param>
+    /// <param name="pollId">ID of the Poll to be checked.</param>
+    /// <param name="userId">ID the user.</param>
     public async Task<FavoriteDto> GetFavorite(int pollId, string userId)
     {
         bool isFavorite = await _favoriteRepository.ExistsAsync(pollId, userId);
@@ -29,13 +29,13 @@ public class FavoritesService(IFavoriteRepository favoritesRepository, Applicati
     }
 
     /// <summary>
-    /// Add a Poll to favorites for the user.
+    /// Adds a poll to favorites for the user.
     /// </summary>
     /// <remarks>
-    /// If the Poll is already in favorites then nothing will happen.
+    /// If the Poll is already in favorites, then nothing will happen.
     /// </remarks>
-    /// <param name="pollId">ID of the Poll to be addded to favorites</param>
-    /// <param name="userId">ID the user</param>
+    /// <param name="pollId">ID of the Poll to be addded to favorites.</param>
+    /// <param name="userId">ID the user.</param>
     /// <returns>
     /// <see langword="true" /> if the Poll was added to favorites or was already in favorites;
     /// otherwise <see langword="false" /> if the Poll was not found.
@@ -55,10 +55,10 @@ public class FavoritesService(IFavoriteRepository favoritesRepository, Applicati
     }
 
     /// <summary>
-    /// Remove a Poll from favorites for the user.
+    /// Removes a poll from favorites for the user.
     /// </summary>
-    /// <param name="pollId">ID of the Poll to be removed from favorites</param>
-    /// <param name="userId">ID the user</param>
+    /// <param name="pollId">ID of the Poll to be removed from favorites.</param>
+    /// <param name="userId">ID the user.</param>
     /// <returns>
     /// <see langword="true" /> if the Poll was successfully removed from favorites;
     /// otherwise <see langword="false" /> if Poll wasn't in favorites.
