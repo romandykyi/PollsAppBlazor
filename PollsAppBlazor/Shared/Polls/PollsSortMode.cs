@@ -1,7 +1,6 @@
-﻿namespace PollsAppBlazor.Shared.Polls
+﻿namespace PollsAppBlazor.Shared.Polls;
+
+public enum PollsSortMode
 {
-	public enum PollsSortMode
-	{
-		Newest, Oldest, MostVoted
-	}
+    Newest, Oldest, MostVoted
 }
