@@ -1,4 +1,4 @@
-﻿namespace PollsAppBlazor.Shared.Polls
+﻿namespace PollsAppBlazor.Shared.Options
 {
 	public class OptionViewDto
 	{

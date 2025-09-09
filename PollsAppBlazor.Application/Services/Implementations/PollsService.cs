@@ -1,21 +1,19 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using PollsAppBlazor.DataAccess.Repositories.Interfaces;
 using PollsAppBlazor.Server.DataAccess;
 using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.Application.Services.Implementations;
 
-public class PollsService
+public class PollsService(
+    ApplicationDbContext dataContext,
+    VotesService votesService,
+    IPollRepository pollRepository)
 {
-    private readonly ApplicationDbContext _dataContext;
-    private readonly VotesService _votesService;
-
-    public PollsService(ApplicationDbContext dataContext, VotesService votesService)
-    {
-        _dataContext = dataContext;
-        _votesService = votesService;
-    }
+    private readonly ApplicationDbContext _dataContext = dataContext;
+    private readonly VotesService _votesService = votesService;
+    private readonly IPollRepository _pollRepository = pollRepository;
 
     /// <summary>
     /// Get ID of user who created the Poll.
@@ -25,13 +23,9 @@ public class PollsService
     /// ID of the user who created Poll or <see langword="null" />
     /// if Poll was not found.
     /// </returns>
-    public async Task<string?> GetCreatorIdAsync(int pollId)
+    public Task<string?> GetCreatorIdAsync(int pollId)
     {
-        return await _dataContext.Polls
-            .AsNoTracking()
-            .Where(p => p.Id == pollId)
-            .Select(p => p.CreatorId)
-            .FirstOrDefaultAsync();
+        return _pollRepository.GetCreatorIdAsync(pollId);
     }
 
     /// <summary>
@@ -44,11 +38,7 @@ public class PollsService
     /// </returns>
     public Task<bool?> IsPollActiveAsync(int pollId)
     {
-        return _dataContext.Polls
-            .AsNoTracking()
-            .Where(p => p.Id == pollId)
-            .Select(p => (bool?)p.IsActive)
-            .FirstOrDefaultAsync();
+        return _pollRepository.IsPollActiveAsync(pollId);
     }
 
     /// <summary>

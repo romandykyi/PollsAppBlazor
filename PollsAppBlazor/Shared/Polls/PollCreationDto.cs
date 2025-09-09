@@ -1,4 +1,5 @@
-﻿using PollsAppBlazor.Shared.Validation;
+﻿using PollsAppBlazor.Shared.Options;
+using PollsAppBlazor.Shared.Validation;
 
 namespace PollsAppBlazor.Shared.Polls
 {
