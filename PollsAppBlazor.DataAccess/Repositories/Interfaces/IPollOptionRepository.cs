@@ -1,4 +1,6 @@
-﻿namespace PollsAppBlazor.DataAccess.Repositories.Interfaces;
+﻿using PollsAppBlazor.Shared.Options;
+
+namespace PollsAppBlazor.DataAccess.Repositories.Interfaces;
 
 public interface IPollOptionRepository
 {
@@ -10,4 +12,6 @@ public interface IPollOptionRepository
     /// ID of the poll containing the option, or <see langword="null" /> if the option doesn't exist.
     /// </returns>
     Task<int?> GetOptionPollIdAsync(int optionId);
+
+    Task<IEnumerable<OptionViewDto>> GetPollOpti
 }

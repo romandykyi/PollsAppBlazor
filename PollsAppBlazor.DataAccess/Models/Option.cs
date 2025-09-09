@@ -1,4 +1,4 @@
-﻿using PollsAppBlazor.Shared.Polls;
+﻿using PollsAppBlazor.Shared.Options;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
