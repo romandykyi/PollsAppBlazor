@@ -16,7 +16,7 @@ public class PollViewDto
 
     public required bool ResultsVisibleBeforeVoting { get; set; }
 
-    public required int? VotedOptionId { get; set; }
+    public int? VotedOptionId { get; set; }
 
     [JsonIgnore]
     public bool IsExpired => DateTimeOffset.Now >= ExpiryDate;

@@ -13,5 +13,13 @@ public interface IPollOptionRepository
     /// </returns>
     Task<int?> GetOptionPollIdAsync(int optionId);
 
-    Task<IEnumerable<OptionViewDto>> GetPollOpti
+    /// <summary>
+    /// Gets options for the given poll, including the number of votes for each option.
+    /// </summary>
+    /// <param name="pollId">ID of the poll which options to retrieve.</param>
+    /// <returns>
+    /// Options of the poll with their vote counts, or <see langword="null" /> if
+    /// the poll doesn't exist.
+    /// </returns>
+    Task<IEnumerable<OptionWithVotesViewDto>?> GetPollOptionsAsync(int pollId);
 }
