@@ -1,58 +1,17 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Configuration;
-using PollsAppBlazor.Application.Services.Results;
+﻿using PollsAppBlazor.Application.Services.Results;
 using PollsAppBlazor.DataAccess.Repositories.Interfaces;
-using PollsAppBlazor.Server.DataAccess;
 
 namespace PollsAppBlazor.Application.Services.Implementations;
 
 public class VotesService(
     IVoteRepository voteRepository,
     IPollOptionRepository optionRepository,
-    IPollRepository pollRepository,
-    ApplicationDbContext dataContext,
-    IMemoryCache memoryCache,
-    IConfiguration configuration
+    IPollRepository pollRepository
     )
 {
-    private static string VotesForOption(int optionId) => $"vts:{optionId}";
-
     private readonly IVoteRepository _voteRepository = voteRepository;
     private readonly IPollOptionRepository _optionRepository = optionRepository;
-    private readonly IPollRepository _pollsService = pollRepository;
-    private readonly IMemoryCache _memoryCache = memoryCache;
-    private readonly IConfiguration _configuration = configuration;
-    private readonly ApplicationDbContext _dataContext = dataContext;
-
-    /// <summary>
-    /// Counts votes for the option.
-    /// </summary>
-    /// <param name="optionId">ID of the option which votes to count.</param>
-    /// <returns>
-    /// Number of votes for the option.
-    /// </returns>
-    public async Task<int> CountVotesAsync(int optionId)
-    {
-        // Get value from cache if it's available
-        if (_memoryCache.TryGetValue(VotesForOption(optionId), out int cachedCount))
-        {
-            return cachedCount;
-        }
-
-        // Calculate the count from the database
-        int count = await _dataContext.Votes
-            .AsNoTracking()
-            .Where(v => v.OptionId == optionId)
-            .CountAsync();
-
-        // Cache value
-        var settings = _configuration.GetSection("CacheSettings");
-        var duration = TimeSpan.FromMinutes(settings.GetValue<int>("VotesCountCacheDurationMinutes"));
-        _memoryCache.Set(VotesForOption(optionId), count, duration);
-
-        return count;
-    }
+    private readonly IPollRepository _pollRepository = pollRepository;
 
     /// <summary>
     /// Gets ID of an option which was voted by the user
@@ -81,7 +40,12 @@ public class VotesService(
             return VoteServiceResult.PollNotFound;
         }
         // Make sure that poll is active
-        if (await _pollsService.IsPollActiveAsync(pollId.Value) != true)
+        var pollStatus = await _pollRepository.GetPollStatusAsync(pollId.Value);
+        if (pollStatus == null)
+        {
+            return VoteServiceResult.PollNotFound;
+        }
+        if (!pollStatus.IsActive)
         {
             return VoteServiceResult.PollExpired;
         }
@@ -94,6 +58,6 @@ public class VotesService(
         // Vote
         await _voteRepository.AddVoteAsync(pollId.Value, optionId, userId);
 
-        return VoteServiceResult.Success; ;
+        return VoteServiceResult.Success;
     }
 }
