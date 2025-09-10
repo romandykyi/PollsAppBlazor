@@ -21,6 +21,7 @@ public static class DependencyInjectionServiceCollectionExtensions
             .AddScoped<PollsService>()
             .AddScoped<OptionsService>()
             .AddScoped<VotesService>()
-            .AddScoped<FavoritesService>();
+            .AddScoped<FavoritesService>()
+            .AddScoped<UserService>();
     }
 }
