@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.Authorization
 @using PollsAppBlazor.Shared.Options
 @using PollsAppBlazor.Shared.Polls
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject PublicClient PublicClient
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
@@ -51,7 +52,7 @@ else
 		<MudAlert Severity="Severity.Info">This poll expired @poll.ExpiryDate!.Value.AsTimeAgo()</MudAlert>
 	}
 
-	@if (poll.CurrentUserCanEdit)
+	@if (canEdit == true)
 	{
 		<MudStack Row="true" Spacing="1">
 			<MudButton Variant="Variant.Outlined" Color="Color.Primary"
@@ -101,7 +102,7 @@ else
 					   Color="Color.Success" Variant="Variant.Filled">
 				Vote
 			</MudButton>
-			<MudButton OnClick="@(() => viewResults = true)" Disabled="@(!poll.AreVotesVisible)"
+			<MudButton OnClick="@(() => viewResults = true)" Disabled="@(canViewResults != true)"
 					   Color="Color.Primary" Variant="Variant.Filled">
 				View results
 			</MudButton>
@@ -111,7 +112,7 @@ else
 	{
 		<MudGrid>
 			<MudItem xs="12" sm="6">
-				<MudDataGrid T="OptionViewDto" Items="@poll.Options" Filterable="false"
+				<MudDataGrid T="OptionWithVotesViewDto" Items="@optionsWithVotes" Filterable="false"
 							 SortMode="SortMode.Single" Groupable="false">
 					<Columns>
 						<PropertyColumn Property="o => o!.Description" Title="Option" />
@@ -121,8 +122,8 @@ else
 			</MudItem>
 			<MudItem xs="12" sm="6">
 				<MudChart ChartType="ChartType.Pie"
-						  InputData="@poll.Options.Select(o => (double)o.VotesCount!).ToArray()"
-						  InputLabels="@poll.Options.Select(o => o.Description).ToArray()" />
+						  InputData="@optionsWithVotes.Select(o => (double)o.VotesCount!).ToArray()"
+						  InputLabels="@optionsWithVotes.Select(o => o.Description).ToArray()" />
 			</MudItem>
 		</MudGrid>
 		<MudButton OnClick="@(() => viewResults = false)"
@@ -134,6 +135,10 @@ else
 
 @code {
 	private PollViewDto poll { get; set; } = null!;
+
+	private bool? canViewResults = null;
+	private bool? canEdit = null;
+	private IList<OptionWithVotesViewDto> optionsWithVotes = [];
 
 	private int? selectedOptionId { get; set; }
 	private bool viewResults { get; set; } = false;
@@ -148,34 +153,41 @@ else
 	{
 		try
 		{
+			// Get poll details
 			poll = (await PublicClient.Client.GetFromJsonAsync<PollViewDto>($"/api/polls/{pollId}"))!;
 			selectedOptionId = poll.VotedOptionId;
+			isInFavorites = poll.IsInFavorites;
+
+			// Try to get options with votes
+			var optionsResponse = await PublicClient.Client.GetAsync($"/api/polls/{pollId}/options");
+			if (optionsResponse.IsSuccessStatusCode)
+			{
+				canViewResults = true;
+				optionsWithVotes = (await optionsResponse.Content.ReadFromJsonAsync<IList<OptionWithVotesViewDto>>())!;
+			}
+			else
+			{
+				canViewResults = false;
+				optionsWithVotes = [];
+			}
+
+			// Determine whether user can edit the poll
+			canEdit = null;
+			var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+			var user = authState.User;
+			if (user.Identity != null && user.Identity.IsAuthenticated)
+			{
+				string? userId = user.FindFirst("sub")?.Value;
+				canEdit = user.IsInRole("Admin") || (userId != null && userId == poll.Creator.Id);
+			}
+			else
+			{
+                canEdit = false;
+			}
 		}
 		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
 		{
 			NavigationManager.NavigateTo("/polls/error404");
-		}
-		catch (HttpRequestException)
-		{
-			Snackbar.UnexpectedError();
-		}
-	}
-
-	protected override async Task OnInitializedAsync()
-	{
-		await UpdatePoll();
-
-		try
-		{
-			var response = await PublicClient.Client.GetAsync($"api/user/favorites/{pollId}");
-			response.EnsureSuccessStatusCode();
-
-			var result = await response.Content.ReadFromJsonAsync<FavoriteDto>();
-			isInFavorites = result!.IsFavorite;
-		}
-		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.Unauthorized)
-		{
-			isInFavorites = false;
 		}
 		catch (HttpRequestException)
 		{
@@ -194,7 +206,7 @@ else
 		var dialog = await DialogService.ShowAsync<DialogTemplate>("Confirm Delete", parameters, options);
 		var result = await dialog.Result;
 
-		if (result.Canceled) return;
+		if (result == null || result.Canceled) return;
 
 		var response = await PublicClient.Client.DeleteAsync($"api/polls/{pollId}");
 		try
@@ -221,7 +233,7 @@ else
 		var dialog = await DialogService.ShowAsync<DialogTemplate>("Confirm operation", parameters, options);
 		var result = await dialog.Result;
 
-		if (result.Canceled) return;
+		if (result == null || result.Canceled) return;
 
 		var response = await PublicClient.Client.PatchAsync($"api/polls/{pollId}/expire", null);
 		try
@@ -288,6 +300,7 @@ else
 		}
 		catch (HttpRequestException)
 		{
+            isInFavorites = !favorite; // revert
 			Snackbar.UnexpectedError();
 		}
 	}
