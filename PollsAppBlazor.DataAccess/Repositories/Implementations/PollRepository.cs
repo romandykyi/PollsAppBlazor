@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using PollsAppBlazor.DataAccess.Aggregates;
 using PollsAppBlazor.DataAccess.Extensions;
 using PollsAppBlazor.DataAccess.Mapping;
 using PollsAppBlazor.DataAccess.Repositories.Interfaces;
@@ -13,32 +14,23 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
 {
     private readonly ApplicationDbContext _dbContext = dbContext;
 
-    public Task<string?> GetCreatorIdAsync(int pollId)
-    {
-        return _dbContext.Polls
-            .AsNoTracking()
-            .Where(p => p.Id == pollId)
-            .Select(p => p.CreatorId)
-            .FirstOrDefaultAsync();
-    }
-
-    public async Task<bool?> IsPollActiveAsync(int pollId, bool trackEntity = false)
+    public async Task<PollStatus?> GetPollStatusAsync(int pollId, bool trackEntity = false)
     {
         if (trackEntity)
         {
             var poll = await _dbContext.Polls.FindAsync(pollId);
-            return poll?.IsActive;
+            return poll?.ToPollStatus();
         }
         return await _dbContext.Polls
-            .AsTracking()
+            .AsNoTracking()
             .Where(p => p.Id == pollId)
-            .Select(p => (bool?)p.IsActive)
+            .Select(p => p.ToPollStatus())
             .FirstOrDefaultAsync();
     }
 
-    public async Task<PollViewDto?> GetByIdAsync(int pollId)
+    public Task<PollViewDto?> GetByIdAsync(int pollId)
     {
-        return await _dbContext.Polls
+        return _dbContext.Polls
             .AsNoTracking()
             .Where(p => p.Id == pollId)
             .Select(p => p.ToPollViewDto())

@@ -1,4 +1,5 @@
-﻿using PollsAppBlazor.Server.DataAccess.Models;
+﻿using PollsAppBlazor.DataAccess.Aggregates;
+using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Shared.Options;
 using PollsAppBlazor.Shared.Polls;
 using PollsAppBlazor.Shared.Users;
@@ -57,5 +58,10 @@ public static class PollMappingExtensions
             Title = poll.Title,
             VotesCount = poll.Votes!.Count
         };
+    }
+
+    public static PollStatus ToPollStatus(this Poll poll)
+    {
+        return new(poll.CreatorId, poll.IsActive, poll.ResultsVisibleBeforeVoting);
     }
 }

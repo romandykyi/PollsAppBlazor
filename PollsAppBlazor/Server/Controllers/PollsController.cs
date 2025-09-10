@@ -65,6 +65,16 @@ public class PollsController(PollsService pollsService) : ControllerBase
         return Ok(await _pollsService.GetPollsAsync(filter));
     }
 
+    public async Task<IActionResult> GetOptions([FromRoute] int pollId)
+    {
+        var options = await _pollsService.GetOptionsAsync(pollId);
+        if (options == null)
+        {
+            return NotFound();
+        }
+        return Ok(options);
+    }
+
     /// <summary>
     /// Creates a Poll
     /// </summary>
