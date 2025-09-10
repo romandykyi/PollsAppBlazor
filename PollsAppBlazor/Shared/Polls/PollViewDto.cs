@@ -9,10 +9,10 @@ public class PollViewDto
     public required int Id { get; set; }
 
     public required string Title { get; set; }
-    public required string? Description { get; set; }
+    public string? Description { get; set; }
     public required PollCreatorDto Creator { get; set; }
     public required DateTimeOffset CreationDate { get; set; }
-    public required DateTimeOffset? ExpiryDate { get; set; }
+    public DateTimeOffset? ExpiryDate { get; set; }
     public required IList<OptionViewDto> Options { get; set; }
 
     public required bool ResultsVisibleBeforeVoting { get; set; }
