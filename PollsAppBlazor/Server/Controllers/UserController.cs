@@ -1,33 +1,21 @@
 ﻿using Duende.IdentityServer.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using PollsAppBlazor.Application.Services.Implementations;
-using PollsAppBlazor.Server.DataAccess;
-using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.Server.Controllers;
 
 [Authorize]
 [Route("api/user")]
-public class UserController : ControllerBase
+public class UserController(
+    UserService userService,
+    FavoritesService favoritesService
+    ) : ControllerBase
 {
-    private readonly PollsService _pollsService;
-    private readonly FavoritesService _favoritesService;
-    private readonly ApplicationDbContext _dataContext;
-    private readonly UserManager<ApplicationUser> _userManager;
-
-    public UserController(PollsService pollsService, FavoritesService favoritesService,
-        ApplicationDbContext dataContext, UserManager<ApplicationUser> userManager)
-    {
-        _pollsService = pollsService;
-        _favoritesService = favoritesService;
-        _dataContext = dataContext;
-        _userManager = userManager;
-    }
+    private readonly UserService _userService = userService;
+    private readonly FavoritesService _favoritesService = favoritesService;
 
     /// <summary>
     /// Gets polls created by the current user
@@ -49,7 +37,7 @@ public class UserController : ControllerBase
     [ProducesResponseType(typeof(PollsPage), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BadRequest), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(BadRequest), StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetCreatedPolls([FromQuery] PollsPagePaginationParameters filter)
+    public async Task<IActionResult> GetCreatedPolls([FromQuery] PollsPagePaginationParameters parameters)
     {
         if (!ModelState.IsValid)
         {
@@ -57,15 +45,7 @@ public class UserController : ControllerBase
         }
         string userId = User.GetSubjectId();
 
-        var user = await _userManager.Users
-            .FirstAsync(u => u.Id == userId);
-
-        var polls = _dataContext
-            .Entry(user)
-            .Collection(u => u.CreatedPolls!)
-            .Query();
-
-        return Ok(await _pollsService.FilterPollsAsync(filter, polls));
+        return Ok(await _userService.GetPollsAsync(parameters, userId));
     }
 
     /// <summary>
@@ -88,7 +68,7 @@ public class UserController : ControllerBase
     [ProducesResponseType(typeof(PollsPage), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BadRequest), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(BadRequest), StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetFavoritePolls([FromQuery] PollsPagePaginationParameters filter)
+    public async Task<IActionResult> GetFavoritePolls([FromQuery] PollsPagePaginationParameters parameters)
     {
         if (!ModelState.IsValid)
         {
@@ -96,31 +76,7 @@ public class UserController : ControllerBase
         }
         string userId = User.Identity.GetSubjectId();
 
-        var user = await _userManager.Users
-            .FirstAsync(u => u.Id == userId);
-
-        var favorites = _dataContext
-            .Entry(user)
-            .Collection(u => u.FavoritePolls!)
-            .Query();
-
-        return Ok(await _pollsService.FilterPollsAsync(filter, favorites));
-    }
-
-    /// <summary>
-    /// Checks whether a poll is favorite for the current user 
-    /// </summary>
-    /// <response code="200">Success</response>
-    /// <response code="401">Unauthorized user call</response>
-    [HttpGet]
-    [Route("favorites/{pollId}")]
-    [ProducesResponseType(typeof(FavoriteDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetFavorite([FromRoute] int pollId)
-    {
-        var result = await _favoritesService.GetFavorite(pollId, User.GetSubjectId());
-        return Ok(result);
+        return Ok(await _userService.GetFavoritePollsAsync(parameters, userId));
     }
 
     /// <summary>
@@ -134,7 +90,7 @@ public class UserController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Add([FromRoute] int pollId)
+    public async Task<IActionResult> AddToFavorites([FromRoute] int pollId)
     {
         if (await _favoritesService.AddToFavoritesAsync(pollId, User.GetSubjectId()))
         {

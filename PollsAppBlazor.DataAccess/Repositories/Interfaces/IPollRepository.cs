@@ -1,4 +1,5 @@
 ﻿using PollsAppBlazor.DataAccess.Repositories.Options;
+using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.DataAccess.Repositories.Interfaces;
@@ -19,11 +20,15 @@ public interface IPollRepository
     /// Checks whether the poll is active (i.e. not expired or closed).
     /// </summary>
     /// <param name="pollId">ID of the poll to check.</param>
+    /// <param name="track">
+    /// Whether to track the entity in the context. 
+    /// If ORM is not used, this parameter will be ignored.
+    /// </param>
     /// <returns>
     /// A boolean flag indicating whether poll is available for voting, or
     /// <see langword="null"/> if the poll doesn't exist.
     /// </returns>
-    Task<bool?> IsPollActiveAsync(int pollId);
+    Task<bool?> IsPollActiveAsync(int pollId, bool trackEntity = false);
 
     /// <summary>
     /// Gets the poll by its ID.
@@ -56,8 +61,8 @@ public interface IPollRepository
     /// </summary>
     /// <param name="creationDto">Poll DTO used for its creation.</param>
     /// <param name="creatorId">ID of the user who creates this poll.</param>
-    /// <returns>A view of the created poll.</returns>
-    Task<PollViewDto> CreatePollAsync(PollCreationDto creationDto, string creatorId);
+    /// <returns>A created poll.</returns>
+    Task<Poll> CreatePollAsync(PollCreationDto creationDto, string creatorId);
 
     /// <summary>
     /// Updates the poll, ignoring the <see langword="null" /> properties.
@@ -65,19 +70,19 @@ public interface IPollRepository
     /// <param name="editDto">The poll DTO to use.</param>
     /// <param name="pollId">ID of the poll to update.</param>
     /// <returns>
-    /// The updated poll (without votes) or <see langword="null" />
-    /// if it was not updated.
+    /// The updated poll or <see langword="null" /> if it does not exist.
     /// </returns>
-    Task<PollViewDto?> EditPollAsync(PollEditDto editDto, int pollId);
+    Task<Poll?> EditPollAsync(PollEditDto editDto, int pollId);
 
     /// <summary>
     /// Expires the poll.
     /// </summary>
     /// <param name="pollId">ID of the poll to expire.</param>
     /// <returns>
-    /// <see langword="true" /> on success; otherwise <see langword="false"/>.
+    /// <see langword="true" /> on success, <see langword="false"/> if poll
+    /// is already expired or <see langword="null" /> if the poll was not found.
     /// </returns>
-    Task<bool> ExpirePollAsync(int pollId);
+    Task<bool?> ExpirePollAsync(int pollId);
 
     /// <summary>
     /// Deletes a poll by its ID.

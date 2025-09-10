@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using PollsAppBlazor.Application.Services.Implementations;
+using PollsAppBlazor.Application.Services.Results;
 using PollsAppBlazor.Server.Policy;
 using PollsAppBlazor.Shared.Polls;
 
@@ -11,16 +12,9 @@ namespace PollsAppBlazor.Server.Controllers;
 [ApiController]
 [Route("api/polls")]
 // doesn't work with Swagger: [AutoValidateAntiforgeryToken]
-public class PollsController : ControllerBase
+public class PollsController(PollsService pollsService) : ControllerBase
 {
-    private readonly PollsService _pollsService;
-    private readonly OptionsService _optionsService;
-
-    public PollsController(PollsService pollsService, OptionsService optionsService)
-    {
-        _pollsService = pollsService;
-        _optionsService = optionsService;
-    }
+    private readonly PollsService _pollsService = pollsService;
 
     /// <summary>
     /// Gets a Poll by its ID
@@ -42,13 +36,6 @@ public class PollsController : ControllerBase
         if (result == null)
         {
             return NotFound();
-        }
-        // PollsService only checks whether user is an owner,
-        // but administrators and moderators can edit too.
-        // This probably needs to be refactored
-        if (!result.CurrentUserCanEdit && Policies.UserCanEditAnything(User))
-        {
-            result.CurrentUserCanEdit = true;
         }
 
         return Ok(result);
@@ -147,9 +134,10 @@ public class PollsController : ControllerBase
         }
         return await _pollsService.EditPollAsync(poll, pollId) switch
         {
-            true => NoContent(),
-            false => Forbid(),
-            _ => NotFound()
+            EditPollResult.Success => NoContent(),
+            EditPollResult.Expired => Forbid(),
+            EditPollResult.NotFound => NotFound(),
+            _ => throw new InvalidOperationException("Unknown EditPollResult")
         };
     }
 
@@ -223,9 +211,10 @@ public class PollsController : ControllerBase
     {
         return await _pollsService.ExpirePollAsync(pollId) switch
         {
-            true => NoContent(),
-            false => UnprocessableEntity(),
-            null => NotFound()
+            ExpirePollResult.Success => NoContent(),
+            ExpirePollResult.AlreadyExpired => UnprocessableEntity(),
+            ExpirePollResult.NotFound => NotFound(),
+            _ => throw new InvalidOperationException("Unknown ExpirePollResult")
         };
     }
 }

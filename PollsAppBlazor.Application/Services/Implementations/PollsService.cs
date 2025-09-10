@@ -1,27 +1,28 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using PollsAppBlazor.Application.Services.Results;
+using PollsAppBlazor.DataAccess.Mapping;
 using PollsAppBlazor.DataAccess.Repositories.Interfaces;
-using PollsAppBlazor.Server.DataAccess;
-using PollsAppBlazor.Server.DataAccess.Models;
+using PollsAppBlazor.DataAccess.Repositories.Options;
 using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.Application.Services.Implementations;
 
 public class PollsService(
-    ApplicationDbContext dataContext,
-    VotesService votesService,
-    IPollRepository pollRepository)
+    IVoteRepository voteRepository,
+    IPollRepository pollRepository,
+    IFavoriteRepository favoriteRepository
+    )
 {
-    private readonly ApplicationDbContext _dataContext = dataContext;
-    private readonly VotesService _votesService = votesService;
+    private readonly IVoteRepository _voteRepository = voteRepository;
     private readonly IPollRepository _pollRepository = pollRepository;
+    private readonly IFavoriteRepository _favoriteRepository = favoriteRepository;
 
     /// <summary>
-    /// Get ID of user who created the Poll.
+    /// Gets ID of user who created the poll.
     /// </summary>
-    /// <param name="pollId">ID of a Poll</param>
+    /// <param name="pollId">ID of the poll</param>
     /// <returns>
-    /// ID of the user who created Poll or <see langword="null" />
-    /// if Poll was not found.
+    /// ID of the user who created the poll, or <see langword="null" />
+    /// if the poll was not found.
     /// </returns>
     public Task<string?> GetCreatorIdAsync(int pollId)
     {
@@ -29,9 +30,9 @@ public class PollsService(
     }
 
     /// <summary>
-    /// Check whether Poll is available for voting
+    /// Checks whether the poll is available for voting
     /// </summary>
-    /// <param name="pollId"></param>
+    /// <param name="pollId">ID of the poll to check.</param>
     /// <returns>
     /// A boolean flag indicating whether poll is available for voting, or
     /// <see langword="null"/> if the poll doesn't exist.
@@ -42,251 +43,83 @@ public class PollsService(
     }
 
     /// <summary>
-    /// Get a Poll by its ID.
+    /// Gets a poll by its ID.
     /// </summary>
-    /// <param name="pollId">ID of the Poll we need to get</param>
-    /// <param name="userId">ID of the user who requests a poll. Can be null</param>
+    /// <param name="pollId">ID of the poll to retrieve.</param>
+    /// <param name="userId">Optional ID of the user who requests a poll.</param>
     /// <returns>
     /// View of the Poll, or <see langword="null" /> if Poll was not found.
-    /// Votes numbers will be included if user has permission to view them
     /// </returns>
     public async Task<PollViewDto?> GetByIdAsync(int pollId, string? userId = null)
     {
-        // Try to get a poll with options from DB
-        var poll = await _dataContext.Polls
-            .Include(p => p.Options!)
-            .Include(p => p.Creator)
-            .AsNoTracking()
-            .Where(p => p.Id == pollId)
-            // Select poll
-            .Select(p => new PollViewDto()
-            {
-                Id = p.Id,
-                Title = p.Title,
-                Description = p.Description,
-                CreationDate = p.CreationDate,
-                ExpiryDate = p.ExpiryDate,
-                Creator = p.Creator!.UserName!,
-                CreatorId = p.CreatorId,
-                AreVotesVisible = p.ResultsVisibleBeforeVoting,
-                // Select options
-                Options = p.Options!.Select(o => new OptionViewDto()
-                {
-                    Id = o.Id,
-                    Description = o.Description
-                }).ToList()
-            }).FirstOrDefaultAsync();
-
+        PollViewDto? poll = await _pollRepository.GetByIdAsync(pollId);
         if (poll == null) return null;
 
-        // Determine poll status
         if (userId != null)
         {
-            // If user created this Poll
-            if (poll.CreatorId == userId)
-            {
-                poll.CurrentUserCanEdit = true;
-                poll.AreVotesVisible = true;
-            }
-            // If user has voted
-            int? votedOptionId = await _votesService.GetVotedOptionAsync(pollId, userId);
-            if (votedOptionId != null)
-            {
-                poll.AreVotesVisible = true;
-                poll.VotedOptionId = votedOptionId;
-            }
-        }
-        if (!poll.AreVotesVisible)
-        {
-            poll.AreVotesVisible = poll.IsExpired;
-        }
-        if (poll.AreVotesVisible)
-        {
-            // Add votes counts to options
-            for (int i = 0; i < poll.Options.Count; i++)
-            {
-                var option = poll.Options[i];
-                option.VotesCount = await _votesService.CountVotesAsync(option.Id);
-            }
+            poll.IsInFavorites = await _favoriteRepository.ExistsAsync(pollId, userId);
+            poll.VotedOptionId = await _voteRepository.GetVotedOptionAsync(pollId, userId);
         }
 
         return poll;
     }
 
     /// <summary>
-    /// Filter Polls query into page.
+    /// Gets a page with polls that meet the filter conditions.
     /// </summary>
     /// <returns>
-    /// Polls from query that match given filter.
+    /// A page with polls that match the given filter.
     /// </returns>
-    public async Task<PollsPage> FilterPollsAsync(PollsPagePaginationParameters filter, IQueryable<Poll> query)
+    public Task<PollsPage> GetPollsAsync(PollsPagePaginationParameters parameters)
     {
-        // Don't show expired Polls
-        if (!filter.ShowExpired)
-        {
-            query = query
-                .Where(p => p.ExpiryDate == null || DateTimeOffset.Now < p.ExpiryDate);
-        }
-        // Search by title
-        if (filter.Title != null)
-        {
-            query = query
-                .Where(p => p.Title!.Contains(filter.Title));
-        }
-        // Search by creator
-        if (filter.Creator != null)
-        {
-            query = query
-                .Where(p => p.Creator!.UserName!.Contains(filter.Creator));
-        }
-        // Sort
-        query = filter.SortMode switch
-        {
-            PollsSortMode.MostVoted => query.OrderByDescending(p => p.Votes!.Count),
-            PollsSortMode.Oldest => query.OrderBy(p => p.CreationDate),
-            // Newest
-            _ => query.OrderByDescending(p => p.CreationDate)
-        };
-
-        // Count all matching Polls
-        int count = await query.CountAsync();
-
-        // Select only needed data
-        var filteredQuery = query.Select(p => new PollPreviewDto()
-        {
-            Id = p.Id,
-            Title = p.Title,
-            CreationDate = p.CreationDate,
-            ExpiryDate = p.ExpiryDate,
-            Creator = p.Creator!.UserName!,
-            VotesCount = p.Votes!.Count
-        });
-
-        // Apply pagination
-        filteredQuery = filteredQuery
-            .Skip(filter.PageSize * (filter.Page - 1))
-            .Take(filter.PageSize);
-
-        return new()
-        {
-            TotalPollsCount = count,
-            Polls = await filteredQuery.ToListAsync()
-        };
+        PollsRetrievalOptions options = new(
+            Parameters: parameters,
+            CreatorId: null,
+            FavoritesOfUserId: null
+            );
+        return _pollRepository.GetPollsPageAsync(options);
     }
 
     /// <summary>
-    /// Get Polls that meet filter.
+    /// Creates a poll.
     /// </summary>
-    /// <returns>
-    /// Polls that match given filter.
-    /// </returns>
-    public async Task<PollsPage> GetPollsAsync(PollsPagePaginationParameters filter)
+    /// <param name="pollDto">DTO that is used for the poll creation.</param>
+    /// <param name="creatorId">ID of the user who creates the Poll.</param>
+    /// <returns>A view of the created poll.</returns>
+    public async Task<PollViewDto> CreatePollAsync(PollCreationDto pollDto, string creatorId)
     {
-        return await FilterPollsAsync(filter,
-            _dataContext.Polls
-            .Include(p => p.Creator)
-            .Include(p => p.Votes)
-            .AsNoTracking());
+        var poll = await _pollRepository.CreatePollAsync(pollDto, creatorId);
+        return poll.ToPollViewDto();
     }
 
     /// <summary>
-    /// Create a Poll.
+    /// Gets an editing representation of the poll by its ID.
     /// </summary>
-    /// <param name="poll">Poll DTO used for its creation</param>
-    /// <param name="creatorId">ID of a user who creates the Poll</param>
+    /// <param name="pollId">ID of the poll to retrieve.</param>
     /// <returns>
-    /// View of created Poll.
+    /// An editing representation of the poll, 
+    /// or <see langword="null" /> if the poll was not found.
     /// </returns>
-    public async Task<PollViewDto> CreatePollAsync(PollCreationDto poll, string creatorId)
+    public Task<PollCreationDto?> GetForEditById(int pollId)
     {
-        // Create a poll
-        Poll newPoll = new()
-        {
-            Title = poll.Title,
-            Description = poll.Description,
-            CreationDate = DateTimeOffset.Now,
-            ExpiryDate = poll.ExpiryDate,
-            CreatorId = creatorId,
-            ResultsVisibleBeforeVoting = poll.ResultsVisibleBeforeVoting
-        };
-        _dataContext.Add(newPoll);
-        await _dataContext.SaveChangesAsync();
-
-        // Create options for this poll
-        var options = poll.Options.Select(o => new Option()
-        {
-            Description = o.Description,
-            PollId = newPoll.Id
-        });
-        _dataContext.AddRange(options);
-        await _dataContext.SaveChangesAsync();
-
-        // Return created poll
-        return (await GetByIdAsync(newPoll.Id))!;
+        return _pollRepository.GetForEditById(pollId);
     }
 
     /// <summary>
-    /// Get an editing representation of the Poll by its ID.
+    /// Edits a poll. Ignores null fields in the DTO.
     /// </summary>
-    /// <param name="pollId">ID of the Poll we need to get</param>
-    /// <returns>
-    /// editing representation of the Poll, or <see langword="null" /> if Poll was not found
-    /// </returns>
-    public async Task<PollCreationDto?> GetForEditById(int pollId)
+    /// <param name="poll">DTO to use for the editing.</param>
+    /// <param name="pollId">ID of the Poll to edit.</param>
+    /// <returns>Operation result.</returns>
+    public async Task<EditPollResult> EditPollAsync(PollEditDto poll, int pollId)
     {
-        return await _dataContext.Polls
-            .AsNoTracking()
-            .Include(p => p.Options)
-            .Where(p => p.Id == pollId)
-            .Select(p => new PollCreationDto()
-            {
-                Title = p.Title,
-                Description = p.Description,
-                ExpiryDate = p.ExpiryDate,
-                ResultsVisibleBeforeVoting = p.ResultsVisibleBeforeVoting,
-                Options = p.Options!.Select(o => new OptionCreationDto()
-                {
-                    Description = o.Description
-                }).ToList()
-            })
-            .FirstOrDefaultAsync();
-    }
+        bool? isActive = await _pollRepository.IsPollActiveAsync(pollId, trackEntity: true);
+        if (isActive == null) return EditPollResult.NotFound;
+        if (isActive == false) return EditPollResult.Expired;
 
-    /// <summary>
-    /// Edit a Poll.
-    /// </summary>
-    /// <param name="poll">Updated values of the Poll</param>
-    /// <param name="pollId">ID of the Poll</param>
-    /// <returns>
-    /// <see langword="true" /> if the Poll was succesfully edited;
-    /// <see langword="false"/> if the Poll is not active;
-    /// otherwise <see langword="null"/> if the Poll was not found
-    /// </returns>
-    public async Task<bool?> EditPollAsync(PollEditDto poll, int pollId)
-    {
-        Poll? actualPoll = await _dataContext.Polls
-            .FirstOrDefaultAsync(p => p.Id == pollId);
-
-        if (actualPoll == null)
-        {
-            // Poll doesn't exist
-            return null;
-        }
-        if (!actualPoll.IsActive)
-        {
-            // Poll is not active
-            return false;
-        }
-
-        if (poll.Title != null) actualPoll.Title = poll.Title;
-        if (poll.Description != null) actualPoll.Description = poll.Description;
-        if (poll.ResultsVisibleBeforeVoting != null)
-            actualPoll.ResultsVisibleBeforeVoting = poll.ResultsVisibleBeforeVoting == true;
-
-        _dataContext.Update(actualPoll);
-        await _dataContext.SaveChangesAsync();
-
-        return true;
+        return await _pollRepository.EditPollAsync(poll, pollId) != null
+            ? EditPollResult.Success
+            : EditPollResult.NotFound;
     }
 
     /// <summary>
@@ -297,45 +130,23 @@ public class PollsService(
     /// <see langword="true" /> if the Poll was succesfully deleted;
     /// otherwise <see langword="false"/> if the Poll was not found.
     /// </returns>
-    public async Task<bool> DeletePollAsync(int pollId)
+    public Task<bool> DeletePollAsync(int pollId)
     {
-        Poll? poll = await _dataContext.Polls
-            .Include(p => p.Options)
-            .Include(p => p.Votes)
-            .Include(p => p.Favorites)
-            .FirstOrDefaultAsync(p => p.Id == pollId);
-        if (poll == null)
-        {
-            // Poll is not found
-            return false;
-        }
-
-        _dataContext.Remove(poll);
-        await _dataContext.SaveChangesAsync();
-
-        return true;
+        return _pollRepository.DeletePollAsync(pollId);
     }
 
     /// <summary>
-    /// Make poll expired.
+    /// Expires a poll by its ID.
     /// </summary>
-    /// <param name="pollId"></param>
-    /// <returns>
-    /// <see langword="true" /> on success;
-    /// <see langword="false" /> if poll is already expired;
-    /// <see langword="null" /> if poll was not found
-    /// </returns>
-    public async Task<bool?> ExpirePollAsync(int pollId)
+    /// <param name="pollId">ID of the poll to expire.</param>
+    /// <returns>Operation result.</returns>
+    public async Task<ExpirePollResult> ExpirePollAsync(int pollId)
     {
-        var poll = await _dataContext.Polls.FirstOrDefaultAsync(p => p.Id == pollId);
-        if (poll == null) return null;
-
-        if (!poll.IsActive) return false;
-
-        poll.ExpiryDate = DateTimeOffset.Now;
-        _dataContext.Update(poll);
-        await _dataContext.SaveChangesAsync();
-
-        return true;
+        return await _pollRepository.ExpirePollAsync(pollId) switch
+        {
+            true => ExpirePollResult.Success,
+            false => ExpirePollResult.NotFound,
+            null => ExpirePollResult.AlreadyExpired
+        };
     }
 }
