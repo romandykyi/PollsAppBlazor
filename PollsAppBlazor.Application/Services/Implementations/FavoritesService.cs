@@ -1,32 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
-using PollsAppBlazor.DataAccess.Repositories.Interfaces;
-using PollsAppBlazor.Server.DataAccess;
-using PollsAppBlazor.Shared.Polls;
+﻿using PollsAppBlazor.DataAccess.Repositories.Interfaces;
 
 namespace PollsAppBlazor.Application.Services.Implementations;
 
-public class FavoritesService(IFavoriteRepository favoritesRepository, ApplicationDbContext context)
+public class FavoritesService(IFavoriteRepository favoritesRepository)
 {
     private readonly IFavoriteRepository _favoriteRepository = favoritesRepository;
-    private readonly ApplicationDbContext _context = context;
-
-    /// <summary>
-    /// Gets the poll favorite status for the user.
-    /// </summary>
-    /// <remarks>
-    /// This method doesn't check whether the poll exists.
-    /// </remarks>
-    /// <param name="pollId">ID of the Poll to be checked.</param>
-    /// <param name="userId">ID the user.</param>
-    public async Task<FavoriteDto> GetFavorite(int pollId, string userId)
-    {
-        bool isFavorite = await _favoriteRepository.ExistsAsync(pollId, userId);
-        return new()
-        {
-            PollId = pollId,
-            IsFavorite = isFavorite
-        };
-    }
 
     /// <summary>
     /// Adds a poll to favorites for the user.
@@ -40,18 +18,9 @@ public class FavoritesService(IFavoriteRepository favoritesRepository, Applicati
     /// <see langword="true" /> if the Poll was added to favorites or was already in favorites;
     /// otherwise <see langword="false" /> if the Poll was not found.
     /// </returns>
-    public async Task<bool> AddToFavoritesAsync(int pollId, string userId)
+    public Task<bool> AddToFavoritesAsync(int pollId, string userId)
     {
-        // If poll doesn't exist
-        if (!await _context.Polls
-            .AsNoTracking()
-            .AnyAsync(p => p.Id == pollId))
-        {
-            return false;
-        }
-
-        await _favoriteRepository.AddAsync(pollId, userId);
-        return true;
+        return _favoriteRepository.AddAsync(pollId, userId);
     }
 
     /// <summary>

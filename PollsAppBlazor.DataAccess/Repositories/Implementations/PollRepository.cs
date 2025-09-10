@@ -9,10 +9,9 @@ using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.DataAccess.Repositories.Implementations;
 
-public class PollRepository(ApplicationDbContext dbContext, IVoteRepository voteRepository) : IPollRepository
+public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
 {
     private readonly ApplicationDbContext _dbContext = dbContext;
-    private readonly IVoteRepository _voteRepository = voteRepository;
 
     public Task<string?> GetCreatorIdAsync(int pollId)
     {
@@ -23,10 +22,15 @@ public class PollRepository(ApplicationDbContext dbContext, IVoteRepository vote
             .FirstOrDefaultAsync();
     }
 
-    public Task<bool?> IsPollActiveAsync(int pollId)
+    public async Task<bool?> IsPollActiveAsync(int pollId, bool trackEntity = false)
     {
-        return _dbContext.Polls
-            .AsNoTracking()
+        if (trackEntity)
+        {
+            var poll = await _dbContext.Polls.FindAsync(pollId);
+            return poll?.IsActive;
+        }
+        return await _dbContext.Polls
+            .AsTracking()
             .Where(p => p.Id == pollId)
             .Select(p => (bool?)p.IsActive)
             .FirstOrDefaultAsync();
@@ -87,7 +91,7 @@ public class PollRepository(ApplicationDbContext dbContext, IVoteRepository vote
         };
     }
 
-    public async Task<PollViewDto> CreatePollAsync(PollCreationDto creationDto, string creatorId)
+    public async Task<Poll> CreatePollAsync(PollCreationDto creationDto, string creatorId)
     {
         Poll poll = new()
         {
@@ -112,10 +116,10 @@ public class PollRepository(ApplicationDbContext dbContext, IVoteRepository vote
         _dbContext.Options.AddRange(options);
         await _dbContext.SaveChangesAsync();
 
-        return poll.ToPollViewDto(countVotes: false);
+        return poll;
     }
 
-    public async Task<PollViewDto?> EditPollAsync(PollEditDto editDto, int pollId)
+    public async Task<Poll?> EditPollAsync(PollEditDto editDto, int pollId)
     {
         Poll? poll = await _dbContext.Polls.FindAsync(pollId);
         if (poll == null) return null;
@@ -135,13 +139,15 @@ public class PollRepository(ApplicationDbContext dbContext, IVoteRepository vote
 
         await _dbContext.SaveChangesAsync();
 
-        return poll.ToPollViewDto(countVotes: false);
+        return poll;
     }
 
-    public async Task<bool> ExpirePollAsync(int pollId)
+    public async Task<bool?> ExpirePollAsync(int pollId)
     {
         Poll? poll = await _dbContext.Polls.FindAsync(pollId);
-        if (poll == null) return false;
+        if (poll == null) return null;
+
+        if (!poll.IsActive) return false;
 
         poll.ExpiryDate = DateTimeOffset.Now;
         await _dbContext.SaveChangesAsync();

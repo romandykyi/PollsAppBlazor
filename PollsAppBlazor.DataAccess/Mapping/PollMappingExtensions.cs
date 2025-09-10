@@ -1,6 +1,7 @@
 ﻿using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Shared.Options;
 using PollsAppBlazor.Shared.Polls;
+using PollsAppBlazor.Shared.Users;
 
 namespace PollsAppBlazor.DataAccess.Mapping;
 
@@ -15,8 +16,11 @@ public static class PollMappingExtensions
             Description = poll.Description,
             CreationDate = poll.CreationDate,
             ExpiryDate = poll.ExpiryDate,
-            Creator = poll.Creator!.UserName!,
-            CreatorId = poll.CreatorId,
+            Creator = new PollCreatorDto()
+            {
+                Id = poll.CreatorId,
+                Username = poll.Creator!.UserName!
+            },
             ResultsVisibleBeforeVoting = poll.ResultsVisibleBeforeVoting,
             // Select options
             Options = poll.Options!.Select(o => new OptionViewDto()
