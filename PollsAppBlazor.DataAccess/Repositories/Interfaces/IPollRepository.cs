@@ -1,4 +1,5 @@
-﻿using PollsAppBlazor.DataAccess.Repositories.Options;
+﻿using PollsAppBlazor.DataAccess.Aggregates;
+using PollsAppBlazor.DataAccess.Repositories.Options;
 using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Shared.Polls;
 
@@ -7,44 +8,30 @@ namespace PollsAppBlazor.DataAccess.Repositories.Interfaces;
 public interface IPollRepository
 {
     /// <summary>
-    /// Gets ID of the user who created the Poll.
+    /// Gets the poll's status by its ID.
     /// </summary>
-    /// <param name="pollId">ID of the Poll.</param>
+    /// <param name="pollId">ID of the poll.</param>
+    /// <param name="trackEntity">(ORM only) A flag indicating whether to track the poll.</param>
     /// <returns>
-    /// ID of the user who created the poll or <see langword="null" />
-    /// if Poll was not found.
+    /// The poll's status or <see langword="null" /> if it was not found.
     /// </returns>
-    Task<string?> GetCreatorIdAsync(int pollId);
-
-    /// <summary>
-    /// Checks whether the poll is active (i.e. not expired or closed).
-    /// </summary>
-    /// <param name="pollId">ID of the poll to check.</param>
-    /// <param name="track">
-    /// Whether to track the entity in the context. 
-    /// If ORM is not used, this parameter will be ignored.
-    /// </param>
-    /// <returns>
-    /// A boolean flag indicating whether poll is available for voting, or
-    /// <see langword="null"/> if the poll doesn't exist.
-    /// </returns>
-    Task<bool?> IsPollActiveAsync(int pollId, bool trackEntity = false);
+    Task<PollStatus?> GetPollStatusAsync(int pollId, bool trackEntity = false);
 
     /// <summary>
     /// Gets the poll by its ID.
     /// </summary>
-    /// <param name="pollId">ID of the Poll we need to get</param>
+    /// <param name="pollId">ID of the poll we need to get</param>
     /// <returns>
-    /// View of the Poll, or <see langword="null" /> if Poll was not found.
+    /// View of the poll, or <see langword="null" /> if poll was not found.
     /// </returns>
     Task<PollViewDto?> GetByIdAsync(int pollId);
 
     /// <summary>
     /// Gets an editing representation of the poll by its ID.
     /// </summary>
-    /// <param name="pollId">ID of the Poll we need to get.</param>
+    /// <param name="pollId">ID of the poll we need to get.</param>
     /// <returns>
-    /// An editing representation of the Poll, or <see langword="null" /> if 
+    /// An editing representation of the poll, or <see langword="null" /> if 
     /// the poll was not found.
     /// </returns>
     Task<PollCreationDto?> GetForEditById(int pollId);

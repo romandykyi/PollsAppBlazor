@@ -9,11 +9,13 @@ namespace PollsAppBlazor.Application.Services.Implementations;
 public class PollsService(
     IVoteRepository voteRepository,
     IPollRepository pollRepository,
+    IPollOptionRepository optionRepository,
     IFavoriteRepository favoriteRepository
     )
 {
     private readonly IVoteRepository _voteRepository = voteRepository;
     private readonly IPollRepository _pollRepository = pollRepository;
+    private readonly IPollOptionRepository _optionRepository = optionRepository;
     private readonly IFavoriteRepository _favoriteRepository = favoriteRepository;
 
     /// <summary>
@@ -24,9 +26,9 @@ public class PollsService(
     /// ID of the user who created the poll, or <see langword="null" />
     /// if the poll was not found.
     /// </returns>
-    public Task<string?> GetCreatorIdAsync(int pollId)
+    public async Task<string?> GetCreatorIdAsync(int pollId)
     {
-        return _pollRepository.GetCreatorIdAsync(pollId);
+        return (await _pollRepository.GetPollStatusAsync(pollId))?.CreatorId;
     }
 
     /// <summary>
@@ -37,9 +39,9 @@ public class PollsService(
     /// A boolean flag indicating whether poll is available for voting, or
     /// <see langword="null"/> if the poll doesn't exist.
     /// </returns>
-    public Task<bool?> IsPollActiveAsync(int pollId)
+    public async Task<bool?> IsPollActiveAsync(int pollId)
     {
-        return _pollRepository.IsPollActiveAsync(pollId);
+        return (await _pollRepository.GetPollStatusAsync(pollId))?.IsActive;
     }
 
     /// <summary>
@@ -80,6 +82,20 @@ public class PollsService(
         return _pollRepository.GetPollsPageAsync(options);
     }
 
+    public async Task<GetOptionsWithVotesResult> GetOptionsWithVotesAsync(int pollId, string? userId = null)
+    {
+        var pollStatus = await _pollRepository.GetPollStatusAsync(pollId);
+        if (pollStatus == null) return GetOptionsWithVotesResult.PollNotFound();
+        if (!pollStatus.VotesVisibleBeforeVoting)
+        {
+            if (pollStatus.IsActive && userId != pollStatus.CreatorId)
+                return GetOptionsWithVotesResult.NotVisible();
+        }
+
+        var options = await _optionRepository.GetPollOptionsAsync(pollId);
+        return GetOptionsWithVotesResult.Success(options);
+    }
+
     /// <summary>
     /// Creates a poll.
     /// </summary>
@@ -113,9 +129,9 @@ public class PollsService(
     /// <returns>Operation result.</returns>
     public async Task<EditPollResult> EditPollAsync(PollEditDto poll, int pollId)
     {
-        bool? isActive = await _pollRepository.IsPollActiveAsync(pollId, trackEntity: true);
-        if (isActive == null) return EditPollResult.NotFound;
-        if (isActive == false) return EditPollResult.Expired;
+        var pollStatus = await _pollRepository.GetPollStatusAsync(pollId);
+        if (pollStatus == null) return EditPollResult.NotFound;
+        if (!pollStatus.IsActive) return EditPollResult.Expired;
 
         return await _pollRepository.EditPollAsync(poll, pollId) != null
             ? EditPollResult.Success

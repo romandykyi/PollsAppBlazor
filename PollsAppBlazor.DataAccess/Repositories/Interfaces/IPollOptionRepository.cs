@@ -18,8 +18,8 @@ public interface IPollOptionRepository
     /// </summary>
     /// <param name="pollId">ID of the poll which options to retrieve.</param>
     /// <returns>
-    /// Options of the poll with their vote counts, or <see langword="null" /> if
-    /// the poll doesn't exist.
+    /// Options of the poll with their vote counts. If the poll has no options or doesn't exist,
+    /// an empty collection is returned.
     /// </returns>
-    Task<IEnumerable<OptionWithVotesViewDto>?> GetPollOptionsAsync(int pollId);
+    Task<ICollection<OptionWithVotesViewDto>> GetPollOptionsAsync(int pollId);
 }
