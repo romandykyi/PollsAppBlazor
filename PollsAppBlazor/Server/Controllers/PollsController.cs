@@ -65,14 +65,32 @@ public class PollsController(PollsService pollsService) : ControllerBase
         return Ok(await _pollsService.GetPollsAsync(filter));
     }
 
+    /// <summary>
+    /// Gets Poll options with votes count.
+    /// </summary>
+    /// <returns>The request options with votes count.</returns>
+    /// <response code="200">Returns requested options</response>
+    /// <response code="401">Unauthorized user call</response>
+    /// <response code="403">User lacks permission to see votes for this Poll</response>
+    /// <response code="404">The Poll does not exist</response>
+    [HttpGet("{pollId}/options")]
+    [Authorize]
+    [ProducesResponseType(typeof(PollViewDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetOptions([FromRoute] int pollId)
     {
-        var options = await _pollsService.GetOptionsAsync(pollId);
-        if (options == null)
+        var result = await _pollsService.GetOptionsWithVotesAsync(pollId);
+
+        return result.Status switch
         {
-            return NotFound();
-        }
-        return Ok(options);
+            GetOptionsWithVotesStatus.Success => Ok(result.Options),
+            GetOptionsWithVotesStatus.PollNotFound => NotFound(),
+            GetOptionsWithVotesStatus.NotVisible => Forbid(),
+            _ => throw new InvalidOperationException("Unknown GetOptionsWithVotesStatus")
+        };
     }
 
     /// <summary>
