@@ -37,7 +37,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
             .WithMany(p => p.Votes)
             .HasForeignKey(v => v.PollId)
             .IsRequired()
-            .OnDelete(DeleteBehavior.ClientCascade);
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Votes->Option
         builder.Entity<Vote>()
@@ -45,7 +45,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
             .WithMany(p => p.Votes)
             .HasForeignKey(v => v.OptionId)
             .IsRequired()
-            .OnDelete(DeleteBehavior.ClientCascade);
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Favorites->Poll
         builder.Entity<Favorite>()
@@ -53,7 +53,7 @@ public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
             .WithMany(p => p.Favorites)
             .HasForeignKey(f => f.PollId)
             .IsRequired()
-            .OnDelete(DeleteBehavior.ClientCascade);
+            .OnDelete(DeleteBehavior.Cascade);
 
         // Users->Polls
         builder.Entity<ApplicationUser>()
