@@ -4,6 +4,7 @@ using PollsAppBlazor.DataAccess.Extensions;
 using PollsAppBlazor.DataAccess.Mapping;
 using PollsAppBlazor.DataAccess.Repositories.Interfaces;
 using PollsAppBlazor.DataAccess.Repositories.Options;
+using PollsAppBlazor.DataAccess.Repositories.Results;
 using PollsAppBlazor.Server.DataAccess;
 using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Shared.Options;
@@ -16,13 +17,8 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
 {
     private readonly ApplicationDbContext _dbContext = dbContext;
 
-    public async Task<PollStatus?> GetPollStatusAsync(int pollId, bool trackEntity = false)
+    public async Task<PollStatus?> GetPollStatusAsync(int pollId)
     {
-        if (trackEntity)
-        {
-            var poll = await _dbContext.Polls.FindAsync(pollId);
-            return poll?.ToPollStatus();
-        }
         return await _dbContext.Polls
             .AsNoTracking()
             .Where(p => p.Id == pollId)
@@ -37,21 +33,21 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
             .Include(p => p.Options)
             .AsNoTracking()
             .Where(p => p.Id == pollId)
-            .Select(poll => new PollViewDto()
+            .Select(p => new PollViewDto()
             {
-                Id = poll.Id,
-                Title = poll.Title,
-                Description = poll.Description,
-                CreationDate = poll.CreationDate,
-                ExpiryDate = poll.ExpiryDate,
+                Id = p.Id,
+                Title = p.Title,
+                Description = p.Description,
+                CreationDate = p.CreationDate,
+                ExpiryDate = p.ExpiryDate,
                 Creator = new PollCreatorDto()
                 {
-                    Id = poll.CreatorId,
-                    Username = poll.Creator!.UserName!
+                    Id = p.CreatorId,
+                    Username = p.Creator!.UserName!
                 },
-                ResultsVisibleBeforeVoting = poll.ResultsVisibleBeforeVoting,
+                ResultsVisibleBeforeVoting = p.ResultsVisibleBeforeVoting,
                 // Select options
-                Options = poll.Options!.Select(o => new OptionViewDto()
+                Options = p.Options!.Select(o => new OptionViewDto()
                 {
                     Id = o.Id,
                     Description = o.Description
@@ -158,12 +154,10 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
         return poll;
     }
 
-    public async Task<bool?> ExpirePollAsync(int pollId)
+    public async Task<bool> ExpirePollAsync(int pollId)
     {
         Poll? poll = await _dbContext.Polls.FindAsync(pollId);
-        if (poll == null) return null;
-
-        if (!poll.IsActive) return false;
+        if (poll == null || poll.IsDeleted) return false;
 
         poll.ExpiryDate = DateTimeOffset.Now;
         await _dbContext.SaveChangesAsync();
@@ -171,12 +165,16 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
         return true;
     }
 
-    public async Task<bool> DeletePollAsync(int pollId)
+    public async Task<PollDeleteResult> DeletePollAsync(int pollId)
     {
-        int entriesRemoved = await _dbContext.Polls
-            .Where(p => p.Id == pollId)
-            .ExecuteDeleteAsync();
+        var poll = await _dbContext.Polls.FindAsync(pollId);
 
-        return entriesRemoved > 0;
+        if (poll == null) return PollDeleteResult.PollNotFound;
+        if (poll.IsDeleted) return PollDeleteResult.PollDeleted;
+
+        poll.IsDeleted = true;
+        await _dbContext.SaveChangesAsync();
+
+        return PollDeleteResult.Success;
     }
 }
