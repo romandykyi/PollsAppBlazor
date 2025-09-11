@@ -11,6 +11,11 @@ public static class PollsRetrievalOptionsQueryExtensions
         )
     {
         var parameters = options.Parameters;
+        // Don't show deleted Polls
+        if (!options.IncludeDeleted)
+        {
+            query = query.Where(p => !p.IsDeleted);
+        }
         // Don't show expired Polls
         if (!parameters.ShowExpired)
         {

@@ -62,6 +62,6 @@ public static class PollMappingExtensions
 
     public static PollStatus ToPollStatus(this Poll poll)
     {
-        return new(poll.CreatorId, poll.IsActive, poll.ResultsVisibleBeforeVoting);
+        return new(poll.CreatorId, poll.IsActive, poll.ResultsVisibleBeforeVoting, poll.IsDeleted);
     }
 }

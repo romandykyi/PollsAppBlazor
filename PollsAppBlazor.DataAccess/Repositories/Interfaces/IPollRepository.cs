@@ -67,7 +67,7 @@ public interface IPollRepository
     /// <param name="pollId">ID of the poll to expire.</param>
     /// <returns>
     /// <see langword="true" /> on success, <see langword="false"/> if poll
-    /// is already expired or <see langword="null" /> if the poll was not found.
+    /// cannot be expired or <see langword="null" /> if the poll was not found.
     /// </returns>
     Task<bool?> ExpirePollAsync(int pollId);
 
@@ -77,7 +77,7 @@ public interface IPollRepository
     /// <param name="pollId">ID of the poll that needs to be deleted.</param>
     /// <returns>
     /// <see langword="true" /> if the poll was succesfully deleted;
-    /// otherwise <see langword="false"/> if the poll was not found.
+    /// otherwise <see langword="false"/> if the poll was not found or already deleted.
     /// </returns>
     Task<bool> DeletePollAsync(int pollId);
 }

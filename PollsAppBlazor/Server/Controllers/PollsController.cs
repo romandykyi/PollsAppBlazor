@@ -240,7 +240,7 @@ public class PollsController(PollsService pollsService) : ControllerBase
         return await _pollsService.ExpirePollAsync(pollId) switch
         {
             ExpirePollResult.Success => NoContent(),
-            ExpirePollResult.AlreadyExpired => UnprocessableEntity(),
+            ExpirePollResult.CannotExpire => UnprocessableEntity(),
             ExpirePollResult.NotFound => NotFound(),
             _ => throw new InvalidOperationException("Unknown ExpirePollResult")
         };
