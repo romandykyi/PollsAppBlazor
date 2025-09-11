@@ -149,6 +149,11 @@ else
 	[Parameter]
 	public int pollId { get; set; }
 
+	protected override Task OnInitializedAsync()
+	{
+        return UpdatePoll();
+	}
+
 	private async Task UpdatePoll()
 	{
 		try

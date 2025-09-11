@@ -6,7 +6,9 @@ using PollsAppBlazor.DataAccess.Repositories.Interfaces;
 using PollsAppBlazor.DataAccess.Repositories.Options;
 using PollsAppBlazor.Server.DataAccess;
 using PollsAppBlazor.Server.DataAccess.Models;
+using PollsAppBlazor.Shared.Options;
 using PollsAppBlazor.Shared.Polls;
+using PollsAppBlazor.Shared.Users;
 
 namespace PollsAppBlazor.DataAccess.Repositories.Implementations;
 
@@ -31,15 +33,37 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
     public Task<PollViewDto?> GetByIdAsync(int pollId)
     {
         return _dbContext.Polls
+            .Include(p => p.Creator)
+            .Include(p => p.Options)
             .AsNoTracking()
             .Where(p => p.Id == pollId)
-            .Select(p => p.ToPollViewDto())
+            .Select(poll => new PollViewDto()
+            {
+                Id = poll.Id,
+                Title = poll.Title,
+                Description = poll.Description,
+                CreationDate = poll.CreationDate,
+                ExpiryDate = poll.ExpiryDate,
+                Creator = new PollCreatorDto()
+                {
+                    Id = poll.CreatorId,
+                    Username = poll.Creator!.UserName!
+                },
+                ResultsVisibleBeforeVoting = poll.ResultsVisibleBeforeVoting,
+                // Select options
+                Options = poll.Options!.Select(o => new OptionViewDto()
+                {
+                    Id = o.Id,
+                    Description = o.Description
+                }).ToList()
+            })
             .FirstOrDefaultAsync();
     }
 
     public Task<PollCreationDto?> GetForEditById(int pollId)
     {
         return _dbContext.Polls
+            .Include(p => p.Options)
             .AsNoTracking()
             .Where(p => p.Id == pollId)
             .Select(p => p.ToPollCreationDto())
