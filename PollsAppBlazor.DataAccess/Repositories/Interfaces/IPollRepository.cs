@@ -1,5 +1,6 @@
 ﻿using PollsAppBlazor.DataAccess.Aggregates;
 using PollsAppBlazor.DataAccess.Repositories.Options;
+using PollsAppBlazor.DataAccess.Repositories.Results;
 using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Shared.Polls;
 
@@ -11,11 +12,10 @@ public interface IPollRepository
     /// Gets the poll's status by its ID.
     /// </summary>
     /// <param name="pollId">ID of the poll.</param>
-    /// <param name="trackEntity">(ORM only) A flag indicating whether to track the poll.</param>
     /// <returns>
     /// The poll's status or <see langword="null" /> if it was not found.
     /// </returns>
-    Task<PollStatus?> GetPollStatusAsync(int pollId, bool trackEntity = false);
+    Task<PollStatus?> GetPollStatusAsync(int pollId);
 
     /// <summary>
     /// Gets the poll by its ID.
@@ -57,7 +57,8 @@ public interface IPollRepository
     /// <param name="editDto">The poll DTO to use.</param>
     /// <param name="pollId">ID of the poll to update.</param>
     /// <returns>
-    /// The updated poll or <see langword="null" /> if it does not exist.
+    /// The updated poll or <see langword="null" /> if it does not exist or
+    /// was deleted.
     /// </returns>
     Task<Poll?> EditPollAsync(PollEditDto editDto, int pollId);
 
@@ -67,17 +68,16 @@ public interface IPollRepository
     /// <param name="pollId">ID of the poll to expire.</param>
     /// <returns>
     /// <see langword="true" /> on success, <see langword="false"/> if poll
-    /// cannot be expired or <see langword="null" /> if the poll was not found.
+    /// was not found or deleted.
     /// </returns>
-    Task<bool?> ExpirePollAsync(int pollId);
+    Task<bool> ExpirePollAsync(int pollId);
 
     /// <summary>
     /// Deletes a poll by its ID.
     /// </summary>
     /// <param name="pollId">ID of the poll that needs to be deleted.</param>
     /// <returns>
-    /// <see langword="true" /> if the poll was succesfully deleted;
-    /// otherwise <see langword="false"/> if the poll was not found or already deleted.
+    /// The result of the deletion operation.
     /// </returns>
-    Task<bool> DeletePollAsync(int pollId);
+    Task<PollDeleteResult> DeletePollAsync(int pollId);
 }

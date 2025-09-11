@@ -2,6 +2,7 @@
 using PollsAppBlazor.DataAccess.Mapping;
 using PollsAppBlazor.DataAccess.Repositories.Interfaces;
 using PollsAppBlazor.DataAccess.Repositories.Options;
+using PollsAppBlazor.DataAccess.Repositories.Results;
 using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.Application.Services.Implementations;
@@ -146,7 +147,7 @@ public class PollsService(
     /// <see langword="true" /> if the Poll was succesfully deleted;
     /// otherwise <see langword="false"/> if the Poll was not found.
     /// </returns>
-    public Task<bool> DeletePollAsync(int pollId)
+    public Task<PollDeleteResult> DeletePollAsync(int pollId)
     {
         return _pollRepository.DeletePollAsync(pollId);
     }
@@ -158,11 +159,13 @@ public class PollsService(
     /// <returns>Operation result.</returns>
     public async Task<ExpirePollResult> ExpirePollAsync(int pollId)
     {
-        return await _pollRepository.ExpirePollAsync(pollId) switch
-        {
-            true => ExpirePollResult.Success,
-            false => ExpirePollResult.CannotExpire,
-            null => ExpirePollResult.NotFound
-        };
+        var pollStatus = await _pollRepository.GetPollStatusAsync(pollId);
+        if (pollStatus == null) return ExpirePollResult.NotFound;
+        if (pollStatus.IsDeleted) return ExpirePollResult.Deleted;
+        if (!pollStatus.IsActive) return ExpirePollResult.AlreadyExpired;
+
+        return await _pollRepository.ExpirePollAsync(pollId) ?
+            ExpirePollResult.Success :
+            ExpirePollResult.NotFound; // Should not happen
     }
 }
