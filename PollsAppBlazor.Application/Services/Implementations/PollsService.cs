@@ -161,8 +161,8 @@ public class PollsService(
         return await _pollRepository.ExpirePollAsync(pollId) switch
         {
             true => ExpirePollResult.Success,
-            false => ExpirePollResult.NotFound,
-            null => ExpirePollResult.AlreadyExpired
+            false => ExpirePollResult.CannotExpire,
+            null => ExpirePollResult.NotFound
         };
     }
 }

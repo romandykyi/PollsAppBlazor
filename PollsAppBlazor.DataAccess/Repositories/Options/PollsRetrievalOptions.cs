@@ -8,8 +8,10 @@ namespace PollsAppBlazor.DataAccess.Repositories.Options;
 /// <param name="Parameters">Pagination and filtering parameters to use.</param>
 /// <param name="CreatorId">Optional ID of the creator to filter polls by.</param>
 /// <param name="FavoritesOfUserId">Optional ID of the user to get favorites from.</param>
+/// <param name="IncludeDeleted">Flag which determines whether deleted polls should be included in results.</param>
 public record PollsRetrievalOptions(
     PollsPagePaginationParameters Parameters,
     string? CreatorId,
-    string? FavoritesOfUserId
+    string? FavoritesOfUserId,
+    bool IncludeDeleted = false
     );
