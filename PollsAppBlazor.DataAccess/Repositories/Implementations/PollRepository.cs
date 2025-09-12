@@ -1,15 +1,15 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using PollsAppBlazor.DataAccess.Aggregates;
 using PollsAppBlazor.DataAccess.Extensions;
-using PollsAppBlazor.DataAccess.Mapping;
 using PollsAppBlazor.DataAccess.Repositories.Interfaces;
 using PollsAppBlazor.DataAccess.Repositories.Options;
-using PollsAppBlazor.DataAccess.Repositories.Results;
 using PollsAppBlazor.Server.DataAccess;
 using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Shared.Options;
 using PollsAppBlazor.Shared.Polls;
 using PollsAppBlazor.Shared.Users;
+using System.Linq.Expressions;
 
 namespace PollsAppBlazor.DataAccess.Repositories.Implementations;
 
@@ -22,7 +22,13 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
         return await _dbContext.Polls
             .AsNoTracking()
             .Where(p => p.Id == pollId)
-            .Select(p => p.ToPollStatus())
+            .Select(p => new PollStatus(
+                p.CreatorId,
+                p.ExpiryDate,
+                p.ResultsVisibleBeforeVoting,
+                p.IsDeleted
+                )
+            )
             .FirstOrDefaultAsync();
     }
 
@@ -62,7 +68,17 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
             .Include(p => p.Options)
             .AsNoTracking()
             .Where(p => p.Id == pollId)
-            .Select(p => p.ToPollCreationDto())
+            .Select(p => new PollCreationDto()
+            {
+                Description = p.Description,
+                ExpiryDate = p.ExpiryDate,
+                Options = p.Options!.Select(o => new OptionCreationDto()
+                {
+                    Description = o.Description
+                }).ToList(),
+                ResultsVisibleBeforeVoting = p.ResultsVisibleBeforeVoting,
+                Title = p.Title
+            })
             .FirstOrDefaultAsync();
     }
 
@@ -137,50 +153,48 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
         return poll;
     }
 
-    public async Task<Poll?> EditPollAsync(PollEditDto editDto, int pollId)
+    public async Task<bool> EditPollAsync(PollEditDto editDto, int pollId)
     {
-        Poll? poll = await _dbContext.Polls.FindAsync(pollId);
-        if (poll == null) return null;
+        Expression<Func<SetPropertyCalls<Poll>, SetPropertyCalls<Poll>>>? setters = null;
 
         if (editDto.Title != null)
         {
-            poll.Title = editDto.Title;
+            setters = setters.AppendSetProperty(s => s.SetProperty(p => p.Title, editDto.Title));
         }
         if (editDto.Description != null)
         {
-            poll.Description = editDto.Description;
+            setters = setters.AppendSetProperty(s => s.SetProperty(p => p.Description, editDto.Description));
         }
         if (editDto.ResultsVisibleBeforeVoting.HasValue)
         {
-            poll.ResultsVisibleBeforeVoting = editDto.ResultsVisibleBeforeVoting.Value;
+            setters = setters.AppendSetProperty(s => s.SetProperty(p => p.ResultsVisibleBeforeVoting, editDto.ResultsVisibleBeforeVoting.Value));
         }
 
-        await _dbContext.SaveChangesAsync();
+        // Avoid database call if nothing to update
+        if (setters == null) return true;
 
-        return poll;
+        int rowsAffected = await _dbContext.Polls
+            .Where(p => p.Id == pollId && !p.IsDeleted)
+            .ExecuteUpdateAsync(setters);
+
+        return rowsAffected > 0;
     }
 
     public async Task<bool> ExpirePollAsync(int pollId)
     {
-        Poll? poll = await _dbContext.Polls.FindAsync(pollId);
-        if (poll == null || poll.IsDeleted) return false;
+        int rowsAffected = await _dbContext.Polls
+            .Where(p => p.Id == pollId && !p.IsDeleted)
+            .ExecuteUpdateAsync(s => s.SetProperty(p => p.ExpiryDate, DateTimeOffset.Now));
 
-        poll.ExpiryDate = DateTimeOffset.Now;
-        await _dbContext.SaveChangesAsync();
-
-        return true;
+        return rowsAffected > 0;
     }
 
-    public async Task<PollDeleteResult> DeletePollAsync(int pollId)
+    public async Task<bool> DeletePollAsync(int pollId)
     {
-        var poll = await _dbContext.Polls.FindAsync(pollId);
+        int rowsAffected = await _dbContext.Polls
+            .Where(p => p.Id == pollId && !p.IsDeleted)
+            .ExecuteUpdateAsync(s => s.SetProperty(p => p.IsDeleted, true));
 
-        if (poll == null) return PollDeleteResult.PollNotFound;
-        if (poll.IsDeleted) return PollDeleteResult.PollDeleted;
-
-        poll.IsDeleted = true;
-        await _dbContext.SaveChangesAsync();
-
-        return PollDeleteResult.Success;
+        return rowsAffected > 0;
     }
 }

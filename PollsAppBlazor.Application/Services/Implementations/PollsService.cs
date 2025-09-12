@@ -42,7 +42,7 @@ public class PollsService(
     /// </returns>
     public async Task<bool?> IsPollActiveAsync(int pollId)
     {
-        return (await _pollRepository.GetPollStatusAsync(pollId))?.IsActive;
+        return !(await _pollRepository.GetPollStatusAsync(pollId))?.IsExpired;
     }
 
     /// <summary>
@@ -96,7 +96,7 @@ public class PollsService(
         if (pollStatus == null) return GetOptionsWithVotesResult.PollNotFound();
         if (!pollStatus.VotesVisibleBeforeVoting)
         {
-            if (pollStatus.IsActive && userId != pollStatus.CreatorId)
+            if (!pollStatus.IsExpired && userId != pollStatus.CreatorId)
                 return GetOptionsWithVotesResult.NotVisible();
         }
 
@@ -150,9 +150,9 @@ public class PollsService(
         var pollStatus = await _pollRepository.GetPollStatusAsync(pollId);
         if (pollStatus == null) return EditPollResult.NotFound;
         if (pollStatus.IsDeleted) return EditPollResult.Deleted;
-        if (!pollStatus.IsActive) return EditPollResult.Expired;
+        if (pollStatus.IsExpired) return EditPollResult.Expired;
 
-        return await _pollRepository.EditPollAsync(poll, pollId) != null
+        return await _pollRepository.EditPollAsync(poll, pollId)
             ? EditPollResult.Success
             : EditPollResult.NotFound;
     }
@@ -165,9 +165,15 @@ public class PollsService(
     /// <see langword="true" /> if the Poll was succesfully deleted;
     /// otherwise <see langword="false"/> if the Poll was not found.
     /// </returns>
-    public Task<PollDeleteResult> DeletePollAsync(int pollId)
+    public async Task<PollDeleteResult> DeletePollAsync(int pollId)
     {
-        return _pollRepository.DeletePollAsync(pollId);
+        var pollStatus = await _pollRepository.GetPollStatusAsync(pollId);
+        if (pollStatus == null) return PollDeleteResult.PollNotFound;
+        if (pollStatus.IsDeleted) return PollDeleteResult.PollDeleted;
+
+        return await _pollRepository.DeletePollAsync(pollId)
+            ? PollDeleteResult.Success
+            : PollDeleteResult.PollNotFound;
     }
 
     /// <summary>
@@ -180,7 +186,7 @@ public class PollsService(
         var pollStatus = await _pollRepository.GetPollStatusAsync(pollId);
         if (pollStatus == null) return ExpirePollResult.NotFound;
         if (pollStatus.IsDeleted) return ExpirePollResult.Deleted;
-        if (!pollStatus.IsActive) return ExpirePollResult.AlreadyExpired;
+        if (pollStatus.IsExpired) return ExpirePollResult.AlreadyExpired;
 
         return await _pollRepository.ExpirePollAsync(pollId) ?
             ExpirePollResult.Success :

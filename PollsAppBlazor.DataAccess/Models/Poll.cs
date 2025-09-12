@@ -21,13 +21,6 @@ public class Poll
     public DateTimeOffset CreationDate { get; set; }
     public DateTimeOffset? ExpiryDate { get; set; }
 
-    /// <summary>
-    /// Returns <see langword="true" /> if the poll is still active (not expired, not deleted), 
-    /// otherwise <see langword="false" />. 
-    /// </summary>
-    [NotMapped]
-    public bool IsActive => !IsDeleted && (ExpiryDate == null || DateTimeOffset.Now < ExpiryDate);
-
     [ForeignKey(nameof(Creator))]
     public string CreatorId { get; set; } = null!;
     /// <summary>

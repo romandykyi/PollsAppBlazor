@@ -1,6 +1,5 @@
 ﻿using PollsAppBlazor.DataAccess.Aggregates;
 using PollsAppBlazor.DataAccess.Repositories.Options;
-using PollsAppBlazor.DataAccess.Repositories.Results;
 using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Shared.Polls;
 
@@ -57,10 +56,10 @@ public interface IPollRepository
     /// <param name="editDto">The poll DTO to use.</param>
     /// <param name="pollId">ID of the poll to update.</param>
     /// <returns>
-    /// The updated poll or <see langword="null" /> if it does not exist or
-    /// was deleted.
+    /// <see cref="true" /> on success, <see langword="false"/> if poll
+    /// was not found or deleted.
     /// </returns>
-    Task<Poll?> EditPollAsync(PollEditDto editDto, int pollId);
+    Task<bool> EditPollAsync(PollEditDto editDto, int pollId);
 
     /// <summary>
     /// Expires the poll.
@@ -77,7 +76,8 @@ public interface IPollRepository
     /// </summary>
     /// <param name="pollId">ID of the poll that needs to be deleted.</param>
     /// <returns>
-    /// The result of the deletion operation.
+    /// <see langword="true" /> on success, <see langword="false"/> if poll
+    /// was not found or deleted.
     /// </returns>
-    Task<PollDeleteResult> DeletePollAsync(int pollId);
+    Task<bool> DeletePollAsync(int pollId);
 }
