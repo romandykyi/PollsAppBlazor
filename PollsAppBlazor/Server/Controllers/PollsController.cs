@@ -89,7 +89,7 @@ public class PollsController(PollsService pollsService) : ControllerBase
             GetOptionsWithVotesStatus.Success => Ok(result.Options),
             GetOptionsWithVotesStatus.PollNotFound => NotFound(),
             GetOptionsWithVotesStatus.NotVisible => Forbid(),
-            _ => throw new InvalidOperationException("Unknown GetOptionsWithVotesStatus")
+            _ => throw new InvalidOperationException($"Unknown {nameof(GetOptionsWithVotesStatus)}")
         };
     }
 
