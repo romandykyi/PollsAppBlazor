@@ -62,7 +62,7 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
             .FirstOrDefaultAsync();
     }
 
-    public Task<PollCreationDto?> GetForEditById(int pollId)
+    public Task<PollCreationDto?> GetForEditByIdAsync(int pollId)
     {
         return _dbContext.Polls
             .Include(p => p.Options)
