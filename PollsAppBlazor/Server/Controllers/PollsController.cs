@@ -168,7 +168,7 @@ public class PollsController(PollsService pollsService) : ControllerBase
             EditPollResult.Expired => Forbid(),
             EditPollResult.Deleted => StatusCode(StatusCodes.Status410Gone),
             EditPollResult.NotFound => NotFound(),
-            _ => throw new InvalidOperationException("Unknown EditPollResult")
+            _ => throw new InvalidOperationException($"Unknown {nameof(EditPollResult)}")
         };
     }
 
