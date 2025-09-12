@@ -112,7 +112,8 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
             Description = creationDto.Description,
             ExpiryDate = creationDto.ExpiryDate,
             ResultsVisibleBeforeVoting = creationDto.ResultsVisibleBeforeVoting,
-            CreationDate = DateTimeOffset.Now
+            CreationDate = DateTimeOffset.Now,
+            Votes = []
         };
         List<Option> options = creationDto.Options
             .Select(o => new Option()
@@ -127,6 +128,11 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
         _dbContext.Polls.Add(poll);
         _dbContext.Options.AddRange(options);
         await _dbContext.SaveChangesAsync();
+
+        // Load the creator before returning
+        await _dbContext.Entry(poll)
+            .Reference(p => p.Creator)
+            .LoadAsync();
 
         return poll;
     }
