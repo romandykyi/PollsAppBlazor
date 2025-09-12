@@ -29,7 +29,7 @@ public class PollOptionRepository(ApplicationDbContext dbContext) : IPollOptionR
     {
         var options = await _dbContext.Options
             .AsNoTracking()
-            .Where(o => o.Id == pollId)
+            .Where(o => o.PollId == pollId)
             .Select(o => new OptionWithVotesViewDto()
             {
                 Id = o.Id,
