@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using PollsAppBlazor.Application.Services.Implementations;
 using PollsAppBlazor.Application.Services.Results;
+using PollsAppBlazor.DataAccess.Repositories.Results;
+using PollsAppBlazor.Server.Extensions.Results;
 using PollsAppBlazor.Server.Policy;
 using PollsAppBlazor.Shared.Polls;
 
@@ -24,21 +26,19 @@ public class PollsController(PollsService pollsService) : ControllerBase
     /// </remarks>
     /// <response code="200">Returns requested Poll</response>
     /// <response code="404">The Poll does not exist</response>
+    /// <response code="410">The Poll was deleted</response>
     [HttpGet]
     [AllowAnonymous]
     [Route("{pollId}")]
     [ProducesResponseType(typeof(PollViewDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status410Gone)]
     public async Task<IActionResult> GetById([FromRoute] int pollId)
     {
         string? userId = User.IsAuthenticated() ? User.GetSubjectId() : null;
-        PollViewDto? result = await _pollsService.GetByIdAsync(pollId, userId);
-        if (result == null)
-        {
-            return NotFound();
-        }
+        var result = await _pollsService.GetByIdAsync(pollId, userId);
 
-        return Ok(result);
+        return result.ToActionResult();
     }
 
     /// <summary>
@@ -146,6 +146,7 @@ public class PollsController(PollsService pollsService) : ControllerBase
     /// User lacks permission to edit this Poll or Poll is not active
     /// </response>
     /// <response code="404">The Poll does not exist</response>
+    /// <response code="410">The Poll was deleted</response>
     [HttpPatch]
     [Authorize(Policy = Policies.CanEditPoll)]
     [Route("{pollId}")]
@@ -154,6 +155,7 @@ public class PollsController(PollsService pollsService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status410Gone)]
     public async Task<IActionResult> Edit([FromBody] PollEditDto poll, [FromRoute] int pollId)
     {
         if (!ModelState.IsValid)
@@ -164,6 +166,7 @@ public class PollsController(PollsService pollsService) : ControllerBase
         {
             EditPollResult.Success => NoContent(),
             EditPollResult.Expired => Forbid(),
+            EditPollResult.Deleted => StatusCode(StatusCodes.Status410Gone),
             EditPollResult.NotFound => NotFound(),
             _ => throw new InvalidOperationException("Unknown EditPollResult")
         };
@@ -178,6 +181,7 @@ public class PollsController(PollsService pollsService) : ControllerBase
     /// <response code="401">Unauthorized user call</response>
     /// <response code="403">User lacks permission to edit this Poll</response>
     /// <response code="404">The Poll does not exist</response>
+    /// <response code="410">The Poll was deleted</response>
     [HttpGet]
     [Authorize(Policy = Policies.CanEditPoll)]
     [Route("{pollId}/edit")]
@@ -185,15 +189,11 @@ public class PollsController(PollsService pollsService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status410Gone)]
     public async Task<IActionResult> GetEdit([FromRoute] int pollId)
     {
-        PollCreationDto? result = await _pollsService.GetForEditById(pollId);
-        if (result == null)
-        {
-            return NotFound();
-        }
-
-        return Ok(result);
+        var result = await _pollsService.GetForEditById(pollId);
+        return result.ToActionResult();
     }
 
     /// <summary>
@@ -203,6 +203,7 @@ public class PollsController(PollsService pollsService) : ControllerBase
     /// <response code="401">Unauthorized user call</response>
     /// <response code="403">User lacks permission to edit this Poll</response>
     /// <response code="404">The Poll does not exist</response>
+    /// <response code="410">The Poll is already deleted</response>
     [HttpDelete]
     [Authorize(Policy = Policies.CanEditPoll)]
     [Route("{pollId}")]
@@ -210,13 +211,16 @@ public class PollsController(PollsService pollsService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status410Gone)]
     public async Task<IActionResult> Delete([FromRoute] int pollId)
     {
-        if (await _pollsService.DeletePollAsync(pollId))
+        return await _pollsService.DeletePollAsync(pollId) switch
         {
-            return NoContent();
-        }
-        return NotFound();
+            PollDeleteResult.Success => NoContent(),
+            PollDeleteResult.PollNotFound => NotFound(),
+            PollDeleteResult.PollDeleted => StatusCode(StatusCodes.Status410Gone),
+            _ => throw new InvalidOperationException($"Unknown {nameof(PollDeleteResult)}")
+        };
     }
 
     /// <summary>
@@ -226,6 +230,7 @@ public class PollsController(PollsService pollsService) : ControllerBase
     /// <response code="401">Unauthorized user call</response>
     /// <response code="403">User lacks permission to edit this Poll</response>
     /// <response code="404">The Poll does not exist</response>
+    /// <response code="410">The Poll was deleted</response>
     /// <response code="422">The Poll is already expired</response>
     [HttpPatch]
     [Authorize(Policy = Policies.CanEditPoll)]
@@ -234,15 +239,17 @@ public class PollsController(PollsService pollsService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status410Gone)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Expire([FromRoute] int pollId)
     {
         return await _pollsService.ExpirePollAsync(pollId) switch
         {
             ExpirePollResult.Success => NoContent(),
-            ExpirePollResult.CannotExpire => UnprocessableEntity(),
+            ExpirePollResult.AlreadyExpired => UnprocessableEntity(),
+            ExpirePollResult.Deleted => StatusCode(StatusCodes.Status410Gone),
             ExpirePollResult.NotFound => NotFound(),
-            _ => throw new InvalidOperationException("Unknown ExpirePollResult")
+            _ => throw new InvalidOperationException($"Unknown {nameof(ExpirePollResult)}")
         };
     }
 }
