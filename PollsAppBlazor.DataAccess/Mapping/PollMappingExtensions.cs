@@ -1,5 +1,4 @@
-﻿using PollsAppBlazor.DataAccess.Aggregates;
-using PollsAppBlazor.Server.DataAccess.Models;
+﻿using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Shared.Options;
 using PollsAppBlazor.Shared.Polls;
 using PollsAppBlazor.Shared.Users;
@@ -30,38 +29,5 @@ public static class PollMappingExtensions
                 Description = o.Description
             }).ToList()
         };
-    }
-
-    public static PollCreationDto ToPollCreationDto(this Poll poll)
-    {
-        return new PollCreationDto()
-        {
-            Description = poll.Description,
-            ExpiryDate = poll.ExpiryDate,
-            Options = poll.Options!.Select(o => new OptionCreationDto()
-            {
-                Description = o.Description
-            }).ToList(),
-            ResultsVisibleBeforeVoting = poll.ResultsVisibleBeforeVoting,
-            Title = poll.Title
-        };
-    }
-
-    public static PollPreviewDto ToPreviewDto(this Poll poll)
-    {
-        return new PollPreviewDto()
-        {
-            Id = poll.Id,
-            CreationDate = poll.CreationDate,
-            ExpiryDate = poll.ExpiryDate,
-            Creator = poll.Creator!.UserName!,
-            Title = poll.Title,
-            VotesCount = poll.Votes!.Count
-        };
-    }
-
-    public static PollStatus ToPollStatus(this Poll poll)
-    {
-        return new(poll.CreatorId, poll.IsActive, poll.ResultsVisibleBeforeVoting, poll.IsDeleted);
     }
 }

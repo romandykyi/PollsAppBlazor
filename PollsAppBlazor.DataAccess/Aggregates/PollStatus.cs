@@ -2,7 +2,10 @@
 
 public record PollStatus(
     string CreatorId,
-    bool IsActive,
+    DateTimeOffset? ExpiryDate,
     bool VotesVisibleBeforeVoting,
     bool IsDeleted
-    );
+    )
+{
+    public bool IsExpired => ExpiryDate != null && ExpiryDate < DateTimeOffset.Now;
+}

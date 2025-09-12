@@ -45,7 +45,7 @@ public class VotesService(
         {
             return VoteServiceResult.PollNotFound;
         }
-        if (!pollStatus.IsActive)
+        if (pollStatus.IsExpired)
         {
             return VoteServiceResult.PollExpired;
         }
