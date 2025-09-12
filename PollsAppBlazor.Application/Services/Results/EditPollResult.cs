@@ -5,4 +5,5 @@ public enum EditPollResult
     Success,
     NotFound,
     Expired,
+    Deleted
 }

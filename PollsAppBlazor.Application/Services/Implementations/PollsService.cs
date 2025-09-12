@@ -51,12 +51,19 @@ public class PollsService(
     /// <param name="pollId">ID of the poll to retrieve.</param>
     /// <param name="userId">Optional ID of the user who requests a poll.</param>
     /// <returns>
-    /// View of the Poll, or <see langword="null" /> if Poll was not found.
+    /// The result of the retrieval operation containing the poll view.
     /// </returns>
-    public async Task<PollViewDto?> GetByIdAsync(int pollId, string? userId = null)
+    public async Task<PollRetrievalResult<PollViewDto>> GetByIdAsync(int pollId, string? userId = null)
     {
+        static PollRetrievalResult<PollViewDto> Error(PollRetrievalError error) =>
+            PollRetrievalResult<PollViewDto>.Failure(error);
+
+        var pollStatus = await _pollRepository.GetPollStatusAsync(pollId);
+        if (pollStatus == null) return Error(PollRetrievalError.PollNotFound);
+        if (pollStatus.IsDeleted) return Error(PollRetrievalError.PollDeleted);
+
         PollViewDto? poll = await _pollRepository.GetByIdAsync(pollId);
-        if (poll == null) return null;
+        if (poll == null) return Error(PollRetrievalError.PollNotFound);
 
         if (userId != null)
         {
@@ -64,7 +71,7 @@ public class PollsService(
             poll.VotedOptionId = await _voteRepository.GetVotedOptionAsync(pollId, userId);
         }
 
-        return poll;
+        return PollRetrievalResult<PollViewDto>.Success(poll);
     }
 
     /// <summary>
@@ -114,12 +121,22 @@ public class PollsService(
     /// </summary>
     /// <param name="pollId">ID of the poll to retrieve.</param>
     /// <returns>
-    /// An editing representation of the poll, 
-    /// or <see langword="null" /> if the poll was not found.
+    /// The result of the retrieval operation containing the poll's editing representation.
     /// </returns>
-    public Task<PollCreationDto?> GetForEditById(int pollId)
+    public async Task<PollRetrievalResult<PollCreationDto>> GetForEditById(int pollId)
     {
-        return _pollRepository.GetForEditById(pollId);
+        static PollRetrievalResult<PollCreationDto> Error(PollRetrievalError error) =>
+            PollRetrievalResult<PollCreationDto>.Failure(error);
+
+        var pollStatus = await _pollRepository.GetPollStatusAsync(pollId);
+        if (pollStatus == null) return Error(PollRetrievalError.PollNotFound);
+        if (pollStatus.IsDeleted) return Error(PollRetrievalError.PollDeleted);
+
+        var pollDto = await _pollRepository.GetForEditById(pollId);
+
+        return pollDto != null
+            ? PollRetrievalResult<PollCreationDto>.Success(pollDto)
+            : Error(PollRetrievalError.PollNotFound);
     }
 
     /// <summary>
@@ -132,6 +149,7 @@ public class PollsService(
     {
         var pollStatus = await _pollRepository.GetPollStatusAsync(pollId);
         if (pollStatus == null) return EditPollResult.NotFound;
+        if (pollStatus.IsDeleted) return EditPollResult.Deleted;
         if (!pollStatus.IsActive) return EditPollResult.Expired;
 
         return await _pollRepository.EditPollAsync(poll, pollId) != null
