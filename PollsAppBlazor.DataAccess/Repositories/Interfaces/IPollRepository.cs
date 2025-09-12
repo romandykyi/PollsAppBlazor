@@ -33,7 +33,7 @@ public interface IPollRepository
     /// An editing representation of the poll, or <see langword="null" /> if 
     /// the poll was not found.
     /// </returns>
-    Task<PollCreationDto?> GetForEditById(int pollId);
+    Task<PollCreationDto?> GetForEditByIdAsync(int pollId);
 
     /// <summary>
     /// Gets the polls page using the given options.

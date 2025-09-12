@@ -132,7 +132,7 @@ public class PollsService(
         if (pollStatus == null) return Error(PollRetrievalError.PollNotFound);
         if (pollStatus.IsDeleted) return Error(PollRetrievalError.PollDeleted);
 
-        var pollDto = await _pollRepository.GetForEditById(pollId);
+        var pollDto = await _pollRepository.GetForEditByIdAsync(pollId);
 
         return pollDto != null
             ? PollRetrievalResult<PollCreationDto>.Success(pollDto)

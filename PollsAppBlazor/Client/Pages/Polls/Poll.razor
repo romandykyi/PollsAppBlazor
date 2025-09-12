@@ -151,10 +151,10 @@ else
 
 	protected override Task OnInitializedAsync()
 	{
-        return UpdatePoll();
+        return FetchPoll();
 	}
 
-	private async Task UpdatePoll()
+	private async Task FetchPoll()
 	{
 		try
 		{
@@ -245,7 +245,7 @@ else
 		{
 			response.EnsureSuccessStatusCode();
 
-			await UpdatePoll();
+			await FetchPoll();
 			Snackbar.Add("Poll was successfully locked", Severity.Success);
 		}
 		catch (HttpRequestException)
@@ -265,7 +265,7 @@ else
 			response.EnsureSuccessStatusCode();
 			Snackbar.Add("Your vote was saved", Severity.Success);
 
-			await UpdatePoll(); // Update poll view
+			await FetchPoll(); // Update poll view
 			StateHasChanged();
 		}
 		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.Unauthorized)
