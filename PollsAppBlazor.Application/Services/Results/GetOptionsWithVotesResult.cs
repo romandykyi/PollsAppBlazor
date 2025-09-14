@@ -15,7 +15,11 @@ public enum GetOptionsWithVotesStatus
     /// <summary>
     /// Votes are not currently visible for this poll and this user.
     /// </summary>
-    NotVisible
+    NotVisible,
+    /// <summary>
+    /// Poll was deleted.
+    /// </summary>
+    PollDeleted
 }
 
 public class GetOptionsWithVotesResult(
@@ -33,4 +37,6 @@ public class GetOptionsWithVotesResult(
     public static GetOptionsWithVotesResult PollNotFound() => new(GetOptionsWithVotesStatus.PollNotFound, null);
 
     public static GetOptionsWithVotesResult NotVisible() => new(GetOptionsWithVotesStatus.NotVisible, null);
+
+    public static GetOptionsWithVotesResult PollDeleted() => new(GetOptionsWithVotesStatus.PollDeleted, null);
 }

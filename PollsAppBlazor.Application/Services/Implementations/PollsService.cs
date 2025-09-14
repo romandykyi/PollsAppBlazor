@@ -94,6 +94,7 @@ public class PollsService(
     {
         var pollStatus = await _pollRepository.GetPollStatusAsync(pollId);
         if (pollStatus == null) return GetOptionsWithVotesResult.PollNotFound();
+        if (pollStatus.IsDeleted) return GetOptionsWithVotesResult.PollDeleted();
         if (!pollStatus.VotesVisibleBeforeVoting)
         {
             if (!pollStatus.IsExpired && userId != pollStatus.CreatorId)
