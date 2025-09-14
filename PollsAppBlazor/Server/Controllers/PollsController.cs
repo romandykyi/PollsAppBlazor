@@ -73,6 +73,7 @@ public class PollsController(PollsService pollsService) : ControllerBase
     /// <response code="401">Unauthorized user call</response>
     /// <response code="403">User lacks permission to see votes for this Poll</response>
     /// <response code="404">The Poll does not exist</response>
+    /// <response code="410">The Poll was deleted</response>
     [HttpGet("{pollId}/options")]
     [Authorize]
     [ProducesResponseType(typeof(PollViewDto), StatusCodes.Status201Created)]
@@ -80,6 +81,7 @@ public class PollsController(PollsService pollsService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status410Gone)]
     public async Task<IActionResult> GetOptions([FromRoute] int pollId)
     {
         var result = await _pollsService.GetOptionsWithVotesAsync(pollId);
@@ -89,6 +91,7 @@ public class PollsController(PollsService pollsService) : ControllerBase
             GetOptionsWithVotesStatus.Success => Ok(result.Options),
             GetOptionsWithVotesStatus.PollNotFound => NotFound(),
             GetOptionsWithVotesStatus.NotVisible => Forbid(),
+            GetOptionsWithVotesStatus.PollDeleted => StatusCode(StatusCodes.Status410Gone),
             _ => throw new InvalidOperationException($"Unknown {nameof(GetOptionsWithVotesStatus)}")
         };
     }
