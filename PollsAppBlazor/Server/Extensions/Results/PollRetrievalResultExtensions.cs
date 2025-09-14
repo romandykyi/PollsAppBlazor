@@ -11,7 +11,7 @@ public static class PollRetrievalResultExtensions
         {
             PollRetrievalError.None => new OkObjectResult(result.Poll!),
             PollRetrievalError.PollNotFound => new NotFoundResult(),
-            PollRetrievalError.PollDeleted => new BadRequestObjectResult("Poll was deleted"),
+            PollRetrievalError.PollDeleted => new StatusCodeResult(StatusCodes.Status410Gone),
             _ => throw new InvalidOperationException($"Unknown {nameof(PollRetrievalError)} value")
         };
     }

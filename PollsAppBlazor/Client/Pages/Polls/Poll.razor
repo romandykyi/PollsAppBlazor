@@ -21,9 +21,19 @@
 
 @if (poll == null)
 {
-	<p>
-		Loading...
-	</p>
+	@if (deleted)
+	{
+		<MudText Typo="Typo.h3">Deleted Poll</MudText>
+		<MudText>
+			Sorry, this poll has been deleted and is no longer available.
+		</MudText>
+	}
+	else
+	{
+		<MudText>
+			Loading...
+		</MudText>
+	}
 }
 else
 {
@@ -136,6 +146,7 @@ else
 @code {
 	private PollViewDto poll { get; set; } = null!;
 
+	private bool deleted = false;
 	private bool? canViewResults = null;
 	private bool? canEdit = null;
 	private IList<OptionWithVotesViewDto> optionsWithVotes = [];
@@ -151,11 +162,13 @@ else
 
 	protected override Task OnInitializedAsync()
 	{
-        return FetchPoll();
+		return FetchPoll();
 	}
 
 	private async Task FetchPoll()
 	{
+        if (deleted) return;
+
 		try
 		{
 			// Get poll details
@@ -187,8 +200,12 @@ else
 			}
 			else
 			{
-                canEdit = false;
+				canEdit = false;
 			}
+		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.Gone)
+		{
+			deleted = true;
 		}
 		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
 		{
