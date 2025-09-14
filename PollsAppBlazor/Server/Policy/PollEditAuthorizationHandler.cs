@@ -1,20 +1,20 @@
 ﻿using Duende.IdentityServer.Extensions;
 using Microsoft.AspNetCore.Authorization;
-using PollsAppBlazor.Application.Services.Implementations;
+using PollsAppBlazor.Application.Services.Interfaces;
 
 namespace PollsAppBlazor.Server.Policy;
 
 public sealed class PollEditAuthorizationHandler : PollEditAuthorizationHandler<PollEditAuthorizationRequirement>
 {
-    public PollEditAuthorizationHandler(PollsService pollsService) : base(pollsService) { }
+    public PollEditAuthorizationHandler(IPollService pollsService) : base(pollsService) { }
 }
 
 public abstract class PollEditAuthorizationHandler<TRequirement> : EditAuthorizationHandler<TRequirement>
     where TRequirement : IAuthorizationRequirement
 {
-    private readonly PollsService _pollsService;
+    private readonly IPollService _pollsService;
 
-    public PollEditAuthorizationHandler(PollsService pollsService)
+    public PollEditAuthorizationHandler(IPollService pollsService)
     {
         _pollsService = pollsService;
     }

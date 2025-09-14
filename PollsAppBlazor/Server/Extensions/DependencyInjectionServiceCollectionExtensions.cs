@@ -1,4 +1,5 @@
 ﻿using PollsAppBlazor.Application.Services.Implementations;
+using PollsAppBlazor.Application.Services.Interfaces;
 using PollsAppBlazor.DataAccess.Repositories.Implementations;
 using PollsAppBlazor.DataAccess.Repositories.Interfaces;
 
@@ -18,10 +19,10 @@ public static class DependencyInjectionServiceCollectionExtensions
     public static IServiceCollection RegisterApplicationServices(this IServiceCollection services)
     {
         return services
-            .AddScoped<PollsService>()
-            .AddScoped<OptionsService>()
-            .AddScoped<VotesService>()
-            .AddScoped<FavoritesService>()
-            .AddScoped<UserService>();
+            .AddScoped<IPollService, PollService>()
+            .AddScoped<IOptionService, OptionService>()
+            .AddScoped<IVoteService, VoteService>()
+            .AddScoped<IFavoriteService, FavoriteService>()
+            .AddScoped<IUserService, UserService>();
     }
 }
