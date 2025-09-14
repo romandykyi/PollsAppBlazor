@@ -56,14 +56,12 @@ public static class AuthServiceCollectionExtensions
     {
         services.AddTransient<IAuthorizationHandler, PollEditAuthorizationHandler>();
 
-        services.AddAuthorization(options =>
-        {
-            options.AddPolicy(Policies.CanEditPoll, policy =>
+        services.AddAuthorizationBuilder()
+            .AddPolicy(Policies.CanEditPoll, policy =>
             {
                 policy.RequireAuthenticatedUser();
                 policy.AddRequirements(new PollEditAuthorizationRequirement());
             });
-        });
 
         return services;
     }
