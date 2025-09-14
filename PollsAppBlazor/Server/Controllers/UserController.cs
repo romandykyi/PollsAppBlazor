@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using PollsAppBlazor.Application.Services.Implementations;
+using PollsAppBlazor.Application.Services.Interfaces;
 using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.Server.Controllers;
@@ -10,12 +11,12 @@ namespace PollsAppBlazor.Server.Controllers;
 [Authorize]
 [Route("api/user")]
 public class UserController(
-    UserService userService,
-    FavoritesService favoritesService
+    IUserService userService,
+    IFavoriteService favoritesService
     ) : ControllerBase
 {
-    private readonly UserService _userService = userService;
-    private readonly FavoritesService _favoritesService = favoritesService;
+    private readonly IUserService _userService = userService;
+    private readonly IFavoriteService _favoritesService = favoritesService;
 
     /// <summary>
     /// Gets polls created by the current user

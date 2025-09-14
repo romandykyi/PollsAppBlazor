@@ -11,8 +11,4 @@
     <ProjectReference Include="..\PollsAppBlazor\Shared\PollsAppBlazor.Shared.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Services\Interfaces\" />
-  </ItemGroup>
-
 </Project>

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using PollsAppBlazor.Application.Services.Implementations;
+using PollsAppBlazor.Application.Services.Interfaces;
 using PollsAppBlazor.Application.Services.Results;
 using PollsAppBlazor.DataAccess.Repositories.Results;
 using PollsAppBlazor.Server.Extensions.Results;
@@ -14,9 +15,9 @@ namespace PollsAppBlazor.Server.Controllers;
 [ApiController]
 [Route("api/polls")]
 // doesn't work with Swagger: [AutoValidateAntiforgeryToken]
-public class PollsController(PollsService pollsService) : ControllerBase
+public class PollsController(IPollService pollsService) : ControllerBase
 {
-    private readonly PollsService _pollsService = pollsService;
+    private readonly IPollService _pollsService = pollsService;
 
     /// <summary>
     /// Gets a Poll by its ID

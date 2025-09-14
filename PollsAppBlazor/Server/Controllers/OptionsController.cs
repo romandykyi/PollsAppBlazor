@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PollsAppBlazor.Application.Services.Implementations;
+using PollsAppBlazor.Application.Services.Interfaces;
 using PollsAppBlazor.Application.Services.Results;
 
 namespace PollsAppBlazor.Server.Controllers;
@@ -9,9 +10,9 @@ namespace PollsAppBlazor.Server.Controllers;
 [ApiController]
 [Route("api/options")]
 // doesn't work with Swagger: [AutoValidateAntiforgeryToken]
-public class OptionsController(VotesService votesService) : ControllerBase
+public class OptionsController(IVoteService votesService) : ControllerBase
 {
-    private readonly VotesService _votesService = votesService;
+    private readonly IVoteService _votesService = votesService;
 
     private ObjectResult ForbidVote(string detail)
     {
