@@ -7,12 +7,12 @@ namespace PollsAppBlazor.Application.Services.Implementations;
 public class VoteService(
     IVoteRepository voteRepository,
     IPollOptionRepository optionRepository,
-    IPollRepository pollRepository
+    IPollStatusProvider pollStatusProvider
     ) : IVoteService
 {
     private readonly IVoteRepository _voteRepository = voteRepository;
     private readonly IPollOptionRepository _optionRepository = optionRepository;
-    private readonly IPollRepository _pollRepository = pollRepository;
+    private readonly IPollStatusProvider _pollStatusProvider = pollStatusProvider;
 
     public Task<int?> GetVotedOptionAsync(int pollId, string userId)
     {
@@ -28,7 +28,7 @@ public class VoteService(
             return VoteServiceResult.PollNotFound;
         }
         // Make sure that poll is active
-        var pollStatus = await _pollRepository.GetPollStatusAsync(pollId.Value);
+        var pollStatus = await _pollStatusProvider.GetPollStatusAsync(pollId.Value);
         if (pollStatus == null)
         {
             return VoteServiceResult.PollNotFound;

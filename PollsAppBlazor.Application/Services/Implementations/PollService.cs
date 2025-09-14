@@ -11,23 +11,25 @@ namespace PollsAppBlazor.Application.Services.Implementations;
 public class PollService(
     IVoteRepository voteRepository,
     IPollRepository pollRepository,
+    IPollStatusProvider pollStatusProvider,
     IPollOptionRepository optionRepository,
     IFavoriteRepository favoriteRepository
     ) : IPollService
 {
     private readonly IVoteRepository _voteRepository = voteRepository;
     private readonly IPollRepository _pollRepository = pollRepository;
+    private readonly IPollStatusProvider _pollStatusProvider = pollStatusProvider;
     private readonly IPollOptionRepository _optionRepository = optionRepository;
     private readonly IFavoriteRepository _favoriteRepository = favoriteRepository;
 
     public async Task<string?> GetCreatorIdAsync(int pollId)
     {
-        return (await _pollRepository.GetPollStatusAsync(pollId))?.CreatorId;
+        return (await _pollStatusProvider.GetPollStatusAsync(pollId))?.CreatorId;
     }
 
     public async Task<bool?> IsPollActiveAsync(int pollId)
     {
-        return !(await _pollRepository.GetPollStatusAsync(pollId))?.IsExpired;
+        return !(await _pollStatusProvider.GetPollStatusAsync(pollId))?.IsExpired;
     }
 
     public async Task<PollRetrievalResult<PollViewDto>> GetByIdAsync(int pollId, string? userId = null)
@@ -35,7 +37,7 @@ public class PollService(
         static PollRetrievalResult<PollViewDto> Error(PollRetrievalError error) =>
             PollRetrievalResult<PollViewDto>.Failure(error);
 
-        var pollStatus = await _pollRepository.GetPollStatusAsync(pollId);
+        var pollStatus = await _pollStatusProvider.GetPollStatusAsync(pollId);
         if (pollStatus == null) return Error(PollRetrievalError.PollNotFound);
         if (pollStatus.IsDeleted) return Error(PollRetrievalError.PollDeleted);
 
@@ -63,7 +65,7 @@ public class PollService(
 
     public async Task<GetOptionsWithVotesResult> GetOptionsWithVotesAsync(int pollId, string? userId = null)
     {
-        var pollStatus = await _pollRepository.GetPollStatusAsync(pollId);
+        var pollStatus = await _pollStatusProvider.GetPollStatusAsync(pollId);
         if (pollStatus == null) return GetOptionsWithVotesResult.PollNotFound();
         if (pollStatus.IsDeleted) return GetOptionsWithVotesResult.PollDeleted();
         if (!pollStatus.IsExpired && !pollStatus.VotesVisibleBeforeVoting)
@@ -95,7 +97,7 @@ public class PollService(
         static PollRetrievalResult<PollCreationDto> Error(PollRetrievalError error) =>
             PollRetrievalResult<PollCreationDto>.Failure(error);
 
-        var pollStatus = await _pollRepository.GetPollStatusAsync(pollId);
+        var pollStatus = await _pollStatusProvider.GetPollStatusAsync(pollId);
         if (pollStatus == null) return Error(PollRetrievalError.PollNotFound);
         if (pollStatus.IsDeleted) return Error(PollRetrievalError.PollDeleted);
 
@@ -108,7 +110,7 @@ public class PollService(
 
     public async Task<EditPollResult> EditPollAsync(PollEditDto poll, int pollId)
     {
-        var pollStatus = await _pollRepository.GetPollStatusAsync(pollId);
+        var pollStatus = await _pollStatusProvider.GetPollStatusAsync(pollId);
         if (pollStatus == null) return EditPollResult.NotFound;
         if (pollStatus.IsDeleted) return EditPollResult.Deleted;
         if (pollStatus.IsExpired) return EditPollResult.Expired;
@@ -120,7 +122,7 @@ public class PollService(
 
     public async Task<PollDeleteResult> DeletePollAsync(int pollId)
     {
-        var pollStatus = await _pollRepository.GetPollStatusAsync(pollId);
+        var pollStatus = await _pollStatusProvider.GetPollStatusAsync(pollId);
         if (pollStatus == null) return PollDeleteResult.PollNotFound;
         if (pollStatus.IsDeleted) return PollDeleteResult.PollDeleted;
 
@@ -136,7 +138,7 @@ public class PollService(
     /// <returns>Operation result.</returns>
     public async Task<ExpirePollResult> ExpirePollAsync(int pollId)
     {
-        var pollStatus = await _pollRepository.GetPollStatusAsync(pollId);
+        var pollStatus = await _pollStatusProvider.GetPollStatusAsync(pollId);
         if (pollStatus == null) return ExpirePollResult.NotFound;
         if (pollStatus.IsDeleted) return ExpirePollResult.Deleted;
         if (pollStatus.IsExpired) return ExpirePollResult.AlreadyExpired;

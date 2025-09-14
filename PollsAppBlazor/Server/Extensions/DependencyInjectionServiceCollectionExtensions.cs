@@ -23,6 +23,7 @@ public static class DependencyInjectionServiceCollectionExtensions
             .AddScoped<IOptionService, OptionService>()
             .AddScoped<IVoteService, VoteService>()
             .AddScoped<IFavoriteService, FavoriteService>()
-            .AddScoped<IUserService, UserService>();
+            .AddScoped<IUserService, UserService>()
+            .AddScoped<IPollStatusProvider, PollStatusProvider>();
     }
 }
