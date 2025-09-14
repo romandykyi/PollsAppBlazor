@@ -84,7 +84,8 @@ public class PollsController(PollsService pollsService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status410Gone)]
     public async Task<IActionResult> GetOptions([FromRoute] int pollId)
     {
-        var result = await _pollsService.GetOptionsWithVotesAsync(pollId);
+        string? userId = User.IsAuthenticated() ? User.GetSubjectId() : null;
+        var result = await _pollsService.GetOptionsWithVotesAsync(pollId, userId);
 
         return result.Status switch
         {

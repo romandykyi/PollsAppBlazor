@@ -95,10 +95,18 @@ public class PollsService(
         var pollStatus = await _pollRepository.GetPollStatusAsync(pollId);
         if (pollStatus == null) return GetOptionsWithVotesResult.PollNotFound();
         if (pollStatus.IsDeleted) return GetOptionsWithVotesResult.PollDeleted();
-        if (!pollStatus.VotesVisibleBeforeVoting)
+        if (!pollStatus.IsExpired && !pollStatus.VotesVisibleBeforeVoting)
         {
-            if (!pollStatus.IsExpired && userId != pollStatus.CreatorId)
+            if (string.IsNullOrEmpty(userId))
                 return GetOptionsWithVotesResult.NotVisible();
+
+            if (userId != pollStatus.CreatorId)
+            {
+                // Check if the user had voted
+                var votedOptionId = await _voteRepository.GetVotedOptionAsync(pollId, userId);
+                if (votedOptionId == null)
+                    return GetOptionsWithVotesResult.NotVisible();
+            }
         }
 
         var options = await _optionRepository.GetPollOptionsAsync(pollId);
