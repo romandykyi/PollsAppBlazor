@@ -1,8 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 
-namespace PollsAppBlazor.Server.Policy
+namespace PollsAppBlazor.Server.Policy;
+
+public class PollEditAuthorizationRequirement : IAuthorizationRequirement
 {
-	public class PollEditAuthorizationRequirement : IAuthorizationRequirement
-	{
-	}
 }

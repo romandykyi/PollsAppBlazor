@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using PollsAppBlazor.Application.Services.Implementations;
 using PollsAppBlazor.Application.Services.Interfaces;
 using PollsAppBlazor.Shared.Polls;
 

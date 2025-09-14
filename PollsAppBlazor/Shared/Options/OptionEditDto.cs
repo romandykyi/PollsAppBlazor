@@ -1,6 +1,5 @@
-﻿namespace PollsAppBlazor.Shared.Options
+﻿namespace PollsAppBlazor.Shared.Options;
+
+public class OptionEditDto : OptionCreationDto
 {
-	public class OptionEditDto : OptionCreationDto
-	{
-	}
 }
