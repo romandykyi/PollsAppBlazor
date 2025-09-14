@@ -55,7 +55,7 @@ else
 	{
 		<div class="createdDate">Expires @poll.ExpiryDate.Value.AsExpiryDuration()</div>
 	}
-	<div class="creator">by @poll.Creator</div>
+	<div class="creator">by @poll.Creator.Username</div>
 
 	@if (poll.IsExpired)
 	{
@@ -98,14 +98,16 @@ else
 	{
 		<MudRadioGroup T="@(int?)" @bind-Value="selectedOptionId"
 					   ReadOnly="@userHasVoted" Disabled="@poll.IsExpired">
-			@foreach (var option in poll.Options)
-			{
-				var radioColor = option.Id == poll.VotedOptionId ? Color.Success : Color.Primary;
-				<MudRadio Class="d-block" Value="@((int?)option.Id)"
-						  Color="@radioColor">
-					@option.Description
-				</MudRadio>
-			}
+			<MudItem xs="12" md="2" Class="d-block">
+				@foreach (var option in poll.Options)
+				{
+					var radioColor = option.Id == poll.VotedOptionId ? Color.Success : Color.Primary;
+					<MudRadio Class="d-block" Value="@((int?)option.Id)"
+							  Color="@radioColor">
+						@option.Description
+					</MudRadio>
+				}
+			</MudItem>
 		</MudRadioGroup>
 		<MudStack Row="true" Spacing="1">
 			<MudButton OnClick="Vote" Disabled="@(userHasVoted || selectedOptionId == null)"
