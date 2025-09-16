@@ -7,7 +7,6 @@ using PollsAppBlazor.Shared.Users;
 namespace PollsAppBlazor.Server.Controllers;
 
 [Route("api/auth")]
-// doesn't work with Swagger: [AutoValidateAntiforgeryToken]
 public class AuthController : ControllerBase
 {
     private readonly SignInManager<ApplicationUser> _signInManager;

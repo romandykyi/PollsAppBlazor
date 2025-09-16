@@ -8,7 +8,6 @@ namespace PollsAppBlazor.Server.Controllers;
 
 [ApiController]
 [Route("api/options")]
-// doesn't work with Swagger: [AutoValidateAntiforgeryToken]
 public class OptionsController(IVoteService votesService) : ControllerBase
 {
     private readonly IVoteService _votesService = votesService;

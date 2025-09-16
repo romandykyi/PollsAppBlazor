@@ -4,14 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 namespace PollsAppBlazor.Server.Controllers;
 
 [ApiExplorerSettings(IgnoreApi = true)]
-public class OidcConfigurationController : Controller
+public class OidcConfigurationController(IClientRequestParametersProvider clientRequestParametersProvider) : Controller
 {
-    public OidcConfigurationController(IClientRequestParametersProvider clientRequestParametersProvider, ILogger<OidcConfigurationController> logger)
-    {
-        ClientRequestParametersProvider = clientRequestParametersProvider;
-    }
-
-    public IClientRequestParametersProvider ClientRequestParametersProvider { get; }
+    public IClientRequestParametersProvider ClientRequestParametersProvider { get; } = clientRequestParametersProvider;
 
     [HttpGet("_configuration/{clientId}")]
     public IActionResult GetClientRequestParameters([FromRoute] string clientId)
