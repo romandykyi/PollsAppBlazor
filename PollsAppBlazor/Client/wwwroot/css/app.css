@@ -10,6 +10,15 @@ a, .btn-link {
     color: #0071c1;
 }
 
+li > a, p > a {
+    color: #0071c1 !important;
+    text-decoration: underline;
+}
+
+    li > a:visited, p > a:visited {
+        color: #9f00c1 !important;
+    }
+
 .btn-primary {
     color: #fff;
     background-color: #1b6ec2;
