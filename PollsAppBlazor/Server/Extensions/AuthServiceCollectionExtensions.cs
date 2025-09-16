@@ -9,8 +9,9 @@ namespace PollsAppBlazor.Server.Extensions;
 
 public static class AuthServiceCollectionExtensions
 {
-    public static IServiceCollection AddCustomizedIdentity(this IServiceCollection services)
+    public static IServiceCollection AddCustomizedIdentity(this WebApplicationBuilder builder)
     {
+        var services = builder.Services;
         services
             .AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
@@ -26,7 +27,10 @@ public static class AuthServiceCollectionExtensions
             })
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
-        services.AddIdentityServer()
+        services.AddIdentityServer(options =>
+            {
+                options.LicenseKey = builder.Configuration["IdentityServer:LicenseKey"];
+            })
             .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
 
         services

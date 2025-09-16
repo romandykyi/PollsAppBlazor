@@ -20,7 +20,7 @@ if (builder.Environment.IsDevelopment())
 
 services.AddAntiforgery(options => options.HeaderName = "X-XSRF-Token");
 
-services.AddCustomizedIdentity();
+builder.AddCustomizedIdentity();
 services.AddCustomizedAuthorization();
 
 services.ConfigureControllers();
