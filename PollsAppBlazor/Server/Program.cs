@@ -61,7 +61,11 @@ app.MapControllers();
 app.MapFallbackToFile("index.html");
 
 app.CreateRoles();
-app.CreateAdministrator();
-app.CreateDummyData();
+
+if (app.Environment.IsDevelopment())
+{
+    app.CreateAdministrator();
+    app.CreateDummyData();
+}
 
 app.Run();
