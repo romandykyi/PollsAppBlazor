@@ -5,6 +5,7 @@ var services = builder.Services;
 
 // Add services to the container.
 builder.ConnectDatabase();
+builder.ConfigureEmailService();
 
 services
     .RegisterRepositories()

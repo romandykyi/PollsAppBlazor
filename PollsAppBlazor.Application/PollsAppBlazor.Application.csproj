@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Communication.Email" Version="1.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\PollsAppBlazor.DataAccess\PollsAppBlazor.DataAccess.csproj" />
     <ProjectReference Include="..\PollsAppBlazor\Shared\PollsAppBlazor.Shared.csproj" />
   </ItemGroup>
