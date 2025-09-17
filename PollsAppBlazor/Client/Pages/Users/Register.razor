@@ -32,24 +32,28 @@
 				<MudTextField T="string" Label="Confirm password"
 							  HelperText="Repeat the password" InputType="InputType.Password"
 							  Validation="@(new Func<string, string?>(PasswordMatchValidation))" />
+				<MudCheckBox T="bool" @bind-Value="acceptTerms">
+					I have read and accept the <MudLink Href="/privacy-policy">Privacy Policy</MudLink> and <MudLink Href="/terms-of-service">Terms of Service</MudLink>.
+				</MudCheckBox>
 			</MudForm>
 			<div class="d-flex">
-				<MudLink Href="/users/login">I already have an account</MudLink>
 				<MudButton Variant="Variant.Filled" Color="Color.Primary"
-						   Disabled="@(!success)" Class="ml-auto" OnClick="Submit">
+						   Disabled="@(!success || !acceptTerms)" OnClick="Submit">
 					Register
 				</MudButton>
+				<MudLink Href="/users/login" Class="ml-auto">I already have an account</MudLink>
 			</div>
 		</MudPaper>
 	</NotAuthorized>
 </AuthorizeView>
 
 @code {
-	private bool success;
 	private string[] errors = { };
 	private MudTextField<string> passwordField = null!;
 	private MudForm form = null!;
 
+    private bool success { get; set; } = false;
+	private bool acceptTerms { get; set; } = false;
 	private string[]? serverErrors;
 
 	private UserRegisterDto user = new();

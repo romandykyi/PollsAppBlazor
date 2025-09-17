@@ -28,7 +28,7 @@
 		var dialog = await DialogService.ShowAsync<DialogTemplate>("Log out confirmation", parameters, options);
 		var result = await dialog.Result;
 
-		if (result.Canceled) return;
+		if (result == null || result.Canceled) return;
 
 		var httpResponse = await HttpClient.PostAsync("/api/auth/logout", null);
 		try
