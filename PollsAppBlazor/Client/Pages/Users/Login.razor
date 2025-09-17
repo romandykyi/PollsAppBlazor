@@ -26,10 +26,12 @@
 					<MudLink Href="/users/register">Create a new account</MudLink>
 				</MudStack>
 			</div>
-			<div class="d-flex align-center justify-space-between">
+			<div class="d-flex">
 				<MudCheckBox T="bool" Label="Remember me" @bind-Checked="user.RememberMe" />
+			</div>
+			<div class="d-flex">
 				<MudButton Variant="Variant.Filled" Color="Color.Primary"
-						   Disabled="@(!success)" Class="ml-auto" OnClick="LogIn">
+						   Disabled="@(!success)" Class="mr-auto" OnClick="LogIn">
 					Log In
 				</MudButton>
 			</div>
