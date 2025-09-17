@@ -7,7 +7,7 @@
 	</div>
 </div>
 
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
+<div class="@NavMenuCssClass nav-scrollable">
 	<MudNavMenu>
 		<MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">
 			Home
@@ -25,6 +25,14 @@
 			</AuthorizeView>
 			<MudNavLink Href="/polls/create" Icon="@Icons.Material.Filled.AddCircle" Match="NavLinkMatch.All">
 				Create new
+			</MudNavLink>
+		</MudNavGroup>
+		<MudNavGroup Title="About" Icon="@Icons.Material.Filled.Info">
+			<MudNavLink Href="/privacy-policy">
+				Privacy Policy
+			</MudNavLink>
+			<MudNavLink Href="/terms-of-service">
+				Terms of Service
 			</MudNavLink>
 		</MudNavGroup>
 	</MudNavMenu>
