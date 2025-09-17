@@ -39,20 +39,30 @@ public class AuthController : ControllerBase
     {
         if (ModelState.IsValid)
         {
-            var user = await _signInManager.UserManager.FindByEmailAsync(login.EmailOrUsername);
-            string username = (user != null ? user.UserName : login.EmailOrUsername)!;
+            var user = await _signInManager.UserManager.FindByEmailAsync(login.EmailOrUsername) ??
+                await _signInManager.UserManager.FindByNameAsync(login.EmailOrUsername);
+            if (user == null) return Unauthorized();
 
-            // This doesn't count login failures towards account lockout and two factor authorization
-            var result = await _signInManager.PasswordSignInAsync(username, login.Password, login.RememberMe, lockoutOnFailure: false);
+            var result = await _signInManager.PasswordSignInAsync(user, login.Password, login.RememberMe, lockoutOnFailure: true);
+
             if (result.Succeeded)
             {
                 return NoContent();
             }
-            ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+            if (result.IsLockedOut)
+            {
+                // Only add lockout error if password is correct to prevent user enumeration
+                if (await _userManager.CheckPasswordAsync(user, login.Password))
+                {
+                    ModelState.AddModelError(string.Empty, "User account locked out, please try again.");
+                    return BadRequest(ModelState);
+                }
+                return Unauthorized();
+            }
         }
 
         // If we got this far, something failed
-        return BadRequest(ModelState);
+        return Unauthorized();
     }
 
     /// <summary>

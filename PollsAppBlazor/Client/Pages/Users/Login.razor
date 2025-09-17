@@ -59,6 +59,10 @@
 			// Navigate to another page with force reload
 			NavigationManager.NavigateTo("/polls", true);
 		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			serverErrors = [ "Invalid login attempt" ];
+		}
 		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.BadRequest)
 		{
 			serverErrors = await response.Content.ExtractErrorsAsync().ToArrayAsync();
