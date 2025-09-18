@@ -213,6 +213,10 @@ else
 		{
 			NavigationManager.NavigateTo("/polls/error404");
 		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.TooManyRequests)
+		{
+			Snackbar.TooManyRequestsError();
+		}
 		catch (HttpRequestException)
 		{
 			Snackbar.UnexpectedError();

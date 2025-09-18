@@ -79,6 +79,10 @@ else
 		{
 			serverErrors = await response.Content.ExtractErrorsAsync().ToArrayAsync();
 		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.TooManyRequests)
+		{
+			Snackbar.TooManyRequestsError();
+		}
 		catch (HttpRequestException)
 		{
 			Snackbar.UnexpectedError();

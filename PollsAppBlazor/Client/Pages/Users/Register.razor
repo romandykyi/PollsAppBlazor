@@ -3,6 +3,7 @@
 @using System.ComponentModel.DataAnnotations
 @using System.Text.Json
 @using PollsAppBlazor.Shared.Users
+@inject ISnackbar Snackbar
 @inject PublicClient PublicClient
 @inject NavigationManager NavigationManager
 
@@ -114,6 +115,10 @@
 		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.BadRequest)
 		{
 			serverErrors = await response.Content.ExtractErrorsAsync().ToArrayAsync();
+		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.TooManyRequests)
+		{
+			Snackbar.TooManyRequestsError();
 		}
 		catch (HttpRequestException)
 		{
