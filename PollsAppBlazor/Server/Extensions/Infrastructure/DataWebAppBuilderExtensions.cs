@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PollsAppBlazor.Server.DataAccess;
 
-namespace PollsAppBlazor.Server.Extensions;
+namespace PollsAppBlazor.Server.Extensions.Infrastructure;
 
 public static class DataWebAppBuilderExtensions
 {

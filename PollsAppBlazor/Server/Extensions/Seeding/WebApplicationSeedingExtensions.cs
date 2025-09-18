@@ -6,9 +6,9 @@ using PollsAppBlazor.Shared.Polls;
 using PollsAppBlazor.Shared.Users;
 using System.Text.RegularExpressions;
 
-namespace PollsAppBlazor.Server.Extensions;
+namespace PollsAppBlazor.Server.Extensions.Seeding;
 
-public static class WebApplicationExtensions
+public static class WebApplicationSeedingExtensions
 {
     public static WebApplication CreateRoles(this WebApplication app)
     {

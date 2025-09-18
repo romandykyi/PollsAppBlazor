@@ -1,4 +1,7 @@
 using PollsAppBlazor.Server.Extensions;
+using PollsAppBlazor.Server.Extensions.Infrastructure;
+using PollsAppBlazor.Server.Extensions.Safety;
+using PollsAppBlazor.Server.Extensions.Seeding;
 
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;

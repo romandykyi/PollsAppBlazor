@@ -5,7 +5,7 @@ using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Server.Policy;
 using System.Net;
 
-namespace PollsAppBlazor.Server.Extensions;
+namespace PollsAppBlazor.Server.Extensions.Safety;
 
 public static class AuthServiceCollectionExtensions
 {

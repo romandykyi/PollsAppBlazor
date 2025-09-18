@@ -2,7 +2,7 @@
 using PollsAppBlazor.Application.Services.Communication.Implementations;
 using PollsAppBlazor.Application.Services.Communication.Interfaces;
 
-namespace PollsAppBlazor.Server.Extensions;
+namespace PollsAppBlazor.Server.Extensions.Infrastructure;
 
 public static class CommunicationAppBuilderExtensions
 {
