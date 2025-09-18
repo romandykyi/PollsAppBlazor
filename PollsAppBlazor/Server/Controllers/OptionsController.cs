@@ -1,8 +1,10 @@
 ﻿using Duende.IdentityServer.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using PollsAppBlazor.Application.Services.Interfaces;
 using PollsAppBlazor.Application.Services.Results;
+using PollsAppBlazor.Server.Policy;
 
 namespace PollsAppBlazor.Server.Controllers;
 
@@ -32,6 +34,7 @@ public class OptionsController(IVoteService votesService) : ControllerBase
     /// <response code="404">The Option does not exist</response>
     [HttpPost]
     [Authorize]
+    [EnableRateLimiting(RateLimitingPolicy.VotePolicy)]
     [Route("{optionId}/vote")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

@@ -1,14 +1,21 @@
-﻿using System.Reflection;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Reflection;
 using System.Text.Json.Serialization;
 
 namespace PollsAppBlazor.Server.Extensions;
 
 public static class APIServiceCollectionExtensions
 {
-    public static IServiceCollection ConfigureControllers(this IServiceCollection services)
+    public static IServiceCollection ConfigureControllers(this IServiceCollection services, bool addAntiForgery)
     {
         services
-            .AddControllers()
+            .AddControllers(options =>
+            {
+                if (addAntiForgery)
+                {
+                    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+                }
+            })
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;

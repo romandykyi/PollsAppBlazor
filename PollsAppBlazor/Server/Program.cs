@@ -27,7 +27,9 @@ services.AddAntiforgery(options => options.HeaderName = "X-XSRF-Token");
 builder.AddCustomizedIdentity();
 services.AddCustomizedAuthorization();
 
-services.ConfigureControllers();
+services
+    .ConfigureControllers(addAntiForgery: builder.Environment.IsProduction())
+    .AddAppRateLimiting();
 
 var app = builder.Build();
 
@@ -53,6 +55,7 @@ app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseRateLimiter();
 
 app.UseCookiePolicy();
 app.UseIdentityServer();

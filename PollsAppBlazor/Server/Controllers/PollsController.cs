@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using PollsAppBlazor.Application.Services.Interfaces;
 using PollsAppBlazor.Application.Services.Results;
 using PollsAppBlazor.DataAccess.Repositories.Results;
@@ -112,6 +113,7 @@ public class PollsController(IPollService pollsService) : ControllerBase
     /// <response code="401">Unauthorized user call</response>
     [HttpPost]
     [Authorize]
+    [EnableRateLimiting(RateLimitingPolicy.CreatePolicy)]
     [ProducesResponseType(typeof(PollViewDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -152,6 +154,7 @@ public class PollsController(IPollService pollsService) : ControllerBase
     /// <response code="410">The Poll was deleted</response>
     [HttpPatch]
     [Authorize(Policy = Policies.CanEditPoll)]
+    [EnableRateLimiting(RateLimitingPolicy.EditPolicy)]
     [Route("{pollId}")]
     [ProducesResponseType(typeof(PollViewDto), StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

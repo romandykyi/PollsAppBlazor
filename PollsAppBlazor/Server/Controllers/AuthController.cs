@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using PollsAppBlazor.Server.DataAccess.Models;
+using PollsAppBlazor.Server.Policy;
 using PollsAppBlazor.Shared.Users;
 
 namespace PollsAppBlazor.Server.Controllers;
@@ -32,6 +34,7 @@ public class AuthController : ControllerBase
     /// <response code="400">Invalid login attempt</response>
     [HttpPost]
     [Route("login")]
+    [EnableRateLimiting(RateLimitingPolicy.LogInPolicy)]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -74,6 +77,7 @@ public class AuthController : ControllerBase
     /// </response>
     [HttpPost]
     [Route("register")]
+    [EnableRateLimiting(RateLimitingPolicy.RegisterPolicy)]
     [AllowAnonymous]
     public async Task<IActionResult> Register([FromBody] UserRegisterDto user)
     {
