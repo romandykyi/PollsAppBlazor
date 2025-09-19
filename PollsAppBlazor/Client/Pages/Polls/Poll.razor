@@ -44,6 +44,7 @@ else
 			<MudCheckBox Class="d-inline-flex"
 						 @bind-Value="isInFavorites"
 						 @bind-Value:after="OnFavoriteStatusChangedAsync"
+                         Disabled="@(!authenticated)"
 						 CheckedIcon="@Icons.Material.Filled.Star"
 						 UncheckedIcon="@Icons.Material.Filled.StarBorder"
 						 Color="Color.Warning"
@@ -151,6 +152,7 @@ else
 	private bool deleted = false;
 	private bool? canViewResults = null;
 	private bool? canEdit = null;
+    private bool authenticated = false;
 	private IList<OptionWithVotesViewDto> optionsWithVotes = [];
 
 	private int? selectedOptionId { get; set; }
@@ -199,9 +201,12 @@ else
 			{
 				string? userId = user.FindFirst("sub")?.Value;
 				canEdit = user.IsInRole("Admin") || (userId != null && userId == poll.Creator.Id);
+
+                authenticated = true;
 			}
 			else
 			{
+                authenticated = false;
 				canEdit = false;
 			}
 		}
