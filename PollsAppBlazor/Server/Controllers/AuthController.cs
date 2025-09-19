@@ -123,7 +123,7 @@ public class AuthController(
                 string baseUri = $"{Request.Scheme}://{Request.Host}";
                 string confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(newUser);
                 string urlToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(confirmationToken));
-                string confirmationLink = $"{baseUri}/confirm-email?userId={newUser.Id}&token={urlToken}";
+                string confirmationLink = $"{baseUri}/users/confirm-email?userId={newUser.Id}&token={urlToken}";
 
                 bool sendResult = await _emailService.SendAsync(
                     user.Email,
@@ -153,6 +153,7 @@ public class AuthController(
     /// <response code="204">Success</response>
     /// <response code="400">Invalid request</response>
     /// <response code="401">Invalid email confirmation attempt</response>
+    /// <response code="409">Email is already confirmed</response>
     [HttpPost]
     [Route("confirm-email")]
     [EnableRateLimiting(RateLimitingPolicy.RegisterPolicy)]
@@ -160,15 +161,24 @@ public class AuthController(
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> ConfirmEmail([FromQuery] string userId, [FromQuery] string token)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
+        if (User.Identity != null && User.Identity.IsAuthenticated)
+        {
+            return Conflict(new { Message = "You are already logged in" });
+        }
 
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null) return Unauthorized();
+        if (user.EmailConfirmed)
+        {
+            return Conflict(new { Message = "Email is already confirmed" });
+        }
 
         string decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
         var result = await _userManager.ConfirmEmailAsync(user, decodedToken);

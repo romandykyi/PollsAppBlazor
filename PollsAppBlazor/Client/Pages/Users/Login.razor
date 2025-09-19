@@ -3,6 +3,7 @@
 @using PollsAppBlazor.Shared.Users
 @inject ISnackbar Snackbar
 @inject PublicClient PublicClient
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 
 <AuthorizeView>
@@ -49,6 +50,18 @@
 	private string[]? serverErrors { get; set; }
 
 	private UserLoginDto user = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var user = authState.User;
+
+		if (user.Identity != null && user.Identity.IsAuthenticated)
+		{
+			// Redirect to home if already logged in
+			NavigationManager.NavigateTo("/");
+		}
+	}
 
 	private async Task LogIn()
 	{

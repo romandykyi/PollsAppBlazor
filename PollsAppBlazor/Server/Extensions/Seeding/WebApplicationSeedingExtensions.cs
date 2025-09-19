@@ -30,7 +30,6 @@ public static class WebApplicationSeedingExtensions
 
     public static WebApplication CreateAdministrator(this WebApplication app)
     {
-        // Probably I shouldn't use this in production
         using var scope = app.Services.CreateScope();
 
         var userManager =
@@ -45,7 +44,8 @@ public static class WebApplicationSeedingExtensions
             ApplicationUser user = new()
             {
                 UserName = userName,
-                Email = email
+                Email = email,
+                EmailConfirmed = true
             };
 
             userManager.CreateAsync(user, password).Wait();
