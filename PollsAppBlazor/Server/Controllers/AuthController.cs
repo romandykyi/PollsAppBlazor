@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Server.Policy;
+using PollsAppBlazor.Shared.Auth;
 using PollsAppBlazor.Shared.Users;
 
 namespace PollsAppBlazor.Server.Controllers;
@@ -31,13 +32,17 @@ public class AuthController : ControllerBase
     /// Logs in a user
     /// </summary>
     /// <response code="204">Success</response>
-    /// <response code="400">Invalid login attempt</response>
+    /// <response code="400">Validation failed</response>
+    /// <response code="401">Invalid login attempt</response>
+    /// <response code="403">Account is not confirmed</response>
     [HttpPost]
     [Route("login")]
     [EnableRateLimiting(RateLimitingPolicy.LogInPolicy)]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> LogIn([FromBody] UserLoginDto login)
     {
         if (ModelState.IsValid)
@@ -46,26 +51,36 @@ public class AuthController : ControllerBase
                 await _signInManager.UserManager.FindByNameAsync(login.EmailOrUsername);
             if (user == null) return Unauthorized();
 
+            if (!user.EmailConfirmed)
+            {
+                InvalidLoginAttemptResponse response = new()
+                {
+                    ErrorMessage = "You must have a confirmed email to log in.",
+                    FailureReason = InvalidLoginAttemptResponse.Reason.EmailNotConfirmed
+                };
+                return Unauthorized(response);
+            }
+
             var result = await _signInManager.PasswordSignInAsync(user, login.Password, login.RememberMe, lockoutOnFailure: true);
 
             if (result.Succeeded)
             {
                 return NoContent();
             }
-            if (result.IsLockedOut)
+            // Only disclose lockout error if password is correct to prevent user enumeration
+            if (result.IsLockedOut && await _userManager.CheckPasswordAsync(user, login.Password))
             {
-                // Only add lockout error if password is correct to prevent user enumeration
-                if (await _userManager.CheckPasswordAsync(user, login.Password))
+                InvalidLoginAttemptResponse response = new()
                 {
-                    ModelState.AddModelError(string.Empty, "User account locked out, please try again.");
-                    return BadRequest(ModelState);
-                }
-                return Unauthorized();
+                    ErrorMessage = "User account locked out, please try again.",
+                    FailureReason = InvalidLoginAttemptResponse.Reason.LockedOut
+                };
+                return Unauthorized(response);
             }
         }
 
         // If we got this far, something failed
-        return Unauthorized();
+        return Unauthorized(InvalidLoginAttemptResponse.Default);
     }
 
     /// <summary>
@@ -79,6 +94,8 @@ public class AuthController : ControllerBase
     [Route("register")]
     [EnableRateLimiting(RateLimitingPolicy.RegisterPolicy)]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Register([FromBody] UserRegisterDto user)
     {
         if (ModelState.IsValid)

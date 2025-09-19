@@ -1,4 +1,5 @@
 ﻿@page "/users/login"
+@using PollsAppBlazor.Shared.Auth
 @using PollsAppBlazor.Shared.Users
 @inject ISnackbar Snackbar
 @inject PublicClient PublicClient
@@ -64,7 +65,15 @@
 		}
 		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.Unauthorized)
 		{
-			serverErrors = [ "Invalid login attempt" ];
+			var invalidLoginResponse = await response.Content.ReadFromJsonAsync<InvalidLoginAttemptResponse>();
+			if (invalidLoginResponse != null)
+			{
+                serverErrors = [invalidLoginResponse.ErrorMessage];
+			}
+			else
+			{
+				serverErrors = ["Invalid login attempt"];
+			}
 		}
 		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.BadRequest)
 		{
