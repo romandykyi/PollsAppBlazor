@@ -13,7 +13,7 @@ public class AzureEmailService(
 
     public async Task<bool> SendAsync(string to, string subject, string body, CancellationToken cancellationToken)
     {
-        var operation = await _emailClient.SendAsync(
+        await _emailClient.SendAsync(
             WaitUntil.Started,
             _senderAddress,
             to,
@@ -22,7 +22,6 @@ public class AzureEmailService(
             null,
             cancellationToken
             );
-        var status = operation.Value.Status;
 
         return true;
     }

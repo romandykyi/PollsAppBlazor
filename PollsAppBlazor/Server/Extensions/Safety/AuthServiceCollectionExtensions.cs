@@ -31,6 +31,7 @@ public static class AuthServiceCollectionExtensions
                 options.User.RequireUniqueEmail = true;
                 options.User.AllowedUserNameCharacters = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890_";
             })
+            .AddDefaultTokenProviders()
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
         services.AddIdentityServer(options =>

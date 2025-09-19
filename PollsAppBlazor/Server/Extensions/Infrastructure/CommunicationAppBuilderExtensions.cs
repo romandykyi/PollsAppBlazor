@@ -8,6 +8,12 @@ public static class CommunicationAppBuilderExtensions
 {
     public static WebApplicationBuilder ConfigureEmailService(this WebApplicationBuilder builder)
     {
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.Services.AddSingleton<IEmailService, DevEmailService>();
+            return builder;
+        }
+
         var senderAddress = builder.Configuration["Communication:Email:SenderAddress"];
         var connectionString = builder.Configuration["Communication:Email:ConnectionString"];
         if (string.IsNullOrWhiteSpace(senderAddress))
