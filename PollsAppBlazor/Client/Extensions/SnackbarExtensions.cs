@@ -6,7 +6,7 @@ public static class SnackbarExtensions
 {
     public static void TooManyRequestsError(this ISnackbar snackbar)
     {
-        snackbar.Add("Too many requests from your IP. Please try again later.", Severity.Warning,
+        snackbar.Add("Too many requests. Please try again later.", Severity.Warning,
             options => options.CloseAfterNavigation = true);
     }
 

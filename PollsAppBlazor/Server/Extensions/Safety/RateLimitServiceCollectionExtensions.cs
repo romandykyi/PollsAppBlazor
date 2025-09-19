@@ -69,6 +69,7 @@ public static class RateLimitServiceCollectionExtensions
             options
                 .AddIPFixedWindowPolicy(RateLimitingPolicy.LogInPolicy, 15, TimeSpan.FromMinutes(1))
                 .AddIPFixedWindowPolicy(RateLimitingPolicy.RegisterPolicy, 15, TimeSpan.FromMinutes(1))
+                .AddIPFixedWindowPolicy(RateLimitingPolicy.ResetPasswordPolicy, 5, TimeSpan.FromDays(1))
                 .AddUserFixedWindowPolicy(RateLimitingPolicy.CreatePolicy, 10, TimeSpan.FromMinutes(1))
                 .AddUserFixedWindowPolicy(RateLimitingPolicy.EditPolicy, 20, TimeSpan.FromMinutes(1))
                 .AddUserFixedWindowPolicy(RateLimitingPolicy.VotePolicy, 2000, TimeSpan.FromDays(1));
