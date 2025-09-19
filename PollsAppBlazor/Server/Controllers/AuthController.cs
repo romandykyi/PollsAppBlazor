@@ -29,7 +29,7 @@ public class AuthController(
     private const string confirmationEmailBody = @"
 <p>Hi {0},</p>
 
-<p>Thank you for registering with <strong>Polls App</strong>! Before you can start creating and participating in polls, we need to verify your email address.</p>
+<p>Thank you for registering with <strong>PollsAppBlazor</strong>! Before you can start creating and participating in polls, we need to verify your email address.</p>
 
 <p>Please confirm your email by clicking the link below:</p>
 
@@ -38,7 +38,24 @@ public class AuthController(
 <p>If you did not register for Polls App Blazor, please ignore this email.</p>
 
 <p>Welcome aboard,<br>
-<strong>Roman Dykyi</strong></p>";
+<strong>Roman Dykyi</strong>
+</p>";
+
+    private const string resetPasswordEmailBody = @"
+<p>Hi {0},</p>
+
+<p>We received a request to reset your password for your <strong>PollsAppBlazor</strong> account.</p>
+
+<p>You can reset your password by clicking the link below:</p>
+
+<p><a href='{1}' style='background-color:#f44336; color:white; padding:10px 20px; text-decoration:none; border-radius:5px;'>Reset My Password</a></p>
+
+<p>If you did not request a password reset, please ignore this email. Your account will remain secure.</p>
+
+<p>Thank you,<br>
+<strong>Roman Dykyi</strong>
+</p>
+";
 
     /// <summary>
     /// Logs in a user
@@ -53,7 +70,7 @@ public class AuthController(
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(InvalidLoginAttemptResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> LogIn([FromBody] UserLoginDto login)
     {
@@ -148,7 +165,7 @@ public class AuthController(
     }
 
     /// <summary>
-    /// Confirms user's email address.
+    /// Confirms user's email address
     /// </summary>
     /// <response code="204">Success</response>
     /// <response code="400">Invalid request</response>
@@ -180,10 +197,103 @@ public class AuthController(
             return Conflict(new { Message = "Email is already confirmed" });
         }
 
-        string decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
+        string decodedToken;
+        try
+        {
+            decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
+        }
+        catch (FormatException)
+        {
+            ModelState.AddModelError("token", "Token is not valid base64 string.");
+            return BadRequest(ModelState);
+        }
         var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
 
         return result.Succeeded ? NoContent() : Unauthorized();
+    }
+
+    /// <summary>
+    /// Initiates password reset process by sending a reset link to the user's email
+    /// </summary>
+    /// <response code="204">Request accepted, but not guaranteed to be successful</response>
+    /// <response code="400">Invalid request</response>
+    [HttpPost]
+    [Route("initiate-reset-password")]
+    [EnableRateLimiting(RateLimitingPolicy.ResetPasswordPolicy)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> InitiatePasswordReset(
+        [FromBody] InitiateResetPasswordDto resetDto,
+        CancellationToken cancellationToken
+        )
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        var user = await _signInManager.UserManager.FindByEmailAsync(resetDto.EmailOrUsername) ??
+            await _signInManager.UserManager.FindByNameAsync(resetDto.EmailOrUsername);
+        if (user == null) return NoContent();
+
+        string token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        string urlToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+        string resetLink = $"{Request.Scheme}://{Request.Host}/users/reset-password?userId={user.Id}&token={urlToken}";
+
+        await _emailService.SendAsync(user.Email!, "Reset Your Password for Polls App Blazor",
+            string.Format(resetPasswordEmailBody, user.UserName, resetLink),
+            cancellationToken);
+
+        return NoContent();
+    }
+
+    /// <summary>
+    /// Resets user's password
+    /// </summary>
+    /// <response code="204">Success</response>
+    /// <response code="400">Invalid request</response>
+    /// <response code="401">Invalid reset password attempt</response>
+    [HttpPost]
+    [Route("reset-password")]
+    [EnableRateLimiting(RateLimitingPolicy.LogInPolicy)]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        var user = await _userManager.FindByIdAsync(resetPasswordDto.UserId);
+        if (user == null) return Unauthorized();
+
+        string token;
+        try
+        {
+            token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(resetPasswordDto.Token));
+        }
+        catch (FormatException)
+        {
+            ModelState.AddModelError("Token", "Token is not valid base64 string.");
+            return BadRequest(ModelState);
+        }
+
+        var result = await _userManager.ResetPasswordAsync(user, token, resetPasswordDto.NewPassword);
+        if (!result.Succeeded)
+        {
+            foreach (var item in result.Errors)
+            {
+                if (item.Description.Contains("Password"))
+                {
+                    ModelState.AddModelError(string.Empty, item.Description);
+                }
+            }
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            return Unauthorized();
+        }
+        return NoContent();
     }
 
     /// <summary>
