@@ -7,6 +7,7 @@
 @inject PublicClient PublicClient
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject LocalStorageUtils LocalStorage
 
 <AuthorizeView>
 	<Authorized>
@@ -19,8 +20,17 @@
 		@if (emailToConfirm != null)
 		{
 			<MudText>
-				Your account has been created. A confirmation email has been sent to <b>@emailToConfirm</b>.
+				Your account has been created. A confirmation email has been sent to <b>emailToConfirm</b>.
 				Please check your inbox and click the link in the email to confirm your email address.
+			</MudText>
+			<MudText>
+                Don't forget to check your spam folder if you don't see the email in your inbox. 
+				If you still can't find it, you please contact
+				<MudLink Href="/support">support</MudLink> using the email that you have entered.
+			</MudText>
+			<MudText>
+                If you entered the wrong email address, you can 
+				<MudLink Href="/users/register?forgetPreviousAttempt=true">register again</MudLink> with the correct one.
 			</MudText>
         }
 		else
@@ -60,17 +70,33 @@
 </AuthorizeView>
 
 @code {
+	[SupplyParameterFromQuery(Name = "forgetPreviousAttempt")]
+	private bool forgetPreviousAttempt { get; set; } = false;
+
 	private string? emailToConfirm = null;
+
 	private string[] errors = { };
 	private MudTextField<string> passwordField = null!;
 	private MudForm form = null!;
 
-    private bool success { get; set; } = false;
+	private bool success { get; set; } = false;
 	private bool acceptTerms { get; set; } = false;
 	private string[]? serverErrors;
 
 	private UserRegisterDto user = new();
 
+	protected override async Task OnParametersSetAsync()
+	{
+		if (forgetPreviousAttempt) 
+		{
+			emailToConfirm = null;
+			await LocalStorage.RemoveSessionAsync("emailToConfirm");
+		}
+		else
+		{
+            emailToConfirm = await LocalStorage.GetSessionAsync("emailToConfirm");
+		}
+	}
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -134,7 +160,8 @@
 		{
 			response.EnsureSuccessStatusCode();
 
-            emailToConfirm = user.Email;
+			emailToConfirm = user.Email;
+			await LocalStorage.SetSessionAsync("emailToConfirm", emailToConfirm);
 		}
 		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.BadRequest)
 		{

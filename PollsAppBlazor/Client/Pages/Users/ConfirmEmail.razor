@@ -3,6 +3,7 @@
 @inject PublicClient PublicClient
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ISnackbar Snackbar
+@inject LocalStorageUtils LocalStorage
 
 @if (_isProcessing)
 {
@@ -50,6 +51,8 @@ else
             response.EnsureSuccessStatusCode();
             Navigation.NavigateTo("/users/login");
             Snackbar.Add("Your email has been confirmed. You can now log in.", Severity.Success);
+
+            await LocalStorage.RemoveSessionAsync("emailToConfirm");
         }
         catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.TooManyRequests)
         {

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 using PollsAppBlazor.Client;
+using PollsAppBlazor.Client.Utils;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -12,6 +13,7 @@ builder.Services.AddHttpClient("PollsAppBlazor.ServerAPI", client => client.Base
     .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
 builder.Services.AddHttpClient<PublicClient>(client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
 
+builder.Services.AddScoped<LocalStorageUtils>();
 builder.Services.AddMudServices();
 
 // Supply HttpClient instances that include access tokens when making requests to the server project
