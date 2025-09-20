@@ -66,11 +66,12 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapFallbackToFile("index.html");
 
-app.CreateRoles();
+app
+    .CreateRoles()
+    .CreateAdministrator();
 
 if (app.Environment.IsDevelopment())
 {
-    app.CreateAdministrator();
     app.CreateDummyData();
 }
 

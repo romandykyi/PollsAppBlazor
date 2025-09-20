@@ -35,9 +35,9 @@ public static class WebApplicationSeedingExtensions
         var userManager =
             scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-        string userName = "admin";
-        string email = "admin@pollsapp.com";
-        string password = "P@ssw0rd1sNotS3cur3^:(";
+        string userName = app.Configuration["Seeding:DefaultAdministrator:Username"] ?? "admin";
+        string email = app.Configuration["Seeding:DefaultAdministrator:Email"] ?? "admin@pollsappblazor.online";
+        string password = app.Configuration["Seeding:DefaultAdministrator:InitialPassword"] ?? "P@ssw0rd1sNotS3cur3^:(";
 
         if (userManager.FindByEmailAsync(email).Result == null)
         {
