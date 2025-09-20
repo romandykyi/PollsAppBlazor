@@ -11,7 +11,7 @@ A simple Polls Web App built on ASP.NET Core and Blazor WebAssembly.
 * Duende IdentityServer
 * Entity Framework
 * Swashbuckle
-* SQL Server
+* PostgreSQL
 
 ## Admin Access
 Login: ```admin```
