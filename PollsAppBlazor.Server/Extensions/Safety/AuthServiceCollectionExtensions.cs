@@ -2,6 +2,7 @@
 using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.IdentityModel.Tokens;
 using PollsAppBlazor.Application.Auth;
 using PollsAppBlazor.Server.DataAccess;
 using PollsAppBlazor.Server.DataAccess.Models;
@@ -71,6 +72,16 @@ public static class AuthServiceCollectionExtensions
             .AddIdentityServer(options =>
             {
                 options.LicenseKey = licenseKey;
+
+                options.KeyManagement.RotationInterval = TimeSpan.FromDays(90);
+                options.KeyManagement.RetentionDuration = TimeSpan.FromDays(7);
+                options.KeyManagement.PropagationTime = TimeSpan.FromDays(7);
+                options.KeyManagement.SigningAlgorithms =
+                [
+                    new(SecurityAlgorithms.RsaSha256) { UseX509Certificate = true },
+                    new(SecurityAlgorithms.RsaSsaPssSha256),
+                    new(SecurityAlgorithms.EcdsaSha256)
+                ];
             })
             .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(options =>
             {
@@ -88,8 +99,7 @@ public static class AuthServiceCollectionExtensions
                     AccessTokenLifetime = accessTokenLifetimeSeconds,
                     SlidingRefreshTokenLifetime = refreshTokenLifetimeSeconds
                 });
-            })
-            .AddDeveloperSigningCredential();
+            });
 
         return services;
     }
