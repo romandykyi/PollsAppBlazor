@@ -7,5 +7,5 @@ public record PollStatus(
     bool IsDeleted
     )
 {
-    public bool IsExpired => ExpiryDate != null && ExpiryDate < DateTimeOffset.Now;
+    public bool IsExpired => ExpiryDate != null && ExpiryDate < DateTimeOffset.UtcNow;
 }

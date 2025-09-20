@@ -31,5 +31,5 @@ public class PollViewDto
     public bool? IsInFavorites { get; set; }
 
     [JsonIgnore]
-    public bool IsExpired => DateTimeOffset.Now >= ExpiryDate;
+    public bool IsExpired => DateTimeOffset.UtcNow >= ExpiryDate;
 }

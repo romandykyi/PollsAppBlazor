@@ -4,7 +4,7 @@ public static class DateTimeOffsetExtensions
 {
     public static string AsExpiryDuration(this DateTimeOffset dateTime)
     {
-        TimeSpan timeSpan = dateTime - DateTimeOffset.Now;
+        TimeSpan timeSpan = dateTime - DateTimeOffset.UtcNow;
 
         return (int)timeSpan.TotalHours switch
         {
@@ -26,7 +26,7 @@ public static class DateTimeOffsetExtensions
 
     public static string AsTimeAgo(this DateTimeOffset dateTime)
     {
-        TimeSpan timeSpan = DateTimeOffset.Now - dateTime;
+        TimeSpan timeSpan = DateTimeOffset.UtcNow - dateTime;
 
         return (int)timeSpan.TotalMinutes switch
         {

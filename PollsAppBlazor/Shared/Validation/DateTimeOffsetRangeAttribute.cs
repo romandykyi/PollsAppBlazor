@@ -18,7 +18,7 @@ public class DateTimeOffsetRangeAttribute : ValidationAttribute
     {
         if (value is not DateTimeOffset date) return true;
 
-        TimeSpan time = date - DateTimeOffset.Now;
+        TimeSpan time = date - DateTimeOffset.UtcNow;
         return time >= Min && time <= Max;
     }
 }

@@ -48,7 +48,7 @@ public static class RateLimitServiceCollectionExtensions
                     return RateLimitPartition.GetFixedWindowLimiter(clientIp, _ => new FixedWindowRateLimiterOptions
                     {
                         PermitLimit = 100,
-                        Window = TimeSpan.FromMinutes(10),
+                        Window = TimeSpan.FromMinutes(1),
                         QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                         QueueLimit = 0
                     });

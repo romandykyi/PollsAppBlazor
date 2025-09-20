@@ -97,11 +97,11 @@ public static class WebApplicationSeedingExtensions
         }
 
         // Random polls
-        DateTimeOffset minExpiryDate = DateTimeOffset.Now - TimeSpan.FromDays(90),
-            maxExpiryDate = DateTimeOffset.Now + TimeSpan.FromDays(90);
+        DateTimeOffset minExpiryDate = DateTimeOffset.UtcNow - TimeSpan.FromDays(90),
+            maxExpiryDate = DateTimeOffset.UtcNow + TimeSpan.FromDays(90);
         var pollFaker = new Faker<Poll>()
             .RuleFor(p => p.CreatorId, f => f.Random.CollectionItem(usersIds))
-            .RuleFor(p => p.CreationDate, f => f.Date.RecentOffset(365))
+            .RuleFor(p => p.CreationDate, f => f.Date.RecentOffset(365, DateTimeOffset.UtcNow))
             .RuleFor(p => p.ExpiryDate,
                      f => f.Random.Bool() ? f.Date.BetweenOffset(minExpiryDate, maxExpiryDate) : null)
             .RuleFor(p => p.Title, f => f.Commerce.ProductName())

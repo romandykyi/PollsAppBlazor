@@ -87,7 +87,7 @@ else
 					{
 						<MudChip Color="Color.Success">active</MudChip>
 					}
-					else if (context.Item!.ExpiryDate < DateTimeOffset.Now)
+					else if (context.Item!.ExpiryDate < DateTimeOffset.UtcNow)
 					{
 						<MudChip Color="Color.Warning">
 							expired @context.Item!.ExpiryDate.Value.AsTimeAgo()

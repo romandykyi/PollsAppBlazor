@@ -20,7 +20,7 @@ public static class PollsRetrievalOptionsQueryExtensions
         if (!parameters.ShowExpired)
         {
             query = query
-                .Where(p => p.ExpiryDate == null || DateTimeOffset.Now < p.ExpiryDate);
+                .Where(p => p.ExpiryDate == null || DateTimeOffset.UtcNow < p.ExpiryDate);
         }
         // Search by title
         if (parameters.Title != null)

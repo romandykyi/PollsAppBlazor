@@ -128,7 +128,7 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
             Description = creationDto.Description,
             ExpiryDate = creationDto.ExpiryDate,
             ResultsVisibleBeforeVoting = creationDto.ResultsVisibleBeforeVoting,
-            CreationDate = DateTimeOffset.Now,
+            CreationDate = DateTimeOffset.UtcNow,
             Votes = []
         };
         List<Option> options = creationDto.Options
@@ -184,7 +184,7 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
     {
         int rowsAffected = await _dbContext.Polls
             .Where(p => p.Id == pollId && !p.IsDeleted)
-            .ExecuteUpdateAsync(s => s.SetProperty(p => p.ExpiryDate, DateTimeOffset.Now));
+            .ExecuteUpdateAsync(s => s.SetProperty(p => p.ExpiryDate, DateTimeOffset.UtcNow));
 
         return rowsAffected > 0;
     }
