@@ -1,6 +1,8 @@
 ﻿using Duende.IdentityServer.Models;
+using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using PollsAppBlazor.Application.Auth;
 using PollsAppBlazor.Server.DataAccess;
 using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Server.Policy;
@@ -100,7 +102,8 @@ public static class AuthServiceCollectionExtensions
         builder.Services
             .ConfigureIdentity()
             .ConfigureIdentityServer(licenseKey, authSection)
-            .ConfigureCookie();
+            .ConfigureCookie()
+            .AddTransient<IProfileService, ApplicationProfileService>();
 
         return builder;
     }
