@@ -6,6 +6,8 @@ using PollsAppBlazor.Server.Extensions.Seeding;
 var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 
+builder.AddApplicationLogging();
+
 // Add services to the container.
 builder.ConnectDatabase();
 builder.ConfigureEmailService();

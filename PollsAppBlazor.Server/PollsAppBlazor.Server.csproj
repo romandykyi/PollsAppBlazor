@@ -12,6 +12,7 @@
 	<ItemGroup>
 		<PackageReference Include="Bogus" Version="35.6.3" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.0.8" />
+		<PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="9.0.8" />
 		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.4" />
