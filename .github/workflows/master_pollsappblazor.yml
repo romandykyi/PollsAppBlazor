@@ -24,7 +24,7 @@ jobs:
           dotnet-version: '9.x'
 
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build PollsAppBlazor/Server/PollsAppBlazor.Server.csproj -c Release
 
       - name: dotnet publish
         run: dotnet publish PollsAppBlazor/Server/PollsAppBlazor.Server.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
@@ -64,4 +64,5 @@ jobs:
           package: .
 
           
+
 
