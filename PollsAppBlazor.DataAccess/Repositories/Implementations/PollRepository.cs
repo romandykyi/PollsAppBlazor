@@ -126,7 +126,7 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
             Title = creationDto.Title,
             CreatorId = creatorId,
             Description = creationDto.Description,
-            ExpiryDate = creationDto.ExpiryDate,
+            ExpiryDate = creationDto.ExpiryDate?.ToUniversalTime(),
             ResultsVisibleBeforeVoting = creationDto.ResultsVisibleBeforeVoting,
             CreationDate = DateTimeOffset.UtcNow,
             Votes = []

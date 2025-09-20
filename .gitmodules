@@ -1,0 +1,3 @@
+[submodule "PollsAppBlazor.Shared"]
+	path = PollsAppBlazor.Shared
+	url = https://github.com/romandykyi/PollsAppBlazorShared.git

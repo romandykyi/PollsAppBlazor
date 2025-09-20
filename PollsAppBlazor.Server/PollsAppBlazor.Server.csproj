@@ -18,10 +18,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\PollsAppBlazor.Application\PollsAppBlazor.Application.csproj" />
-		<ProjectReference Include="..\..\PollsAppBlazor.DataAccess\PollsAppBlazor.DataAccess.csproj" />
-		<ProjectReference Include="..\Client\PollsAppBlazor.Client.csproj" />
-		<ProjectReference Include="..\Shared\PollsAppBlazor.Shared.csproj" />
+		<ProjectReference Include="..\PollsAppBlazor.Application\PollsAppBlazor.Application.csproj" />
+		<ProjectReference Include="..\PollsAppBlazor.DataAccess\PollsAppBlazor.DataAccess.csproj" />
+		<ProjectReference Include="..\PollsAppBlazor.Shared\PollsAppBlazor.Shared\PollsAppBlazor.Shared.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
