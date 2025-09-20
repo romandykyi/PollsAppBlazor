@@ -231,8 +231,7 @@ public class AuthController(
         {
             return BadRequest(ModelState);
         }
-        var user = await _signInManager.UserManager.FindByEmailAsync(resetDto.EmailOrUsername) ??
-            await _signInManager.UserManager.FindByNameAsync(resetDto.EmailOrUsername);
+        var user = await _signInManager.UserManager.FindByEmailAsync(resetDto.Email);
         if (user == null) return NoContent();
 
         string token = await _userManager.GeneratePasswordResetTokenAsync(user);

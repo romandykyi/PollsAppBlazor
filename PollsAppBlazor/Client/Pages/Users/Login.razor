@@ -30,6 +30,11 @@
 				</MudStack>
 			</div>
 			<div class="d-flex">
+				<MudStack>
+					<MudLink Href="/users/forgot-password">Forgot password</MudLink>
+				</MudStack>
+			</div>
+			<div class="d-flex">
 				<MudCheckBox T="bool" Label="Remember me" @bind-Checked="user.RememberMe" />
 			</div>
 			<div class="d-flex">
@@ -73,7 +78,6 @@
 		{
 			response.EnsureSuccessStatusCode();
 
-			// Navigate to another page with force reload
 			NavigationManager.NavigateTo("/polls", true);
 		}
 		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.Unauthorized)

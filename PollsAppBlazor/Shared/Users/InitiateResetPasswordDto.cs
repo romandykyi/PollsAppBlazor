@@ -3,5 +3,6 @@
 public class InitiateResetPasswordDto
 {
     [Required]
-    public required string EmailOrUsername { get; set; }
+    [EmailAddress]
+    public required string Email { get; set; }
 }
