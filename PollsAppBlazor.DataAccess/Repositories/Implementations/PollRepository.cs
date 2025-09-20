@@ -103,7 +103,7 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
             Title = p.Title,
             CreationDate = p.CreationDate,
             ExpiryDate = p.ExpiryDate,
-            Creator = p.Creator!.UserName!,
+            Creator = p.Creator == null ? "[deleted]" : (p.Creator.UserName ?? "[deleted]"),
             VotesCount = p.Votes!.Count
         });
 
