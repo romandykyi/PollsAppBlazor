@@ -22,13 +22,11 @@ if (builder.Environment.IsDevelopment())
     builder.AddDebugOptions();
 }
 
-services.AddAntiforgery(options => options.HeaderName = "X-XSRF-Token");
-
 builder.AddCustomizedAuth();
 services.AddCustomizedAuthorization();
 
 services
-    .ConfigureControllers(addAntiForgery: builder.Environment.IsProduction())
+    .ConfigureControllers(addAntiForgery: false)
     .AddAppRateLimiting();
 
 var app = builder.Build();
@@ -38,16 +36,14 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-
-    app.UseMigrationsEndPoint();
-    app.UseWebAssemblyDebugging();
 }
 else
 {
-    app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+    app.UseProductionErrorHandling();
     app.UseHsts();
 }
+
+app.UseMigrationsEndPoint();
 
 app.UseHttpsRedirection();
 
@@ -64,7 +60,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapFallbackToFile("index.html");
 
 app
     .CreateRoles()
