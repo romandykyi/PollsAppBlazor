@@ -4,6 +4,8 @@ namespace PollsAppBlazor.Server.DataAccess.Models;
 
 public class ApplicationUser : IdentityUser
 {
+    public bool IsDeleted { get; set; }
+
     /// <summary>
     /// Polls which were created by this user.
     /// </summary>

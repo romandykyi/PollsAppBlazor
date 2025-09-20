@@ -78,7 +78,7 @@ public class AuthController(
         {
             var user = await _signInManager.UserManager.FindByEmailAsync(login.EmailOrUsername) ??
                 await _signInManager.UserManager.FindByNameAsync(login.EmailOrUsername);
-            if (user == null) return Unauthorized(InvalidLoginAttemptResponse.Default);
+            if (user == null || user.IsDeleted) return Unauthorized(InvalidLoginAttemptResponse.Default);
 
             if (!user.EmailConfirmed)
             {
@@ -191,7 +191,7 @@ public class AuthController(
         }
 
         var user = await _userManager.FindByIdAsync(userId);
-        if (user == null) return Unauthorized();
+        if (user == null || user.IsDeleted) return Unauthorized();
         if (user.EmailConfirmed)
         {
             return Conflict(new { Message = "Email is already confirmed" });
@@ -232,7 +232,7 @@ public class AuthController(
             return BadRequest(ModelState);
         }
         var user = await _signInManager.UserManager.FindByEmailAsync(resetDto.Email);
-        if (user == null) return NoContent();
+        if (user == null || user.IsDeleted) return NoContent();
 
         string token = await _userManager.GeneratePasswordResetTokenAsync(user);
         string urlToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
@@ -266,7 +266,7 @@ public class AuthController(
         }
 
         var user = await _userManager.FindByIdAsync(resetPasswordDto.UserId);
-        if (user == null) return Unauthorized();
+        if (user == null || user.IsDeleted) return Unauthorized();
 
         string token;
         try

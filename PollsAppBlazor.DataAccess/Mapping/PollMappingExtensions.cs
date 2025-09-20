@@ -19,7 +19,7 @@ public static class PollMappingExtensions
             Creator = new PollCreatorDto()
             {
                 Id = poll.CreatorId,
-                Username = poll.Creator!.UserName!
+                Username = poll.Creator?.UserName ?? "[deleted]"
             },
             ResultsVisibleBeforeVoting = poll.ResultsVisibleBeforeVoting,
             // Select options

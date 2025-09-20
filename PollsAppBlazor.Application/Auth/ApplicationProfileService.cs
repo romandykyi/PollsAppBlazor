@@ -19,6 +19,6 @@ public class ApplicationProfileService(UserManager<ApplicationUser> userManager)
     {
         var user = await _userManager.GetUserAsync(context.Subject);
 
-        context.IsActive = user != null;
+        context.IsActive = user != null && !user.IsDeleted;
     }
 }
