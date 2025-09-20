@@ -152,7 +152,7 @@ else
 	private bool deleted = false;
 	private bool? canViewResults = null;
 	private bool? canEdit = null;
-    private bool authenticated = false;
+	private bool authenticated = false;
 	private IList<OptionWithVotesViewDto> optionsWithVotes = [];
 
 	private int? selectedOptionId { get; set; }
@@ -171,7 +171,7 @@ else
 
 	private async Task FetchPoll()
 	{
-        if (deleted) return;
+		if (deleted) return;
 
 		try
 		{
@@ -200,7 +200,9 @@ else
 			if (user.Identity != null && user.Identity.IsAuthenticated)
 			{
 				string? userId = user.FindFirst("sub")?.Value;
-				canEdit = user.IsInRole("Admin") || (userId != null && userId == poll.Creator.Id);
+				var roles = user.FindAll("role").ToList();
+				bool isModerator = user.FindAll("role").Any(x => x.Value == "Administrator" || x.Value == "Moderator");
+				canEdit = isModerator || (userId != null && userId == poll.Creator.Id);
 
                 authenticated = true;
 			}

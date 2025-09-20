@@ -302,7 +302,7 @@ public class AuthController(
     /// <response code="401">Unauthorized user call</response>
     [HttpPost]
     [Route("logout")]
-    [Authorize]
+    [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> LogOut()

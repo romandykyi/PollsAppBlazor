@@ -1,17 +1,18 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Duende.IdentityServer.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using PollsAppBlazor.Server.DataAccess;
 using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Server.Policy;
 using System.Net;
+using DuendeClient = Duende.IdentityServer.Models.Client;
 
 namespace PollsAppBlazor.Server.Extensions.Safety;
 
 public static class AuthServiceCollectionExtensions
 {
-    public static IServiceCollection AddCustomizedIdentity(this WebApplicationBuilder builder)
+    private static IServiceCollection ConfigureIdentity(this IServiceCollection services)
     {
-        var services = builder.Services;
         services
             .AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
@@ -34,17 +35,12 @@ public static class AuthServiceCollectionExtensions
             .AddDefaultTokenProviders()
             .AddEntityFrameworkStores<ApplicationDbContext>();
 
-        services.AddIdentityServer(options =>
-            {
-                options.LicenseKey = builder.Configuration["IdentityServer:LicenseKey"];
-            })
-            .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
+        return services;
+    }
 
-        services
-            .AddAuthentication()
-            .AddJwtBearer();
-
-        services.ConfigureApplicationCookie(options =>
+    private static IServiceCollection ConfigureCookie(this IServiceCollection services)
+    {
+        return services.ConfigureApplicationCookie(options =>
         {
             // Return 401 when user is not authrorized
             options.Events.OnRedirectToLogin = context =>
@@ -59,8 +55,54 @@ public static class AuthServiceCollectionExtensions
                 return Task.CompletedTask;
             };
         });
+    }
+
+    private static IServiceCollection ConfigureIdentityServer(this IServiceCollection services,
+        string? licenseKey, IConfigurationSection authSection)
+    {
+        _ = double.TryParse(authSection["RefreshTokenExpiryDays"], out double refreshTokenLifetimeDays);
+        int refreshTokenLifetimeSeconds = (int)(refreshTokenLifetimeDays * 24 * 60 * 60);
+        _ = double.TryParse(authSection["AccessTokenExpiryMinutes"], out double accessTokenLifetimeMinutes);
+        int accessTokenLifetimeSeconds = (int)(accessTokenLifetimeMinutes * 60);
+
+        services
+            .AddIdentityServer(options =>
+            {
+                options.LicenseKey = licenseKey;
+            })
+            .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(options =>
+            {
+                options.Clients.Add(new DuendeClient()
+                {
+                    ClientId = "BlazorWasmClient",
+                    AllowedGrantTypes = GrantTypes.Code,
+                    RequireClientSecret = false,
+                    RequirePkce = true,
+                    AllowAccessTokensViaBrowser = true,
+                    AllowedScopes = { "openid", "profile", "api1", "offline_access" },
+                    AllowOfflineAccess = true,
+                    RefreshTokenUsage = TokenUsage.ReUse,
+                    RefreshTokenExpiration = TokenExpiration.Sliding,
+                    AccessTokenLifetime = accessTokenLifetimeSeconds,
+                    SlidingRefreshTokenLifetime = refreshTokenLifetimeSeconds
+                });
+            })
+            .AddDeveloperSigningCredential();
 
         return services;
+    }
+
+    public static WebApplicationBuilder AddCustomizedAuth(this WebApplicationBuilder builder)
+    {
+        string? licenseKey = builder.Configuration["IdentityServer:LicenseKey"];
+        var authSection = builder.Configuration.GetSection("Auth");
+
+        builder.Services
+            .ConfigureIdentity()
+            .ConfigureIdentityServer(licenseKey, authSection)
+            .ConfigureCookie();
+
+        return builder;
     }
 
     public static IServiceCollection AddCustomizedAuthorization(this IServiceCollection services)
