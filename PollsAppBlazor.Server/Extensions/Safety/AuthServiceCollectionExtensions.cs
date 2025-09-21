@@ -96,7 +96,7 @@ public static class AuthServiceCollectionExtensions
             string? thumbprint = identitySection["SigningCertThumbprint"] ??
                 throw new InvalidOperationException("IdentityServer:SigningCertThumbprint is not configured.");
 
-            var cert = X509CertificateLoader.LoadCertificateFromFile($"/var/ssl/private/{thumbprint}.pfx");
+            var cert = X509CertificateLoader.LoadCertificateFromFile($"/var/ssl/private/{thumbprint}.p12");
 
             var key = new RsaSecurityKey(cert.GetRSAPrivateKey()!)
             {
