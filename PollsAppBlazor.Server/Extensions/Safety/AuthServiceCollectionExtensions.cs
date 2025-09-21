@@ -8,6 +8,7 @@ using PollsAppBlazor.Server.DataAccess;
 using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Server.Policy;
 using System.Net;
+using System.Security.Cryptography.X509Certificates;
 using DuendeClient = Duende.IdentityServer.Models.Client;
 
 namespace PollsAppBlazor.Server.Extensions.Safety;
@@ -16,7 +17,7 @@ public static class AuthServiceCollectionExtensions
 {
     private static IServiceCollection ConfigureIdentity(this IServiceCollection services)
     {
-        services
+        var identityServices = services
             .AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 options.Password.RequireDigit = true;
@@ -61,27 +62,16 @@ public static class AuthServiceCollectionExtensions
     }
 
     private static IServiceCollection ConfigureIdentityServer(this IServiceCollection services,
-        string? licenseKey, IConfigurationSection authSection)
+        bool isProduction, IConfigurationSection identitySection, IConfigurationSection authSection)
     {
         _ = double.TryParse(authSection["RefreshTokenExpiryDays"], out double refreshTokenLifetimeDays);
         int refreshTokenLifetimeSeconds = (int)(refreshTokenLifetimeDays * 24 * 60 * 60);
         _ = double.TryParse(authSection["AccessTokenExpiryMinutes"], out double accessTokenLifetimeMinutes);
         int accessTokenLifetimeSeconds = (int)(accessTokenLifetimeMinutes * 60);
-
-        services
+        var identityServices = services
             .AddIdentityServer(options =>
             {
-                options.LicenseKey = licenseKey;
-
-                options.KeyManagement.RotationInterval = TimeSpan.FromDays(90);
-                options.KeyManagement.RetentionDuration = TimeSpan.FromDays(7);
-                options.KeyManagement.PropagationTime = TimeSpan.FromDays(7);
-                options.KeyManagement.SigningAlgorithms =
-                [
-                    new(SecurityAlgorithms.RsaSha256) { UseX509Certificate = true },
-                    new(SecurityAlgorithms.RsaSsaPssSha256),
-                    new(SecurityAlgorithms.EcdsaSha256)
-                ];
+                options.LicenseKey = identitySection["LicenseKey"];
             })
             .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(options =>
             {
@@ -99,19 +89,42 @@ public static class AuthServiceCollectionExtensions
                     AccessTokenLifetime = accessTokenLifetimeSeconds,
                     SlidingRefreshTokenLifetime = refreshTokenLifetimeSeconds
                 });
-            });
+            }); ;
+
+        if (isProduction)
+        {
+            string? thumbprint = authSection["SigningCertThumbprint"] ??
+                throw new InvalidOperationException("IdentityServer:SigningCertThumbprint is not configured.");
+
+            using X509Store store = new(StoreName.My, StoreLocation.CurrentUser);
+            store.Open(OpenFlags.ReadOnly);
+
+            X509Certificate2? cert = store.Certificates
+                .Find(X509FindType.FindByThumbprint, thumbprint, validOnly: false)
+                .OfType<X509Certificate2>()
+                .FirstOrDefault() ??
+                throw new InvalidOperationException($"Certificate with thumbprint {thumbprint} not found");
+
+            var key = new RsaSecurityKey(cert.GetRSAPrivateKey()!)
+            {
+                KeyId = cert.Thumbprint
+            };
+
+            identityServices.AddSigningCredential(key, SecurityAlgorithms.RsaSha256);
+        }
 
         return services;
     }
 
     public static WebApplicationBuilder AddCustomizedAuth(this WebApplicationBuilder builder)
     {
-        string? licenseKey = builder.Configuration["IdentityServer:LicenseKey"];
+        bool isProduction = builder.Environment.IsProduction();
+        var identityServerSection = builder.Configuration.GetSection("IdentityServer");
         var authSection = builder.Configuration.GetSection("Auth");
 
         builder.Services
             .ConfigureIdentity()
-            .ConfigureIdentityServer(licenseKey, authSection)
+            .ConfigureIdentityServer(isProduction, identityServerSection, authSection)
             .ConfigureCookie()
             .AddTransient<IProfileService, ApplicationProfileService>();
 
