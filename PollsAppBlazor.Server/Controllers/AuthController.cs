@@ -1,31 +1,18 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.RateLimiting;
-using Microsoft.AspNetCore.WebUtilities;
-using PollsAppBlazor.Application.Emails;
-using PollsAppBlazor.Application.Services.Communication.Interfaces;
-using PollsAppBlazor.Server.DataAccess.Models;
+using PollsAppBlazor.Application.Auth;
 using PollsAppBlazor.Server.Policy;
 using PollsAppBlazor.Shared.Auth;
 using PollsAppBlazor.Shared.Users;
-using System.Text;
 
 namespace PollsAppBlazor.Server.Controllers;
 
 [Route("api/auth")]
-public class AuthController(
-    UserManager<ApplicationUser> userManager,
-    IUserStore<ApplicationUser> userStore,
-    SignInManager<ApplicationUser> signInManager,
-    IEmailService emailService)
-    : ControllerBase
+public class AuthController(IAuthService authService) : ControllerBase
 {
-    private readonly UserManager<ApplicationUser> _userManager = userManager;
-    private readonly IUserStore<ApplicationUser> _userStore = userStore;
-    private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
-    private readonly IUserEmailStore<ApplicationUser> _emailStore = (IUserEmailStore<ApplicationUser>)userStore;
-    private readonly IEmailService _emailService = emailService;
+    private readonly IAuthService _authService = authService;
 
     /// <summary>
     /// Logs in a user
@@ -42,44 +29,33 @@ public class AuthController(
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(InvalidLoginAttemptResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> LogIn([FromBody] UserLoginDto login)
+    public async Task<IActionResult> LogIn([FromBody] UserLoginDto login, CancellationToken cancellationToken = default)
     {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            var user = await _signInManager.UserManager.FindByEmailAsync(login.EmailOrUsername) ??
-                await _signInManager.UserManager.FindByNameAsync(login.EmailOrUsername);
-            if (user == null || user.IsDeleted) return Unauthorized(InvalidLoginAttemptResponse.Default);
-
-            if (!user.EmailConfirmed)
-            {
-                InvalidLoginAttemptResponse response = new()
-                {
-                    ErrorMessage = "You must have a confirmed email to log in.",
-                    FailureReason = InvalidLoginAttemptResponse.Reason.EmailNotConfirmed
-                };
-                return Unauthorized(response);
-            }
-
-            var result = await _signInManager.PasswordSignInAsync(user, login.Password, login.RememberMe, lockoutOnFailure: true);
-
-            if (result.Succeeded)
-            {
-                return NoContent();
-            }
-            // Only disclose lockout error if password is correct to prevent user enumeration
-            if (result.IsLockedOut && await _userManager.CheckPasswordAsync(user, login.Password))
-            {
-                InvalidLoginAttemptResponse response = new()
-                {
-                    ErrorMessage = "User account locked out, please try again.",
-                    FailureReason = InvalidLoginAttemptResponse.Reason.LockedOut
-                };
-                return Unauthorized(response);
-            }
+            return BadRequest(ModelState);
         }
 
-        // If we got this far, something failed
-        return Unauthorized(InvalidLoginAttemptResponse.Default);
+        var result = await _authService.LogInAsync(login, cancellationToken);
+
+        if (result.Succeeded) return NoContent();
+
+        InvalidLoginAttemptResponse response = result.FailureReason switch
+        {
+            LoginFailureReason.EmailNotConfirmed => new()
+            {
+                ErrorMessage = result.ErrorMessage ?? "Invalid login attempt.",
+                FailureReason = InvalidLoginAttemptResponse.Reason.EmailNotConfirmed
+            },
+            LoginFailureReason.LockedOut => new()
+            {
+                ErrorMessage = result.ErrorMessage ?? "Invalid login attempt.",
+                FailureReason = InvalidLoginAttemptResponse.Reason.LockedOut
+            },
+            _ => InvalidLoginAttemptResponse.Default
+        };
+
+        return Unauthorized(response);
     }
 
     /// <summary>
@@ -95,42 +71,32 @@ public class AuthController(
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Register([FromBody] UserRegisterDto user, CancellationToken cancellationToken)
+    public async Task<IActionResult> Register([FromBody] UserRegisterDto user, CancellationToken cancellationToken = default)
     {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
         {
-            var newUser = Activator.CreateInstance<ApplicationUser>();
-
-            await _userStore.SetUserNameAsync(newUser, user.Username, CancellationToken.None);
-            await _emailStore.SetEmailAsync(newUser, user.Email, CancellationToken.None);
-            var result = await _userManager.CreateAsync(newUser, user.Password);
-
-            if (result.Succeeded)
-            {
-                string baseUri = $"{Request.Scheme}://{Request.Host}";
-                string confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(newUser);
-                string urlToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(confirmationToken));
-                string confirmationLink = $"{baseUri}/users/confirm-email?userId={newUser.Id}&token={urlToken}";
-
-                bool sendResult = await _emailService.SendAsync(
-                    user.Email,
-                    "Please Confirm Your Email for Polls App Blazor",
-                    string.Format(AuthEmails.ConfirmationEmailBody, user.Username, confirmationLink),
-                    cancellationToken);
-                if (!sendResult)
-                {
-                    ModelState.AddModelError(string.Empty, "Failed to send confirmation email.");
-                    return BadRequest(ModelState);
-                }
-                return NoContent();
-            }
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError(string.Empty, error.Description);
-            }
+            return BadRequest(ModelState);
         }
 
-        // If we got this far, something failed
+        var result = await _authService.RegisterAsync(user, cancellationToken);
+
+        if (result.Status == RegisterStatus.Succeeded)
+        {
+            return NoContent();
+        }
+
+        if (result.Errors != null)
+        {
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error);
+            }
+        }
+        else if (!result.EmailSent)
+        {
+            ModelState.AddModelError(string.Empty, "Failed to send confirmation email.");
+        }
+
         return BadRequest(ModelState);
     }
 
@@ -149,37 +115,31 @@ public class AuthController(
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> ConfirmEmail([FromQuery] string userId, [FromQuery] string token)
+    public async Task<IActionResult> ConfirmEmail([FromQuery] string userId, [FromQuery] string token, CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
+
         if (User.Identity != null && User.Identity.IsAuthenticated)
         {
             return Conflict(new { Message = "You are already logged in" });
         }
 
-        var user = await _userManager.FindByIdAsync(userId);
-        if (user == null || user.IsDeleted) return Unauthorized();
-        if (user.EmailConfirmed)
+        var result = await _authService.ConfirmEmailAsync(userId, token, cancellationToken);
+        if (result.Status == ConfirmEmailStatus.InvalidToken)
         {
-            return Conflict(new { Message = "Email is already confirmed" });
-        }
-
-        string decodedToken;
-        try
-        {
-            decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(token));
-        }
-        catch (FormatException)
-        {
-            ModelState.AddModelError("token", "Token is not valid base64 string.");
+            ModelState.AddModelError("token", result.ErrorMessage ?? "Invalid token");
             return BadRequest(ModelState);
         }
-        var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
 
-        return result.Succeeded ? NoContent() : Unauthorized();
+        return result.Status switch
+        {
+            ConfirmEmailStatus.Succeeded => NoContent(),
+            ConfirmEmailStatus.AlreadyConfirmed => Conflict(new { Message = result.ErrorMessage ?? "Already confirmed" }),
+            _ => Unauthorized()
+        };
     }
 
     /// <summary>
@@ -192,26 +152,16 @@ public class AuthController(
     [EnableRateLimiting(RateLimitingPolicy.ResetPasswordPolicy)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> InitiatePasswordReset(
-        [FromBody] InitiateResetPasswordDto resetDto,
-        CancellationToken cancellationToken
-        )
+    public async Task<IActionResult> InitiatePasswordReset([FromBody] InitiateResetPasswordDto resetDto, CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
-        var user = await _signInManager.UserManager.FindByEmailAsync(resetDto.Email);
-        if (user == null || user.IsDeleted) return NoContent();
 
-        string token = await _userManager.GeneratePasswordResetTokenAsync(user);
-        string urlToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-        string resetLink = $"{Request.Scheme}://{Request.Host}/users/reset-password?userId={user.Id}&token={urlToken}";
+        _ = await _authService.InitiatePasswordResetAsync(resetDto.Email, cancellationToken);
 
-        await _emailService.SendAsync(user.Email!, "Reset Your Password for Polls App Blazor",
-            string.Format(AuthEmails.ResetPasswordEmailBody, user.UserName, resetLink),
-            cancellationToken);
-
+        // Prevent enumeration attacks
         return NoContent();
     }
 
@@ -228,41 +178,30 @@ public class AuthController(
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto)
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPasswordDto, CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
 
-        var user = await _userManager.FindByIdAsync(resetPasswordDto.UserId);
-        if (user == null || user.IsDeleted) return Unauthorized();
-
-        string token;
-        try
+        var result = await _authService.ResetPasswordAsync(resetPasswordDto, cancellationToken);
+        if (result.Status == ResetPasswordStatus.InvalidToken)
         {
-            token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(resetPasswordDto.Token));
+            ModelState.AddModelError("token", result.ErrorMessage ?? "Invalid token");
+            return BadRequest(ModelState);
         }
-        catch (FormatException)
+        if (result.Status == ResetPasswordStatus.PasswordRequirementsFailed)
         {
-            ModelState.AddModelError("Token", "Token is not valid base64 string.");
+            foreach (var error in result.Errors!)
+            {
+                ModelState.AddModelError("NewPassword", error);
+            }
             return BadRequest(ModelState);
         }
 
-        var result = await _userManager.ResetPasswordAsync(user, token, resetPasswordDto.NewPassword);
-        if (!result.Succeeded)
-        {
-            foreach (var item in result.Errors)
-            {
-                if (item.Description.Contains("Password"))
-                {
-                    ModelState.AddModelError(string.Empty, item.Description);
-                }
-            }
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            return Unauthorized();
-        }
-        return NoContent();
+
+        return result.Status == ResetPasswordStatus.Succeeded ? NoContent() : Unauthorized(); ;
     }
 
     /// <summary>
@@ -275,10 +214,22 @@ public class AuthController(
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> LogOut()
+    public async Task<IActionResult> LogOut(CancellationToken cancellationToken = default)
     {
-        await _signInManager.SignOutAsync();
-
+        await _authService.LogOutAsync(cancellationToken);
         return NoContent();
+    }
+
+    private static ModelStateDictionary BuildModelStateFromErrors(IEnumerable<string>? errors)
+    {
+        var ms = new ModelStateDictionary();
+        if (errors != null)
+        {
+            foreach (var e in errors)
+            {
+                ms.AddModelError(string.Empty, e);
+            }
+        }
+        return ms;
     }
 }

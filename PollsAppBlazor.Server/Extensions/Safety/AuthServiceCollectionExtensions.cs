@@ -135,7 +135,8 @@ public static class AuthServiceCollectionExtensions
             .ConfigureIdentity()
             .ConfigureIdentityServer(isProduction, identitySection, authSection)
             .ConfigureCookie()
-            .AddTransient<IProfileService, ApplicationProfileService>();
+            .AddTransient<IProfileService, ApplicationProfileService>()
+            .AddScoped<IAuthService, AuthService>();
 
         return builder;
     }
