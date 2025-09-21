@@ -8,6 +8,8 @@ var services = builder.Services;
 
 builder.AddApplicationLogging();
 
+builder.AddApplicationConfigurationOptions();
+
 // Add services to the container.
 builder.ConnectDatabase();
 builder.ConfigureEmailService();

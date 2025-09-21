@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Options;
 using PollsAppBlazor.Application.Emails;
+using PollsAppBlazor.Application.Options;
 using PollsAppBlazor.Application.Services.Communication.Interfaces;
 using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Shared.Users;
@@ -8,28 +10,20 @@ using System.Text;
 
 namespace PollsAppBlazor.Application.Auth;
 
-public class AuthService : IAuthService
+public class AuthService(
+    UserManager<ApplicationUser> userManager,
+    IUserStore<ApplicationUser> userStore,
+    SignInManager<ApplicationUser> signInManager,
+    IEmailService emailService,
+    IOptions<UriOptions> uriOptions
+    ) : IAuthService
 {
-    private const string baseUri = "https://localhost:7094";
-
-    private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IUserStore<ApplicationUser> _userStore;
-    private readonly SignInManager<ApplicationUser> _signInManager;
-    private readonly IUserEmailStore<ApplicationUser> _emailStore;
-    private readonly IEmailService _emailService;
-
-    public AuthService(
-        UserManager<ApplicationUser> userManager,
-        IUserStore<ApplicationUser> userStore,
-        SignInManager<ApplicationUser> signInManager,
-        IEmailService emailService)
-    {
-        _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
-        _userStore = userStore ?? throw new ArgumentNullException(nameof(userStore));
-        _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
-        _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
-        _emailStore = (IUserEmailStore<ApplicationUser>)_userStore;
-    }
+    private readonly UserManager<ApplicationUser> _userManager = userManager;
+    private readonly IUserStore<ApplicationUser> _userStore = userStore;
+    private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
+    private readonly IUserEmailStore<ApplicationUser> _emailStore = (IUserEmailStore<ApplicationUser>)userStore;
+    private readonly IEmailService _emailService = emailService;
+    private readonly IOptions<UriOptions> _uriOptions = uriOptions;
 
     public async Task<LoginResult> LogInAsync(UserLoginDto loginDto, CancellationToken cancellationToken = default)
     {
@@ -78,7 +72,7 @@ public class AuthService : IAuthService
         // Generate confirmation and send email
         string confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(newUser);
         string urlToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(confirmationToken));
-        string confirmationLink = $"{baseUri.TrimEnd('/')}/users/confirm-email?userId={newUser.Id}&token={urlToken}";
+        string confirmationLink = string.Format(_uriOptions.Value.ConfirmEmailUri, newUser.Id, urlToken);
 
         bool sendResult = await _emailService.SendAsync(
             registerDto.Email,
@@ -125,7 +119,7 @@ public class AuthService : IAuthService
 
         string token = await _userManager.GeneratePasswordResetTokenAsync(user);
         string urlToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-        string resetLink = $"{baseUri.TrimEnd('/')}/users/reset-password?userId={user.Id}&token={urlToken}";
+        string resetLink = string.Format(_uriOptions.Value.ResetPasswordUri, user.Id, urlToken);
 
         bool sendResult = await _emailService.SendAsync(user.Email!, "Reset Your Password for Polls App Blazor",
             string.Format(AuthEmails.ResetPasswordEmailBody, user.UserName, resetLink),
