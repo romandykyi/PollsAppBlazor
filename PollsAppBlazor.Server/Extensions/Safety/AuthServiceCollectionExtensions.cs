@@ -93,7 +93,7 @@ public static class AuthServiceCollectionExtensions
 
         if (isProduction)
         {
-            string? thumbprint = authSection["SigningCertThumbprint"] ??
+            string? thumbprint = identitySection["SigningCertThumbprint"] ??
                 throw new InvalidOperationException("IdentityServer:SigningCertThumbprint is not configured.");
 
             using X509Store store = new(StoreName.My, StoreLocation.CurrentUser);
