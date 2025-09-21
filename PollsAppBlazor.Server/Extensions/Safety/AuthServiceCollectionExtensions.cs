@@ -9,6 +9,7 @@ using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Server.Policy;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using DuendeClient = Duende.IdentityServer.Models.Client;
 
 namespace PollsAppBlazor.Server.Extensions.Safety;
@@ -93,10 +94,23 @@ public static class AuthServiceCollectionExtensions
 
         if (isProduction)
         {
-            string? thumbprint = identitySection["SigningCertThumbprint"] ??
-                throw new InvalidOperationException("IdentityServer:SigningCertThumbprint is not configured.");
+            string? base64Certificate = identitySection["SigningCertificate"];
+            string? base64Key = identitySection["SigningCertificateKey"];
+            if (string.IsNullOrWhiteSpace(base64Certificate))
+            {
+                throw new InvalidOperationException("IdentityServer:SigningCertificate is not defined");
+            }
+            if (string.IsNullOrWhiteSpace(base64Key))
+            {
+                throw new InvalidOperationException("IdentityServerKey:SigningCertificateKey is not defined");
+            }
 
-            var cert = X509CertificateLoader.LoadCertificateFromFile($"/var/ssl/private/{thumbprint}.p12");
+            var certBytes = Convert.FromBase64String(base64Certificate);
+            var keyBytes = Convert.FromBase64String(base64Key);
+            var certText = Encoding.UTF8.GetString(certBytes).AsSpan();
+            var keyText = Encoding.UTF8.GetString(keyBytes).AsSpan();
+
+            var cert = X509Certificate2.CreateFromPem(certText, keyText);
 
             var key = new RsaSecurityKey(cert.GetRSAPrivateKey()!)
             {
