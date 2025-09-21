@@ -49,9 +49,6 @@ app.UseMigrationsEndPoint();
 
 app.UseHttpsRedirection();
 
-app.UseBlazorFrameworkFiles();
-app.UseStaticFiles();
-
 app.UseRouting();
 app.UseRateLimiter();
 
