@@ -1,5 +1,4 @@
-﻿using Duende.IdentityServer.Models;
-using Duende.IdentityServer.Services;
+﻿using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -10,7 +9,6 @@ using PollsAppBlazor.Server.Policy;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using DuendeClient = Duende.IdentityServer.Models.Client;
 
 namespace PollsAppBlazor.Server.Extensions.Safety;
 
@@ -63,7 +61,7 @@ public static class AuthServiceCollectionExtensions
     }
 
     private static IServiceCollection ConfigureIdentityServer(this IServiceCollection services,
-        bool isProduction, IConfigurationSection identitySection, IConfigurationSection authSection)
+        bool isProduction, IConfigurationSection identitySection)
     {
         SigningCredentials? credential = null;
         if (isProduction)
@@ -94,10 +92,6 @@ public static class AuthServiceCollectionExtensions
             credential = new(key, SecurityAlgorithms.RsaSha256);
         }
 
-        _ = double.TryParse(authSection["RefreshTokenExpiryDays"], out double refreshTokenLifetimeDays);
-        int refreshTokenLifetimeSeconds = (int)(refreshTokenLifetimeDays * 24 * 60 * 60);
-        _ = double.TryParse(authSection["AccessTokenExpiryMinutes"], out double accessTokenLifetimeMinutes);
-        int accessTokenLifetimeSeconds = (int)(accessTokenLifetimeMinutes * 60);
         var identityServices = services
             .AddIdentityServer(options =>
             {
@@ -105,20 +99,6 @@ public static class AuthServiceCollectionExtensions
             })
             .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(options =>
             {
-                options.Clients.Add(new DuendeClient()
-                {
-                    ClientId = "BlazorWasmClient",
-                    AllowedGrantTypes = GrantTypes.Code,
-                    RequireClientSecret = false,
-                    RequirePkce = true,
-                    AllowAccessTokensViaBrowser = true,
-                    AllowedScopes = { "openid", "profile", "api1", "offline_access" },
-                    AllowOfflineAccess = true,
-                    RefreshTokenUsage = TokenUsage.ReUse,
-                    RefreshTokenExpiration = TokenExpiration.Sliding,
-                    AccessTokenLifetime = accessTokenLifetimeSeconds,
-                    SlidingRefreshTokenLifetime = refreshTokenLifetimeSeconds
-                });
                 if (credential != null) options.SigningCredential = credential;
             });
 
@@ -129,11 +109,10 @@ public static class AuthServiceCollectionExtensions
     {
         bool isProduction = builder.Environment.IsProduction();
         var identitySection = builder.Configuration.GetSection("IdentityServer");
-        var authSection = builder.Configuration.GetSection("Auth");
 
         builder.Services
             .ConfigureIdentity()
-            .ConfigureIdentityServer(isProduction, identitySection, authSection)
+            .ConfigureIdentityServer(isProduction, identitySection)
             .ConfigureCookie()
             .AddTransient<IProfileService, ApplicationProfileService>()
             .AddScoped<IAuthService, AuthService>();
