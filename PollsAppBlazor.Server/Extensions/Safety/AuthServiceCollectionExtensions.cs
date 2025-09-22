@@ -45,6 +45,9 @@ public static class AuthServiceCollectionExtensions
     {
         return services.ConfigureApplicationCookie(options =>
         {
+            options.Cookie.SameSite = SameSiteMode.None;
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            options.Cookie.HttpOnly = true;
             // Return 401 when user is not authrorized
             options.Events.OnRedirectToLogin = context =>
             {

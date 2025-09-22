@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 
 builder.AddApplicationLogging();
+builder.ConfigureCors();
 
 builder.AddApplicationConfigurationOptions();
 
@@ -34,6 +35,8 @@ services
     .AddAppRateLimiting();
 
 var app = builder.Build();
+
+app.UseCors();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

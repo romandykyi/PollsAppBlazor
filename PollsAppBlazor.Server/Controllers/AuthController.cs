@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.RateLimiting;
 using PollsAppBlazor.Application.Auth;
 using PollsAppBlazor.Server.Policy;
@@ -218,18 +217,5 @@ public class AuthController(IAuthService authService) : ControllerBase
     {
         await _authService.LogOutAsync(cancellationToken);
         return NoContent();
-    }
-
-    private static ModelStateDictionary BuildModelStateFromErrors(IEnumerable<string>? errors)
-    {
-        var ms = new ModelStateDictionary();
-        if (errors != null)
-        {
-            foreach (var e in errors)
-            {
-                ms.AddModelError(string.Empty, e);
-            }
-        }
-        return ms;
     }
 }
