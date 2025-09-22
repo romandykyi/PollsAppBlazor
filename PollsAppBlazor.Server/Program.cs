@@ -7,7 +7,6 @@ var builder = WebApplication.CreateBuilder(args);
 var services = builder.Services;
 
 builder.AddApplicationLogging();
-builder.ConfigureCors();
 
 builder.AddApplicationConfigurationOptions();
 
@@ -20,6 +19,7 @@ services
     .RegisterApplicationServices();
 
 services.AddMemoryCache();
+services.AddRazorPages();
 
 if (builder.Environment.IsDevelopment())
 {
@@ -35,8 +35,6 @@ services
     .AddAppRateLimiting();
 
 var app = builder.Build();
-
-app.UseCors();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -54,6 +52,9 @@ app.UseMigrationsEndPoint();
 
 app.UseHttpsRedirection();
 
+app.UseBlazorFrameworkFiles();
+app.UseStaticFiles();
+
 app.UseRouting();
 app.UseRateLimiter();
 
@@ -64,6 +65,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapFallbackToFile("index.html");
 
 app
     .CreateRoles()
