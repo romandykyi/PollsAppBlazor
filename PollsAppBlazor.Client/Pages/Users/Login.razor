@@ -1,0 +1,108 @@
+﻿@page "/users/login"
+@using PollsAppBlazor.Shared.Auth
+@using PollsAppBlazor.Shared.Users
+@inject ISnackbar Snackbar
+@inject PublicClient PublicClient
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<AuthorizeView>
+	<Authorized>
+		<h3>Log In</h3>
+		<p>
+			You are already logged in!
+		</p>
+	</Authorized>
+	<NotAuthorized>
+		<MudPaper Class="pa-4">
+			<h3>Log In</h3>
+			<ErrorsList Errors="@serverErrors" />
+			<MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+				<MudTextField T="string" Label="Username or Email" @bind-Value="@user.EmailOrUsername"
+							  Required="true" RequiredError="Username or Email is required!" />
+				<MudTextField T="string" Label="Password" @bind-Value="@user.Password"
+							  Required="true" InputType="InputType.Password"
+							  RequiredError="Password is required!" />
+			</MudForm>
+			<div class="d-flex">
+				<MudStack>
+					<MudLink Href="/users/register">Create a new account</MudLink>
+				</MudStack>
+			</div>
+			<div class="d-flex">
+				<MudStack>
+					<MudLink Href="/users/forgot-password">Forgot password</MudLink>
+				</MudStack>
+			</div>
+			<div class="d-flex">
+				<MudCheckBox T="bool" Label="Remember me" @bind-Checked="user.RememberMe" />
+			</div>
+			<div class="d-flex">
+				<MudButton Variant="Variant.Filled" Color="Color.Primary"
+						   Disabled="@(!success)" Class="mr-auto" OnClick="LogIn">
+					Log In
+				</MudButton>
+			</div>
+		</MudPaper>
+	</NotAuthorized>
+</AuthorizeView>
+
+@code {
+	private bool success;
+	private string[] errors = { };
+	private MudForm form = null!;
+
+	private string[]? serverErrors { get; set; }
+
+	private UserLoginDto user = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+		var user = authState.User;
+
+		if (user.Identity != null && user.Identity.IsAuthenticated)
+		{
+			// Redirect to home if already logged in
+			NavigationManager.NavigateTo("/");
+		}
+	}
+
+	private async Task LogIn()
+	{
+		await form.Validate();
+		if (!form.IsValid) return;
+
+		var response = await PublicClient.Client.PostAsJsonAsync("/api/auth/login", user);
+		try
+		{
+			response.EnsureSuccessStatusCode();
+
+			NavigationManager.NavigateTo("/polls", true);
+		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			var invalidLoginResponse = await response.Content.ReadFromJsonAsync<InvalidLoginAttemptResponse>();
+			if (invalidLoginResponse != null)
+			{
+                serverErrors = [invalidLoginResponse.ErrorMessage];
+			}
+			else
+			{
+				serverErrors = ["Invalid login attempt"];
+			}
+		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.BadRequest)
+		{
+			serverErrors = await response.Content.ExtractErrorsAsync().ToArrayAsync();
+		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.TooManyRequests)
+		{
+			Snackbar.TooManyRequestsError();
+		}
+		catch (HttpRequestException)
+		{
+			serverErrors = new[] { "An unexpected error has occured" };
+		}
+	}
+}

@@ -1,0 +1,19 @@
+﻿@page "/"
+
+<AuthorizeView>
+	<Authorized>
+		<h2>Your Polls</h2>
+
+		<PollsTable HttpGetPath="api/user/polls" ShowPublishedByColumn="false"
+					Filter="@(new() {ShowExpired = true})" />
+	</Authorized>
+	<NotAuthorized>
+		<h2>Welcome to Our Polls Web App!</h2>
+
+		<p>
+			Express your opinions and influence worldwide discussions with our Public Polls Web App.
+			Create, share, and engage in polls on diverse topics, all visible to the global community.
+			<MudLink Href="users/register">Join us</MudLink> today and make your voice heard on a global scale!
+		</p>
+	</NotAuthorized>
+</AuthorizeView>

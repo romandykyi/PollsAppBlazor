@@ -1,0 +1,8 @@
+﻿@page "/polls/favorites"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+<h2>Your Favorites</h2>
+
+<PollsTable HttpGetPath="api/user/favorites" ShowPublishedByColumn="false"
+			Filter="@(new() {ShowExpired = true})" />

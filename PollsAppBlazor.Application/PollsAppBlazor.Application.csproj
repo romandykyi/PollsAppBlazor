@@ -12,7 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PollsAppBlazor.DataAccess\PollsAppBlazor.DataAccess.csproj" />
-    <ProjectReference Include="..\PollsAppBlazor.Shared\PollsAppBlazor.Shared\PollsAppBlazor.Shared.csproj" />
+    <ProjectReference Include="..\PollsAppBlazor.Shared\PollsAppBlazor.Shared.csproj" />
   </ItemGroup>
 
 </Project>

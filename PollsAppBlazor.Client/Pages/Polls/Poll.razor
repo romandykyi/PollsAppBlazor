@@ -1,0 +1,342 @@
+﻿@page "/polls/{pollId:int}"
+@using Microsoft.AspNetCore.Authorization
+@using PollsAppBlazor.Shared.Options
+@using PollsAppBlazor.Shared.Polls
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject PublicClient PublicClient
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<style>
+	.createdDate, .creator {
+		font-size: 16px;
+		color: #808080;
+	}
+
+	.creator {
+		margin-bottom: 10px;
+	}
+</style>
+
+@if (poll == null)
+{
+	@if (deleted)
+	{
+		<MudText Typo="Typo.h3">Deleted Poll</MudText>
+		<MudText>
+			Sorry, this poll has been deleted and is no longer available.
+		</MudText>
+	}
+	else
+	{
+		<MudText>
+			Loading...
+		</MudText>
+	}
+}
+else
+{
+	<h2>
+		@poll.Title
+		@if (isInFavorites != null)
+		{
+			<MudCheckBox Class="d-inline-flex"
+						 @bind-Value="isInFavorites"
+						 @bind-Value:after="OnFavoriteStatusChangedAsync"
+                         Disabled="@(!authenticated)"
+						 CheckedIcon="@Icons.Material.Filled.Star"
+						 UncheckedIcon="@Icons.Material.Filled.StarBorder"
+						 Color="Color.Warning"
+						 UnCheckedColor="Color.Default" />
+		}
+	</h2>
+	<div class="createdDate">Created @poll.CreationDate.AsTimeAgo()</div>
+	@if (poll.ExpiryDate != null && !poll.IsExpired)
+	{
+		<div class="createdDate">Expires @poll.ExpiryDate.Value.AsExpiryDuration()</div>
+	}
+	<div class="creator">by @poll.Creator.Username</div>
+
+	@if (poll.IsExpired)
+	{
+		<MudAlert Severity="Severity.Info">This poll expired @poll.ExpiryDate!.Value.AsTimeAgo()</MudAlert>
+	}
+
+	@if (canEdit == true)
+	{
+		<MudStack Row="true" Spacing="1">
+			<MudButton Variant="Variant.Outlined" Color="Color.Primary"
+					   StartIcon="@Icons.Material.Filled.Edit"
+					   Href="@($"polls/{pollId}/edit")"
+					   Disabled="@poll.IsExpired">
+				Edit
+			</MudButton>
+			<MudButton Variant="Variant.Outlined" Color="Color.Error"
+					   StartIcon="@Icons.Material.Filled.Delete"
+					   OnClick="Delete">
+				Delete
+			</MudButton>
+			@if (!poll.IsExpired)
+			{
+				<MudButton Variant="Variant.Outlined" Color="Color.Warning"
+						   StartIcon="@Icons.Material.Filled.Lock"
+						   OnClick="Lock">
+					Lock
+				</MudButton>
+			}
+		</MudStack>
+	}
+
+	@if (!string.IsNullOrEmpty(poll.Description))
+	{
+		<div class="description">
+			@poll.Description
+		</div>
+	}
+
+	@if (!viewResults)
+	{
+		<MudRadioGroup T="@(int?)" @bind-Value="selectedOptionId"
+					   ReadOnly="@userHasVoted" Disabled="@poll.IsExpired">
+			<MudItem xs="12" md="2" Class="d-block">
+				@foreach (var option in poll.Options)
+				{
+					var radioColor = option.Id == poll.VotedOptionId ? Color.Success : Color.Primary;
+					<MudRadio Class="d-block" Value="@((int?)option.Id)"
+							  Color="@radioColor">
+						@option.Description
+					</MudRadio>
+				}
+			</MudItem>
+		</MudRadioGroup>
+		<MudStack Row="true" Spacing="1">
+			<MudButton OnClick="Vote" Disabled="@(userHasVoted || selectedOptionId == null)"
+					   Color="Color.Success" Variant="Variant.Filled">
+				Vote
+			</MudButton>
+			<MudButton OnClick="@(() => viewResults = true)" Disabled="@(canViewResults != true)"
+					   Color="Color.Primary" Variant="Variant.Filled">
+				View results
+			</MudButton>
+		</MudStack>
+	}
+	else
+	{
+		<MudGrid>
+			<MudItem xs="12" sm="6">
+				<MudDataGrid T="OptionWithVotesViewDto" Items="@optionsWithVotes" Filterable="false"
+							 SortMode="SortMode.Single" Groupable="false">
+					<Columns>
+						<PropertyColumn Property="o => o!.Description" Title="Option" />
+						<PropertyColumn Property="o => o!.VotesCount" Title="Votes" />
+					</Columns>
+				</MudDataGrid>
+			</MudItem>
+			<MudItem xs="12" sm="6">
+				<MudChart ChartType="ChartType.Pie"
+						  InputData="@optionsWithVotes.Select(o => (double)o.VotesCount!).ToArray()"
+						  InputLabels="@optionsWithVotes.Select(o => o.Description).ToArray()" />
+			</MudItem>
+		</MudGrid>
+		<MudButton OnClick="@(() => viewResults = false)"
+				   Color="Color.Primary" Variant="Variant.Filled">
+			Back
+		</MudButton>
+	}
+}
+
+@code {
+	private PollViewDto poll { get; set; } = null!;
+
+	private bool deleted = false;
+	private bool? canViewResults = null;
+	private bool? canEdit = null;
+	private bool authenticated = false;
+	private IList<OptionWithVotesViewDto> optionsWithVotes = [];
+
+	private int? selectedOptionId { get; set; }
+	private bool viewResults { get; set; } = false;
+	private bool userHasVoted => poll.VotedOptionId != null;
+
+	private bool? isInFavorites { get; set; } = null;
+
+	[Parameter]
+	public int pollId { get; set; }
+
+	protected override Task OnInitializedAsync()
+	{
+		return FetchPoll();
+	}
+
+	private async Task FetchPoll()
+	{
+		if (deleted) return;
+
+		try
+		{
+			// Get poll details
+			poll = (await PublicClient.Client.GetFromJsonAsync<PollViewDto>($"/api/polls/{pollId}"))!;
+			selectedOptionId = poll.VotedOptionId;
+			isInFavorites = poll.IsInFavorites;
+
+			// Try to get options with votes
+			var optionsResponse = await PublicClient.Client.GetAsync($"/api/polls/{pollId}/options");
+			if (optionsResponse.IsSuccessStatusCode)
+			{
+				canViewResults = true;
+				optionsWithVotes = (await optionsResponse.Content.ReadFromJsonAsync<IList<OptionWithVotesViewDto>>())!;
+			}
+			else
+			{
+				canViewResults = false;
+				optionsWithVotes = [];
+			}
+
+			// Determine whether user can edit the poll
+			canEdit = null;
+			var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+			var user = authState.User;
+			if (user.Identity != null && user.Identity.IsAuthenticated)
+			{
+				string? userId = user.FindFirst("sub")?.Value;
+				var roles = user.FindAll("role").ToList();
+				bool isModerator = user.FindAll("role").Any(x => x.Value == "Administrator" || x.Value == "Moderator");
+				canEdit = isModerator || (userId != null && userId == poll.Creator.Id);
+
+                authenticated = true;
+			}
+			else
+			{
+                authenticated = false;
+				canEdit = false;
+			}
+		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.Gone)
+		{
+			deleted = true;
+		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.NotFound)
+		{
+			NavigationManager.NavigateTo("/polls/error404");
+		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.TooManyRequests)
+		{
+			Snackbar.TooManyRequestsError();
+		}
+		catch (HttpRequestException)
+		{
+			Snackbar.UnexpectedError();
+		}
+	}
+
+	private async Task Delete()
+	{
+		var parameters = new DialogParameters<DialogTemplate>();
+		parameters.Add(x => x.ContentText, $"Are you sure you want to Delete poll \"{poll.Title}\"?");
+		parameters.Add(x => x.Color, Color.Error);
+
+		DialogOptions  options = new() { Position = DialogPosition.TopCenter };
+
+		var dialog = await DialogService.ShowAsync<DialogTemplate>("Confirm Delete", parameters, options);
+		var result = await dialog.Result;
+
+		if (result == null || result.Canceled) return;
+
+		var response = await PublicClient.Client.DeleteAsync($"api/polls/{pollId}");
+		try
+		{
+			response.EnsureSuccessStatusCode();
+
+			NavigationManager.NavigateTo("/polls");
+			Snackbar.Add("Poll was successfully deleted", Severity.Success);
+		}
+		catch (HttpRequestException)
+		{
+			Snackbar.UnexpectedError();
+		}
+	}
+
+	private async Task Lock()
+	{
+		var parameters = new DialogParameters<DialogTemplate>();
+		parameters.Add(x => x.ContentText, $"Are you sure you want to Lock poll \"{poll.Title}\"? Results will become visible for everyone and no one will be able to vote.");
+		parameters.Add(x => x.Color, Color.Warning);
+
+		DialogOptions options = new() { Position = DialogPosition.TopCenter };
+
+		var dialog = await DialogService.ShowAsync<DialogTemplate>("Confirm operation", parameters, options);
+		var result = await dialog.Result;
+
+		if (result == null || result.Canceled) return;
+
+		var response = await PublicClient.Client.PatchAsync($"api/polls/{pollId}/expire", null);
+		try
+		{
+			response.EnsureSuccessStatusCode();
+
+			await FetchPoll();
+			Snackbar.Add("Poll was successfully locked", Severity.Success);
+		}
+		catch (HttpRequestException)
+		{
+			Snackbar.UnexpectedError();
+		}
+	}
+
+	private async Task Vote()
+	{
+		// Make sure that user has selected an option
+		if (selectedOptionId == null) return;
+
+		try
+		{
+			var response = await PublicClient.Client.PostAsync($"api/options/{selectedOptionId}/vote", null);
+			response.EnsureSuccessStatusCode();
+			Snackbar.Add("Your vote was saved", Severity.Success);
+
+			await FetchPoll(); // Update poll view
+			StateHasChanged();
+		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			NavigationManager.NavigateTo("/users/login");
+		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.Forbidden)
+		{
+			Snackbar.Add("You cannot vote anymore", Severity.Warning,
+				options => options.CloseAfterNavigation = true);
+		}
+		catch (HttpRequestException)
+		{
+			Snackbar.UnexpectedError();
+		}
+	}
+
+	private Task OnFavoriteStatusChangedAsync()
+	{
+		return UpdateFavoritesStatus(isInFavorites == true);
+	}
+
+	private async Task UpdateFavoritesStatus(bool favorite)
+	{
+		isInFavorites = favorite;
+
+		string uri = $"api/user/favorites/{pollId}";
+		var http = PublicClient.Client;
+
+		HttpResponseMessage response = favorite ?
+					await http.PutAsync(uri, null) : await http.DeleteAsync(uri);
+		try
+		{
+			response.EnsureSuccessStatusCode();
+			Snackbar.Add(favorite ? "Poll was added to favorites" : "Poll was removed from favorites",
+						Severity.Info);
+		}
+		catch (HttpRequestException)
+		{
+            isInFavorites = !favorite; // revert
+			Snackbar.UnexpectedError();
+		}
+	}
+}
