@@ -1,13 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PollsAppBlazor.Server.DataAccess.Models;
 
+[PrimaryKey(nameof(PollId), nameof(UserId))]
 public class Favorite
 {
-    [Key]
-    public int Id { get; set; }
-
     [ForeignKey(nameof(Poll))]
     public int PollId { get; set; }
     /// <summary>
