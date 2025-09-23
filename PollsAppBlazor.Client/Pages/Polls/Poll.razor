@@ -275,7 +275,7 @@ else
 
 		if (result == null || result.Canceled) return;
 
-		var response = await PublicClient.Client.PatchAsync($"api/polls/{pollId}/expire", null);
+		var response = await PublicClient.Client.PostAsync($"api/polls/{pollId}/expire", null);
 		try
 		{
 			response.EnsureSuccessStatusCode();

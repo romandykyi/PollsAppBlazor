@@ -240,7 +240,7 @@ public class PollsController(IPollService pollsService) : ControllerBase
     /// <response code="404">The Poll does not exist</response>
     /// <response code="410">The Poll was deleted</response>
     /// <response code="422">The Poll is already expired</response>
-    [HttpPatch]
+    [HttpPost]
     [Authorize(Policy = Policies.CanEditPoll)]
     [Route("{pollId}/expire")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
