@@ -1,13 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace PollsAppBlazor.Server.DataAccess.Models;
 
+[Index(nameof(PollId), nameof(OptionId))]
+[PrimaryKey(nameof(UserId), nameof(OptionId))]
 public class Vote
 {
-    [Key]
-    public int Id { get; set; }
-
     [ForeignKey(nameof(Poll))]
     public int PollId { get; set; }
     /// <summary>
