@@ -7,8 +7,8 @@ public class OptionService(IPollOptionRepository repository) : IOptionService
 {
     private readonly IPollOptionRepository _repository = repository;
 
-    public Task<int?> GetPollIdAsync(int optionId)
+    public Task<int?> GetPollIdAsync(int optionId, CancellationToken cancellationToken)
     {
-        return _repository.GetOptionPollIdAsync(optionId);
+        return _repository.GetOptionPollIdAsync(optionId, cancellationToken);
     }
 }

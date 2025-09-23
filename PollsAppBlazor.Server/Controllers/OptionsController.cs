@@ -40,9 +40,9 @@ public class OptionsController(IVoteService votesService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Vote([FromRoute] int optionId)
+    public async Task<IActionResult> Vote([FromRoute] int optionId, CancellationToken cancellationToken)
     {
-        return await _votesService.VoteAsync(optionId, User.GetSubjectId()) switch
+        return await _votesService.VoteAsync(optionId, User.GetSubjectId(), cancellationToken) switch
         {
             VoteServiceResult.Success => NoContent(),
             VoteServiceResult.PollExpired => ForbidVote("The poll is not available for voting."),

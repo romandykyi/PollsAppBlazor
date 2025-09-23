@@ -9,7 +9,7 @@ public class UserRepository(ApplicationDbContext dbContext) : IUserRepository
 {
     private readonly ApplicationDbContext _dbContext = dbContext;
 
-    public async Task<bool> DeleteUserData(string userName)
+    public async Task<bool> DeleteUserData(string userName, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(userName)) return false;
 
@@ -17,10 +17,10 @@ public class UserRepository(ApplicationDbContext dbContext) : IUserRepository
             .AsNoTracking()
             .Where(u => u.UserName == userName)
             .Select(u => u.Id)
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
         if (userId == null) return false;
 
-        await using IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync();
+        await using IDbContextTransaction transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         try
         {
@@ -33,21 +33,23 @@ public class UserRepository(ApplicationDbContext dbContext) : IUserRepository
                     .SetProperty(x => x.NormalizedEmail, _ => null)
                     .SetProperty(x => x.PasswordHash, _ => null)
                     .SetProperty(x => x.EmailConfirmed, false)
-                    .SetProperty(x => x.IsDeleted, true)
+                    .SetProperty(x => x.IsDeleted, true),
+                    cancellationToken
                 );
 
             await _dbContext.Polls
                 .Where(x => x.CreatorId == userId)
-                .ExecuteUpdateAsync(x => x
-                    .SetProperty(x => x.IsDeleted, _ => true)
+                .ExecuteUpdateAsync(
+                    x => x.SetProperty(x => x.IsDeleted, _ => true),
+                    cancellationToken
                 );
 
-            await transaction.CommitAsync();
+            await transaction.CommitAsync(cancellationToken);
             return true;
         }
         catch
         {
-            await transaction.RollbackAsync();
+            await transaction.RollbackAsync(CancellationToken.None);
             throw;
         }
     }

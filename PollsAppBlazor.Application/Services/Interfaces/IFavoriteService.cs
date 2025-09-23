@@ -13,20 +13,22 @@ public interface IFavoriteService
     /// </remarks>
     /// <param name="pollId">ID of the Poll to be added to favorites.</param>
     /// <param name="userId">ID of the user.</param>
+    /// <param name="cancellationToken">The cancellation token to use.</param>
     /// <returns>
     /// <see langword="true" /> if the Poll was added to favorites or was already in favorites;
     /// otherwise <see langword="false" /> if the Poll was not found.
     /// </returns>
-    Task<bool> AddToFavoritesAsync(int pollId, string userId);
+    Task<bool> AddToFavoritesAsync(int pollId, string userId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Removes a poll from favorites for the user.
     /// </summary>
     /// <param name="pollId">ID of the Poll to be removed from favorites.</param>
     /// <param name="userId">ID of the user.</param>
+    /// <param name="cancellationToken">The cancellation token to use.</param>
     /// <returns>
     /// <see langword="true" /> if the Poll was successfully removed from favorites;
     /// otherwise <see langword="false" /> if Poll wasn't in favorites.
     /// </returns>
-    Task<bool> RemoveFromFavoritesAsync(int pollId, string userId);
+    Task<bool> RemoveFromFavoritesAsync(int pollId, string userId, CancellationToken cancellationToken);
 }

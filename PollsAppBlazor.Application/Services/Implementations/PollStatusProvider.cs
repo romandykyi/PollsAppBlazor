@@ -9,14 +9,14 @@ public class PollStatusProvider(IPollRepository pollRepository) : IPollStatusPro
     private readonly IPollRepository _pollRepository = pollRepository;
     private readonly Dictionary<int, PollStatus?> _pollStatuses = [];
 
-    public async Task<PollStatus?> GetPollStatusAsync(int pollId)
+    public async Task<PollStatus?> GetPollStatusAsync(int pollId, CancellationToken cancellationToken)
     {
         if (_pollStatuses.TryGetValue(pollId, out var cachedStatus))
         {
             return cachedStatus;
         }
 
-        var status = await _pollRepository.GetPollStatusAsync(pollId);
+        var status = await _pollRepository.GetPollStatusAsync(pollId, cancellationToken);
         _pollStatuses[pollId] = status;
 
         return status;

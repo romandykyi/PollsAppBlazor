@@ -9,9 +9,10 @@ public interface IPollStatusProvider
     /// per request.
     /// </summary>
     /// <param name="pollId">ID of the poll to get status.</param>
+    /// <param name="cancellationToken">The cancellation token to use.</param>
     /// <returns>
     /// The poll status or <see langword="null" /> if
     /// the poll doesn't exist.
     /// </returns>
-    Task<PollStatus?> GetPollStatusAsync(int pollId);
+    Task<PollStatus?> GetPollStatusAsync(int pollId, CancellationToken cancellationToken);
 }

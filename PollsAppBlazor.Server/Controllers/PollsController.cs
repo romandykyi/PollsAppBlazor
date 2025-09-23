@@ -56,13 +56,15 @@ public class PollsController(IPollService pollsService) : ControllerBase
     [AllowAnonymous]
     [ProducesResponseType(typeof(PollsPage), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BadRequest), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Get([FromQuery] PollsPagePaginationParameters filter)
+    public async Task<IActionResult> Get(
+        [FromQuery] PollsPagePaginationParameters filter,
+        CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest();
         }
-        return Ok(await _pollsService.GetPollsAsync(filter));
+        return Ok(await _pollsService.GetPollsAsync(filter, cancellationToken));
     }
 
     /// <summary>
@@ -82,10 +84,10 @@ public class PollsController(IPollService pollsService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status410Gone)]
-    public async Task<IActionResult> GetOptions([FromRoute] int pollId)
+    public async Task<IActionResult> GetOptions([FromRoute] int pollId, CancellationToken cancellationToken)
     {
         string? userId = User.IsAuthenticated() ? User.GetSubjectId() : null;
-        var result = await _pollsService.GetOptionsWithVotesAsync(pollId, userId);
+        var result = await _pollsService.GetOptionsWithVotesAsync(pollId, userId, cancellationToken);
 
         return result.Status switch
         {
@@ -117,7 +119,7 @@ public class PollsController(IPollService pollsService) : ControllerBase
     [ProducesResponseType(typeof(PollViewDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Create([FromBody] PollCreationDto poll)
+    public async Task<IActionResult> Create([FromBody] PollCreationDto poll, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
@@ -125,7 +127,7 @@ public class PollsController(IPollService pollsService) : ControllerBase
         }
 
         string userId = User.GetSubjectId();
-        PollViewDto result = await _pollsService.CreatePollAsync(poll, userId);
+        PollViewDto result = await _pollsService.CreatePollAsync(poll, userId, cancellationToken);
         var routeValues = new { pollId = result.Id };
 
         return CreatedAtAction(nameof(GetById), routeValues, result);
@@ -162,13 +164,13 @@ public class PollsController(IPollService pollsService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status410Gone)]
-    public async Task<IActionResult> Edit([FromBody] PollEditDto poll, [FromRoute] int pollId)
+    public async Task<IActionResult> Edit([FromBody] PollEditDto poll, [FromRoute] int pollId, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
-        return await _pollsService.EditPollAsync(poll, pollId) switch
+        return await _pollsService.EditPollAsync(poll, pollId, cancellationToken) switch
         {
             EditPollResult.Success => NoContent(),
             EditPollResult.Expired => Forbid(),
@@ -196,9 +198,9 @@ public class PollsController(IPollService pollsService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status410Gone)]
-    public async Task<IActionResult> GetEdit([FromRoute] int pollId)
+    public async Task<IActionResult> GetEdit([FromRoute] int pollId, CancellationToken cancellationToken)
     {
-        var result = await _pollsService.GetForEditById(pollId);
+        var result = await _pollsService.GetForEditById(pollId, cancellationToken);
         return result.ToActionResult();
     }
 
@@ -218,9 +220,9 @@ public class PollsController(IPollService pollsService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status410Gone)]
-    public async Task<IActionResult> Delete([FromRoute] int pollId)
+    public async Task<IActionResult> Delete([FromRoute] int pollId, CancellationToken cancellationToken)
     {
-        return await _pollsService.DeletePollAsync(pollId) switch
+        return await _pollsService.DeletePollAsync(pollId, cancellationToken) switch
         {
             PollDeleteResult.Success => NoContent(),
             PollDeleteResult.PollNotFound => NotFound(),
@@ -247,9 +249,9 @@ public class PollsController(IPollService pollsService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status410Gone)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-    public async Task<IActionResult> Expire([FromRoute] int pollId)
+    public async Task<IActionResult> Expire([FromRoute] int pollId, CancellationToken cancellationToken)
     {
-        return await _pollsService.ExpirePollAsync(pollId) switch
+        return await _pollsService.ExpirePollAsync(pollId, cancellationToken) switch
         {
             ExpirePollResult.Success => NoContent(),
             ExpirePollResult.AlreadyExpired => UnprocessableEntity(),

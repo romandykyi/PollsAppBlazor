@@ -37,7 +37,9 @@ public class UserController(
     [ProducesResponseType(typeof(PollsPage), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BadRequest), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(BadRequest), StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetCreatedPolls([FromQuery] PollsPagePaginationParameters parameters)
+    public async Task<IActionResult> GetCreatedPolls(
+        [FromQuery] PollsPagePaginationParameters parameters,
+        CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
@@ -45,7 +47,7 @@ public class UserController(
         }
         string userId = User.GetSubjectId();
 
-        return Ok(await _userService.GetPollsAsync(parameters, userId));
+        return Ok(await _userService.GetPollsAsync(parameters, userId, cancellationToken));
     }
 
     /// <summary>
@@ -68,7 +70,9 @@ public class UserController(
     [ProducesResponseType(typeof(PollsPage), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(BadRequest), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(BadRequest), StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetFavoritePolls([FromQuery] PollsPagePaginationParameters parameters)
+    public async Task<IActionResult> GetFavoritePolls(
+        [FromQuery] PollsPagePaginationParameters parameters,
+        CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
@@ -76,7 +80,7 @@ public class UserController(
         }
         string userId = User.Identity.GetSubjectId();
 
-        return Ok(await _userService.GetFavoritePollsAsync(parameters, userId));
+        return Ok(await _userService.GetFavoritePollsAsync(parameters, userId, cancellationToken));
     }
 
     /// <summary>
@@ -90,9 +94,9 @@ public class UserController(
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> AddToFavorites([FromRoute] int pollId)
+    public async Task<IActionResult> AddToFavorites([FromRoute] int pollId, CancellationToken cancellationToken)
     {
-        if (await _favoritesService.AddToFavoritesAsync(pollId, User.GetSubjectId()))
+        if (await _favoritesService.AddToFavoritesAsync(pollId, User.GetSubjectId(), cancellationToken))
         {
             return NoContent();
         }
@@ -110,9 +114,9 @@ public class UserController(
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Remove([FromRoute] int pollId)
+    public async Task<IActionResult> Remove([FromRoute] int pollId, CancellationToken cancellationToken)
     {
-        if (await _favoritesService.RemoveFromFavoritesAsync(pollId, User.GetSubjectId()))
+        if (await _favoritesService.RemoveFromFavoritesAsync(pollId, User.GetSubjectId(), cancellationToken))
         {
             return NoContent();
         }

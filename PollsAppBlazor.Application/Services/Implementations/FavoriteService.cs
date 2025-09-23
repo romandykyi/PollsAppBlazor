@@ -7,13 +7,13 @@ public class FavoriteService(IFavoriteRepository favoritesRepository) : IFavorit
 {
     private readonly IFavoriteRepository _favoriteRepository = favoritesRepository;
 
-    public Task<bool> AddToFavoritesAsync(int pollId, string userId)
+    public Task<bool> AddToFavoritesAsync(int pollId, string userId, CancellationToken cancellationToken)
     {
-        return _favoriteRepository.AddAsync(pollId, userId);
+        return _favoriteRepository.AddAsync(pollId, userId, cancellationToken);
     }
 
-    public Task<bool> RemoveFromFavoritesAsync(int pollId, string userId)
+    public Task<bool> RemoveFromFavoritesAsync(int pollId, string userId, CancellationToken cancellationToken)
     {
-        return _favoriteRepository.RemoveAsync(pollId, userId);
+        return _favoriteRepository.RemoveAsync(pollId, userId, cancellationToken);
     }
 }

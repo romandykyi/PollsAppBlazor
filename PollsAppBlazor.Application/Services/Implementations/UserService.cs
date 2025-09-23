@@ -9,21 +9,23 @@ public class UserService(IPollRepository pollRepository) : IUserService
 {
     private readonly IPollRepository _pollRepository = pollRepository;
 
-    public Task<PollsPage> GetPollsAsync(PollsPagePaginationParameters parameters, string userId)
+    public Task<PollsPage> GetPollsAsync(PollsPagePaginationParameters parameters, string userId, CancellationToken cancellationToken)
     {
         return _pollRepository.GetPollsPageAsync(new PollsRetrievalOptions(
             Parameters: parameters,
             CreatorId: userId,
-            FavoritesOfUserId: null)
+            FavoritesOfUserId: null),
+            cancellationToken
             );
     }
 
-    public Task<PollsPage> GetFavoritePollsAsync(PollsPagePaginationParameters parameters, string userId)
+    public Task<PollsPage> GetFavoritePollsAsync(PollsPagePaginationParameters parameters, string userId, CancellationToken cancellationToken)
     {
         return _pollRepository.GetPollsPageAsync(new PollsRetrievalOptions(
             Parameters: parameters,
             CreatorId: null,
-            FavoritesOfUserId: userId)
+            FavoritesOfUserId: userId),
+            cancellationToken
             );
     }
 }

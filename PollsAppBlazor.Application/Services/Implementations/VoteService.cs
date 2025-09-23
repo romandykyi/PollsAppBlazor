@@ -14,21 +14,21 @@ public class VoteService(
     private readonly IPollOptionRepository _optionRepository = optionRepository;
     private readonly IPollStatusProvider _pollStatusProvider = pollStatusProvider;
 
-    public Task<int?> GetVotedOptionAsync(int pollId, string userId)
+    public Task<int?> GetVotedOptionAsync(int pollId, string userId, CancellationToken cancellationToken)
     {
-        return _voteRepository.GetVotedOptionAsync(pollId, userId);
+        return _voteRepository.GetVotedOptionAsync(pollId, userId, cancellationToken);
     }
 
-    public async Task<VoteServiceResult> VoteAsync(int optionId, string userId)
+    public async Task<VoteServiceResult> VoteAsync(int optionId, string userId, CancellationToken cancellationToken)
     {
         // Check whether option has Poll assigned to it
-        int? pollId = await _optionRepository.GetOptionPollIdAsync(optionId);
+        int? pollId = await _optionRepository.GetOptionPollIdAsync(optionId, cancellationToken);
         if (pollId == null)
         {
             return VoteServiceResult.PollNotFound;
         }
         // Make sure that poll is active
-        var pollStatus = await _pollStatusProvider.GetPollStatusAsync(pollId.Value);
+        var pollStatus = await _pollStatusProvider.GetPollStatusAsync(pollId.Value, cancellationToken);
         if (pollStatus == null)
         {
             return VoteServiceResult.PollNotFound;
@@ -38,13 +38,13 @@ public class VoteService(
             return VoteServiceResult.PollExpired;
         }
         // Make sure that user isn't voting twice
-        if (await _voteRepository.GetVotedOptionAsync(pollId.Value, userId) != null)
+        if (await _voteRepository.GetVotedOptionAsync(pollId.Value, userId, cancellationToken) != null)
         {
             return VoteServiceResult.AlreadyVoted;
         }
 
         // Vote
-        await _voteRepository.AddVoteAsync(pollId.Value, optionId, userId);
+        await _voteRepository.AddVoteAsync(pollId.Value, optionId, userId, cancellationToken);
 
         return VoteServiceResult.Success;
     }

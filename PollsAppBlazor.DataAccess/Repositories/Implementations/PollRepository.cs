@@ -17,7 +17,7 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
 {
     private readonly ApplicationDbContext _dbContext = dbContext;
 
-    public async Task<PollStatus?> GetPollStatusAsync(int pollId)
+    public async Task<PollStatus?> GetPollStatusAsync(int pollId, CancellationToken cancellationToken)
     {
         return await _dbContext.Polls
             .AsNoTracking()
@@ -29,10 +29,10 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
                 p.IsDeleted
                 )
             )
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public Task<PollViewDto?> GetByIdAsync(int pollId)
+    public Task<PollViewDto?> GetByIdAsync(int pollId, CancellationToken cancellationToken)
     {
         return _dbContext.Polls
             .Include(p => p.Creator)
@@ -59,10 +59,10 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
                     Description = o.Description
                 }).ToList()
             })
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public Task<PollCreationDto?> GetForEditByIdAsync(int pollId)
+    public Task<PollCreationDto?> GetForEditByIdAsync(int pollId, CancellationToken cancellationToken)
     {
         return _dbContext.Polls
             .Include(p => p.Options)
@@ -79,10 +79,10 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
                 ResultsVisibleBeforeVoting = p.ResultsVisibleBeforeVoting,
                 Title = p.Title
             })
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<PollsPage> GetPollsPageAsync(PollsRetrievalOptions options)
+    public async Task<PollsPage> GetPollsPageAsync(PollsRetrievalOptions options, CancellationToken cancellationToken)
     {
         var parameters = options.Parameters;
 
@@ -94,7 +94,7 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
         query = options.ApplyToQuery(query);
 
         // Count all matching Polls
-        int count = await query.CountAsync();
+        int count = await query.CountAsync(cancellationToken);
 
         // Select only needed data
         var filteredQuery = query.Select(p => new PollPreviewDto()
@@ -115,11 +115,11 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
         return new()
         {
             TotalPollsCount = count,
-            Polls = await filteredQuery.ToListAsync()
+            Polls = await filteredQuery.ToListAsync(cancellationToken)
         };
     }
 
-    public async Task<Poll> CreatePollAsync(PollCreationDto creationDto, string creatorId)
+    public async Task<Poll> CreatePollAsync(PollCreationDto creationDto, string creatorId, CancellationToken cancellationToken)
     {
         Poll poll = new()
         {
@@ -143,17 +143,17 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
 
         _dbContext.Polls.Add(poll);
         _dbContext.Options.AddRange(options);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(cancellationToken);
 
         // Load the creator before returning
         await _dbContext.Entry(poll)
             .Reference(p => p.Creator)
-            .LoadAsync();
+            .LoadAsync(cancellationToken);
 
         return poll;
     }
 
-    public async Task<bool> EditPollAsync(PollEditDto editDto, int pollId)
+    public async Task<bool> EditPollAsync(PollEditDto editDto, int pollId, CancellationToken cancellationToken)
     {
         Expression<Func<SetPropertyCalls<Poll>, SetPropertyCalls<Poll>>>? setters = null;
 
@@ -175,25 +175,31 @@ public class PollRepository(ApplicationDbContext dbContext) : IPollRepository
 
         int rowsAffected = await _dbContext.Polls
             .Where(p => p.Id == pollId && !p.IsDeleted)
-            .ExecuteUpdateAsync(setters);
+            .ExecuteUpdateAsync(setters, cancellationToken);
 
         return rowsAffected > 0;
     }
 
-    public async Task<bool> ExpirePollAsync(int pollId)
+    public async Task<bool> ExpirePollAsync(int pollId, CancellationToken cancellationToken)
     {
         int rowsAffected = await _dbContext.Polls
             .Where(p => p.Id == pollId && !p.IsDeleted)
-            .ExecuteUpdateAsync(s => s.SetProperty(p => p.ExpiryDate, DateTimeOffset.UtcNow));
+            .ExecuteUpdateAsync(
+                s => s.SetProperty(p => p.ExpiryDate, DateTimeOffset.UtcNow),
+                cancellationToken
+                );
 
         return rowsAffected > 0;
     }
 
-    public async Task<bool> DeletePollAsync(int pollId)
+    public async Task<bool> DeletePollAsync(int pollId, CancellationToken cancellationToken)
     {
         int rowsAffected = await _dbContext.Polls
             .Where(p => p.Id == pollId && !p.IsDeleted)
-            .ExecuteUpdateAsync(s => s.SetProperty(p => p.IsDeleted, true));
+            .ExecuteUpdateAsync(
+                s => s.SetProperty(p => p.IsDeleted, true),
+                cancellationToken
+                );
 
         return rowsAffected > 0;
     }

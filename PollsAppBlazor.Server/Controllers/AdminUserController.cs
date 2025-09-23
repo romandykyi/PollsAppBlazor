@@ -28,12 +28,12 @@ public class AdminUserController(IAdminUserService adminUserService) : Controlle
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<IActionResult> DeleteUserData([FromRoute] string userName)
+    public async Task<IActionResult> DeleteUserData([FromRoute] string userName, CancellationToken cancellationToken)
     {
         string currentUserName = User.Identity!.Name!;
         if (currentUserName == userName) return Conflict();
 
-        bool result = await _adminUserService.DeleteUserData(userName);
+        bool result = await _adminUserService.DeleteUserData(userName, cancellationToken);
         return result ? NoContent() : NotFound();
     }
 }

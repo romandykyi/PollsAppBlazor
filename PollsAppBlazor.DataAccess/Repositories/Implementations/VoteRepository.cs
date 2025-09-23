@@ -9,16 +9,16 @@ public class VoteRepository(ApplicationDbContext dbContext) : IVoteRepository
 {
     private readonly ApplicationDbContext _dbContext = dbContext;
 
-    public Task<int?> GetVotedOptionAsync(int pollId, string userId)
+    public Task<int?> GetVotedOptionAsync(int pollId, string userId, CancellationToken cancellationToken)
     {
         return _dbContext.Votes
             .AsNoTracking()
             .Where(v => v.PollId == pollId && v.UserId == userId)
             .Select(v => (int?)v.OptionId)
-            .FirstOrDefaultAsync();
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task AddVoteAsync(int pollId, int optionId, string userId)
+    public async Task AddVoteAsync(int pollId, int optionId, string userId, CancellationToken cancellationToken)
     {
         Vote vote = new()
         {
@@ -28,6 +28,6 @@ public class VoteRepository(ApplicationDbContext dbContext) : IVoteRepository
         };
 
         _dbContext.Votes.Add(vote);
-        await _dbContext.SaveChangesAsync();
+        await _dbContext.SaveChangesAsync(cancellationToken);
     }
 }

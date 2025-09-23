@@ -4,20 +4,15 @@ using PollsAppBlazor.Application.Services.Interfaces;
 
 namespace PollsAppBlazor.Server.Policy;
 
-public sealed class PollEditAuthorizationHandler : PollEditAuthorizationHandler<PollEditAuthorizationRequirement>
+public sealed class PollEditAuthorizationHandler(IPollService pollsService) :
+    PollEditAuthorizationHandler<PollEditAuthorizationRequirement>(pollsService)
 {
-    public PollEditAuthorizationHandler(IPollService pollsService) : base(pollsService) { }
 }
 
-public abstract class PollEditAuthorizationHandler<TRequirement> : EditAuthorizationHandler<TRequirement>
+public abstract class PollEditAuthorizationHandler<TRequirement>(IPollService pollsService) : EditAuthorizationHandler<TRequirement>
     where TRequirement : IAuthorizationRequirement
 {
-    private readonly IPollService _pollsService;
-
-    public PollEditAuthorizationHandler(IPollService pollsService)
-    {
-        _pollsService = pollsService;
-    }
+    private readonly IPollService _pollsService = pollsService;
 
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
         TRequirement requirement)
@@ -26,7 +21,7 @@ public abstract class PollEditAuthorizationHandler<TRequirement> : EditAuthoriza
 
         // Check whether user is a creator of the Poll
         int pollId = GetIntIdFromRoute(context, "pollId");
-        string? creatorId = await _pollsService.GetCreatorIdAsync(pollId);
+        string? creatorId = await _pollsService.GetCreatorIdAsync(pollId, CancellationToken.None);
         if (creatorId == context.User.GetSubjectId())
         {
             context.Succeed(requirement);

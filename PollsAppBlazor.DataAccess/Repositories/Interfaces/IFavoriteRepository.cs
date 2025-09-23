@@ -8,31 +8,34 @@ public interface IFavoriteRepository
     /// </summary>
     /// <param name="pollId">Poll's ID.</param>
     /// <param name="userId">User's ID.</param>
+    /// <param name="cancellationToken">The cancellation token to use.</param>
     /// <returns>
     /// <see langword="true"/> if the poll is marked as favorite;
     /// <see langword="false"/> if the favorite doesn't exist.
     /// </returns>
-    Task<bool> ExistsAsync(int pollId, string userId);
+    Task<bool> ExistsAsync(int pollId, string userId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Marks poll <paramref name="pollId"/> as favorite for the user <paramref name="userId"/>.
     /// </summary>
     /// <param name="pollId">Poll's ID.</param>
     /// <param name="userId">User's ID.</param>
+    /// <param name="cancellationToken">The cancellation token to use.</param>
     /// <returns>
     /// <see langword="true"/> if the poll was marked as favorite;
     /// <see langword="false"/> if the poll was already marked as favorite.
     /// </returns>
-    Task<bool> AddAsync(int pollId, string userId);
+    Task<bool> AddAsync(int pollId, string userId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Removes poll <paramref name="pollId"/> from favorites for the user <paramref name="userId"/>.
     /// </summary>
     /// <param name="pollId">Poll's ID.</param>
     /// <param name="userId">User's ID.</param>
+    /// <param name="cancellationToken">The cancellation token to use.</param>
     /// <returns>
     /// <see langword="true"/> if the poll was removed;
     /// <see langword="false"/> if the poll wasn't marked as favorite.
     /// </returns>
-    Task<bool> RemoveAsync(int pollId, string userId);
+    Task<bool> RemoveAsync(int pollId, string userId, CancellationToken cancellationToken);
 }
