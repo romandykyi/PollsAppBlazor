@@ -1,4 +1,5 @@
 ﻿@page "/polls/{pollId:int}/edit"
+
 @using Microsoft.AspNetCore.Authorization
 @using PollsAppBlazor.Shared.Polls
 @inject ISnackbar Snackbar
@@ -9,12 +10,14 @@
 <h2>Edit Poll</h2>
 @if (poll == null)
 {
+	<PageTitle>Edit Poll - PollsAppBlazor</PageTitle>
 	<p>
 		Loading...
 	</p>
 }
 else
 {
+	<PageTitle>Edit "@(poll.Title)" - PollsAppBlazor</PageTitle>
 	<ErrorsList Errors="serverErrors" />
 	<PollForm CanEditOptions="false" SubmitButtonText="Edit" Poll="@poll"
 			  OnSubmit="Submit" OnCancel="Cancel" />
