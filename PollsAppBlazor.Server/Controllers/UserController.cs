@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using PollsAppBlazor.Application.Services.Interfaces;
+using PollsAppBlazor.Application.Services.Results;
 using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.Server.Controllers;
@@ -84,42 +85,39 @@ public class UserController(
     }
 
     /// <summary>
-    /// Adds a poll to favorites for the current user
+    /// Adds (or removes) the poll to favorites for the current user
     /// </summary>
-    /// <response code="204">Poll was added to favorites</response>
+    /// <response code="204">Poll's favorite status was changed or already or was already in the requested state.</response>
     /// <response code="401">Unauthorized user call</response>
     /// <response code="404">Poll was not found</response>
+    /// <response code="410">Poll was deleted</response>
     [HttpPut]
     [Route("favorites/{pollId}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> AddToFavorites([FromRoute] int pollId, CancellationToken cancellationToken)
+    [ProducesResponseType(StatusCodes.Status410Gone)]
+    public async Task<IActionResult> SetFavoritesState(
+        [FromRoute] int pollId,
+        [FromBody] SetPollFavoriteStateDto dto,
+        CancellationToken cancellationToken
+        )
     {
-        if (await _favoritesService.AddToFavoritesAsync(pollId, User.GetSubjectId(), cancellationToken))
+        if (!ModelState.IsValid)
         {
-            return NoContent();
+            return BadRequest(ModelState);
         }
-        return NotFound();
-    }
 
-    /// <summary>
-    /// Removes a poll from the favorites for the current user
-    /// </summary>
-    /// <response code="204">Poll was removed from favorites</response>
-    /// <response code="401">Unauthorized user call</response>
-    /// <response code="404">Poll wasn't in favorites</response>
-    [HttpDelete]
-    [Route("favorites/{pollId}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Remove([FromRoute] int pollId, CancellationToken cancellationToken)
-    {
-        if (await _favoritesService.RemoveFromFavoritesAsync(pollId, User.GetSubjectId(), cancellationToken))
+        string userId = User.Identity.GetSubjectId();
+        var result = await _favoritesService
+            .SetPollFavoriteState(pollId, userId, dto.IsInFavorites, cancellationToken);
+
+        return result switch
         {
-            return NoContent();
-        }
-        return NotFound();
+            SetFavoriteStateResult.Success => NoContent(),
+            SetFavoriteStateResult.NotFound => NotFound(),
+            SetFavoriteStateResult.Deleted => StatusCode(StatusCodes.Status410Gone),
+            _ => throw new InvalidOperationException($"Invalid {nameof(SetFavoriteStateResult)} value: {result}.")
+        };
     }
 }

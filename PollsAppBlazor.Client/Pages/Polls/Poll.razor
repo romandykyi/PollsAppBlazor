@@ -330,8 +330,8 @@ else
 		string uri = $"api/user/favorites/{pollId}";
 		var http = PublicClient.Client;
 
-		HttpResponseMessage response = favorite ?
-					await http.PutAsync(uri, null) : await http.DeleteAsync(uri);
+		SetPollFavoriteStateDto dto = new() { IsInFavorites = favorite };
+		HttpResponseMessage response = await http.PutAsJsonAsync(uri, dto);
 		try
 		{
 			response.EnsureSuccessStatusCode();

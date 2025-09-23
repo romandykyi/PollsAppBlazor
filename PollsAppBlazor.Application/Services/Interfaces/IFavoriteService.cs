@@ -1,4 +1,6 @@
-﻿namespace PollsAppBlazor.Application.Services.Interfaces;
+﻿using PollsAppBlazor.Application.Services.Results;
+
+namespace PollsAppBlazor.Application.Services.Interfaces;
 
 /// <summary>
 /// Service for managing user's favorite polls.
@@ -6,29 +8,12 @@
 public interface IFavoriteService
 {
     /// <summary>
-    /// Adds a poll to favorites for the user.
+    /// Sets the poll's favorite state to <paramref name="value"/> for the current user.
     /// </summary>
-    /// <remarks>
-    /// If the Poll is already in favorites, then nothing will happen.
-    /// </remarks>
-    /// <param name="pollId">ID of the Poll to be added to favorites.</param>
-    /// <param name="userId">ID of the user.</param>
+    /// <param name="pollId">ID of the poll.</param>
+    /// <param name="userId">ID of the caller.</param>
+    /// <param name="value">A boolean value to set.</param>
     /// <param name="cancellationToken">The cancellation token to use.</param>
-    /// <returns>
-    /// <see langword="true" /> if the Poll was added to favorites or was already in favorites;
-    /// otherwise <see langword="false" /> if the Poll was not found.
-    /// </returns>
-    Task<bool> AddToFavoritesAsync(int pollId, string userId, CancellationToken cancellationToken);
-
-    /// <summary>
-    /// Removes a poll from favorites for the user.
-    /// </summary>
-    /// <param name="pollId">ID of the Poll to be removed from favorites.</param>
-    /// <param name="userId">ID of the user.</param>
-    /// <param name="cancellationToken">The cancellation token to use.</param>
-    /// <returns>
-    /// <see langword="true" /> if the Poll was successfully removed from favorites;
-    /// otherwise <see langword="false" /> if Poll wasn't in favorites.
-    /// </returns>
-    Task<bool> RemoveFromFavoritesAsync(int pollId, string userId, CancellationToken cancellationToken);
+    /// <returns>The result of the operation.</returns>
+    Task<SetFavoriteStateResult> SetPollFavoriteState(int pollId, string userId, bool value, CancellationToken cancellationToken);
 }

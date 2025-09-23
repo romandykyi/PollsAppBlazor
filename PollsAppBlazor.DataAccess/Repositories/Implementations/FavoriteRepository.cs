@@ -8,12 +8,21 @@ namespace PollsAppBlazor.DataAccess.Repositories.Implementations;
 public class FavoriteRepository(ApplicationDbContext dbContext) : IFavoriteRepository
 {
     private readonly ApplicationDbContext _dbContext = dbContext;
+    private readonly Dictionary<int, bool> _existsLookup = [];
 
-    public Task<bool> ExistsAsync(int pollId, string userId, CancellationToken cancellationToken)
+    public async Task<bool> ExistsAsync(int pollId, string userId, CancellationToken cancellationToken)
     {
-        return _dbContext.Favorites
+        if (_existsLookup.TryGetValue(pollId, out var exists))
+        {
+            return exists;
+        }
+
+        bool result = await _dbContext.Favorites
             .AsNoTracking()
             .AnyAsync(f => f.PollId == pollId && f.UserId == userId, cancellationToken);
+
+        _existsLookup[pollId] = result;
+        return result;
     }
 
     public async Task<bool> AddAsync(int pollId, string userId, CancellationToken cancellationToken)
@@ -29,6 +38,8 @@ public class FavoriteRepository(ApplicationDbContext dbContext) : IFavoriteRepos
 
             _dbContext.Add(favorite);
             await _dbContext.SaveChangesAsync(cancellationToken);
+
+            _existsLookup[pollId] = true;
         }
 
         return true;
@@ -40,6 +51,11 @@ public class FavoriteRepository(ApplicationDbContext dbContext) : IFavoriteRepos
             .Where(f => f.PollId == pollId && f.UserId == userId)
             .ExecuteDeleteAsync(cancellationToken);
 
-        return entriesRemoved > 0;
+        if (entriesRemoved > 0)
+        {
+            _existsLookup[pollId] = false;
+            return true;
+        }
+        return false;
     }
 }
