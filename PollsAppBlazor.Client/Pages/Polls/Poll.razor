@@ -23,6 +23,8 @@
 {
 	@if (deleted)
 	{
+		<PageTitle>Deleted Poll - PollsAppBlazor</PageTitle>
+
 		<MudText Typo="Typo.h3">Deleted Poll</MudText>
 		<MudText>
 			Sorry, this poll has been deleted and is no longer available.
@@ -30,6 +32,8 @@
 	}
 	else
 	{
+		<PageTitle>PollsAppBlazor</PageTitle>
+
 		<MudText>
 			Loading...
 		</MudText>
@@ -37,6 +41,7 @@
 }
 else
 {
+	<PageTitle>@poll.Title - PollsAppBlazor</PageTitle>
 	<h2>
 		@poll.Title
 		@if (isInFavorites != null)
@@ -44,7 +49,7 @@ else
 			<MudCheckBox Class="d-inline-flex"
 						 @bind-Value="isInFavorites"
 						 @bind-Value:after="OnFavoriteStatusChangedAsync"
-                         Disabled="@(!authenticated)"
+						 Disabled="@(!authenticated)"
 						 CheckedIcon="@Icons.Material.Filled.Star"
 						 UncheckedIcon="@Icons.Material.Filled.StarBorder"
 						 Color="Color.Warning"
@@ -204,11 +209,11 @@ else
 				bool isModerator = user.FindAll("role").Any(x => x.Value == "Administrator" || x.Value == "Moderator");
 				canEdit = isModerator || (userId != null && userId == poll.Creator.Id);
 
-                authenticated = true;
+				authenticated = true;
 			}
 			else
 			{
-                authenticated = false;
+				authenticated = false;
 				canEdit = false;
 			}
 		}
@@ -236,7 +241,7 @@ else
 		parameters.Add(x => x.ContentText, $"Are you sure you want to Delete poll \"{poll.Title}\"?");
 		parameters.Add(x => x.Color, Color.Error);
 
-		DialogOptions  options = new() { Position = DialogPosition.TopCenter };
+		DialogOptions options = new() { Position = DialogPosition.TopCenter };
 
 		var dialog = await DialogService.ShowAsync<DialogTemplate>("Confirm Delete", parameters, options);
 		var result = await dialog.Result;
@@ -335,7 +340,7 @@ else
 		}
 		catch (HttpRequestException)
 		{
-            isInFavorites = !favorite; // revert
+			isInFavorites = !favorite; // revert
 			Snackbar.UnexpectedError();
 		}
 	}

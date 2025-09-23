@@ -1,0 +1,8 @@
+﻿@page "/user/polls"
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize]
+
+<h2>Your Polls</h2>
+
+<PollsTable HttpGetPath="api/user/polls" ShowPublishedByColumn="false"
+			Filter="@(new() {ShowExpired = true})" />
