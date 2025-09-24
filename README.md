@@ -2,7 +2,7 @@
 
 A functional personal project: a simple polls web app built with ASP.NET Core and Blazor WebAssembly. Designed for general users, it allows creating polls, voting anonymously, and managing favorites.
 
-Live demo: https//pollsappblazor.online
+Live demo: https://pollsappblazor.online
 
 ## Features
 
