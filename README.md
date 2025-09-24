@@ -79,8 +79,8 @@ PollsAppBlazor follows a layered architecture with clear separation of concerns:
 
 ### Admin Access (local development only)
 
--- Login: ```admin```
--- Password: ```P@ssw0rd1sNotS3cur3^:(```
+- Login: ```admin```
+ Password: ```P@ssw0rd1sNotS3cur3^:(```
 
 ## Screenshots
 
