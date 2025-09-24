@@ -78,6 +78,10 @@ else
 		{
 			Snackbar.Add("Poll doesn't exist anymore", Severity.Error);
 		}
+		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.Forbidden)
+		{
+			Snackbar.Add("You cannot edit this poll", Severity.Error);
+		}
 		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.BadRequest)
 		{
 			serverErrors = await response.Content.ExtractErrorsAsync().ToArrayAsync();

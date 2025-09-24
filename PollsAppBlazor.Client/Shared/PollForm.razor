@@ -17,8 +17,7 @@
 		<Info Message="The date after which the poll becomes unavailable for new votes, and old votes become visible to everyone" />
 	</MudStack>
 	<MudStack Row="true">
-		<MudCheckBox @bind-Checked="Poll.ResultsVisibleBeforeVoting"
-					 For="@(() => Poll.ResultsVisibleBeforeVoting)"
+		<MudCheckBox @bind-Value="Poll.ResultsVisibleBeforeVoting"
 					 Label="Show results before voting" Color="Color.Primary" />
 		<Info Message="If checked, everyone can see results of the poll. If unchecked, only users who previously voted can see results, but after poll is expired everyone can see results." />
 	</MudStack>
