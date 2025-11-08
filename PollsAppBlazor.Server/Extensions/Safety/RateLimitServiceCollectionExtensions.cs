@@ -1,5 +1,5 @@
-﻿using IdentityModel;
-using Microsoft.AspNetCore.RateLimiting;
+﻿using Microsoft.AspNetCore.RateLimiting;
+using PollsAppBlazor.Application.Auth;
 using PollsAppBlazor.Server.Policy;
 using System.Threading.RateLimiting;
 
@@ -26,7 +26,7 @@ public static class RateLimitServiceCollectionExtensions
     {
         return options.AddPolicy(policyName, context =>
         {
-            string userId = context.User.FindFirst(JwtClaimTypes.Subject)?.Value ?? "unknown";
+            string userId = context.User.FindFirst(AppJwtClaim.UserId)?.Value ?? "unknown";
             return RateLimitPartition.GetFixedWindowLimiter(userId, _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = permitLimit,

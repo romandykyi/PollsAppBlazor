@@ -1,9 +1,9 @@
-﻿using Duende.IdentityServer.Extensions;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using PollsAppBlazor.Application.Services.Interfaces;
 using PollsAppBlazor.Application.Services.Results;
+using PollsAppBlazor.Server.Extensions.Utils;
 using PollsAppBlazor.Shared.Polls;
 
 namespace PollsAppBlazor.Server.Controllers;
@@ -46,7 +46,7 @@ public class UserController(
         {
             return BadRequest(ModelState);
         }
-        string userId = User.GetSubjectId();
+        string userId = User.GetUserId();
 
         return Ok(await _userService.GetPollsAsync(parameters, userId, cancellationToken));
     }
@@ -79,7 +79,7 @@ public class UserController(
         {
             return BadRequest(ModelState);
         }
-        string userId = User.Identity.GetSubjectId();
+        string userId = User.GetUserId();
 
         return Ok(await _userService.GetFavoritePollsAsync(parameters, userId, cancellationToken));
     }
@@ -108,7 +108,7 @@ public class UserController(
             return BadRequest(ModelState);
         }
 
-        string userId = User.Identity.GetSubjectId();
+        string userId = User.GetUserId();
         var result = await _favoritesService
             .SetPollFavoriteState(pollId, userId, dto.IsInFavorites, cancellationToken);
 

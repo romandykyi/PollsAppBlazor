@@ -1,6 +1,6 @@
-﻿using Duende.IdentityServer.Extensions;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using PollsAppBlazor.Application.Services.Interfaces;
+using PollsAppBlazor.Server.Extensions.Utils;
 
 namespace PollsAppBlazor.Server.Policy;
 
@@ -22,7 +22,7 @@ public abstract class PollEditAuthorizationHandler<TRequirement>(IPollService po
         // Check whether user is a creator of the Poll
         int pollId = GetIntIdFromRoute(context, "pollId");
         string? creatorId = await _pollsService.GetCreatorIdAsync(pollId, CancellationToken.None);
-        if (creatorId == context.User.GetSubjectId())
+        if (creatorId == context.User.GetUserId())
         {
             context.Succeed(requirement);
         }
