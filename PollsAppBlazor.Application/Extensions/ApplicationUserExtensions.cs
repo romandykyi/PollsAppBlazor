@@ -1,4 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
+using PollsAppBlazor.Application.Auth;
 using PollsAppBlazor.Application.Options;
 using PollsAppBlazor.Application.Services.Auth;
 using PollsAppBlazor.Server.DataAccess.Models;

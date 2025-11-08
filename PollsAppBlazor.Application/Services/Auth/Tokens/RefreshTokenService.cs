@@ -34,7 +34,7 @@ public class RefreshTokenService(
         string tokenValue;
         using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
         {
-            int bytesSize = 4 * _tokenOptions.Size / 3 + 3 & ~3;
+            int bytesSize = ((4 * _tokenOptions.Size / 3) + 3) & ~3;
             byte[] refreshTokenBytes = new byte[bytesSize];
             rng.GetBytes(refreshTokenBytes);
             tokenValue = Convert.ToBase64String(refreshTokenBytes);
