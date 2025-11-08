@@ -1,4 +1,4 @@
-﻿namespace PollsAppBlazor.Application.Auth;
+﻿namespace PollsAppBlazor.Application.Services.Auth;
 
 // Login
 public enum LoginFailureReason
@@ -14,9 +14,12 @@ public class LoginResult
 {
     public bool Succeeded { get; init; }
     public LoginFailureReason FailureReason { get; init; } = LoginFailureReason.None;
+    public string? AccessToken { get; init; }
+    public string? RefreshToken { get; init; }
     public string? ErrorMessage { get; init; }
 
-    public static LoginResult Success() => new() { Succeeded = true };
+    public static LoginResult Success(string accessToken, string refreshToken) =>
+        new() { Succeeded = true, AccessToken = accessToken, RefreshToken = refreshToken };
     public static LoginResult Fail(LoginFailureReason reason, string? message = null) =>
         new() { Succeeded = false, FailureReason = reason, ErrorMessage = message };
 }

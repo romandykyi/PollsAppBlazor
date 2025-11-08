@@ -8,7 +8,7 @@ using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Shared.Users;
 using System.Text;
 
-namespace PollsAppBlazor.Application.Auth;
+namespace PollsAppBlazor.Application.Services.Auth;
 
 public class AuthService(
     UserManager<ApplicationUser> userManager,

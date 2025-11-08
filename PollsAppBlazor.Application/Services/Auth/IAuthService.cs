@@ -1,6 +1,6 @@
 ﻿using PollsAppBlazor.Shared.Users;
 
-namespace PollsAppBlazor.Application.Auth;
+namespace PollsAppBlazor.Application.Services.Auth;
 
 public interface IAuthService
 {

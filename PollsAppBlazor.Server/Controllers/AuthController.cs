@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using PollsAppBlazor.Application.Auth;
+using PollsAppBlazor.Application.Services.Auth;
 using PollsAppBlazor.Server.Policy;
 using PollsAppBlazor.Shared.Auth;
 using PollsAppBlazor.Shared.Users;
@@ -37,7 +37,11 @@ public class AuthController(IAuthService authService) : ControllerBase
 
         var result = await _authService.LogInAsync(login, cancellationToken);
 
-        if (result.Succeeded) return NoContent();
+        if (result.Succeeded)
+        {
+            accessDto = new(result.AccessToken!);
+            return Ok(accessDto);
+        }
 
         InvalidLoginAttemptResponse response = result.FailureReason switch
         {

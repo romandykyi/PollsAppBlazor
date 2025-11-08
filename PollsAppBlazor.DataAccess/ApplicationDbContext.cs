@@ -1,23 +1,19 @@
-﻿using Duende.IdentityServer.EntityFramework.Options;
-using Microsoft.AspNetCore.ApiAuthorization.IdentityServer;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
+using PollsAppBlazor.DataAccess.Models;
 using PollsAppBlazor.Server.DataAccess.Models;
 
 namespace PollsAppBlazor.Server.DataAccess;
 
-public class ApplicationDbContext : ApiAuthorizationDbContext<ApplicationUser>
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) :
+    IdentityDbContext<ApplicationUser, IdentityRole, string>(options)
 {
     public DbSet<Poll> Polls { get; set; }
     public DbSet<Option> Options { get; set; }
     public DbSet<Vote> Votes { get; set; }
     public DbSet<Favorite> Favorites { get; set; }
-
-    public ApplicationDbContext(
-        DbContextOptions options,
-        IOptions<OperationalStoreOptions> operationalStoreOptions) : base(options, operationalStoreOptions)
-    {
-    }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

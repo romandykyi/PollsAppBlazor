@@ -1,9 +1,9 @@
-﻿using Duende.IdentityServer.Extensions;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using PollsAppBlazor.Application.Services.Interfaces;
 using PollsAppBlazor.Application.Services.Results;
+using PollsAppBlazor.Server.Extensions.Utils;
 using PollsAppBlazor.Server.Policy;
 
 namespace PollsAppBlazor.Server.Controllers;
@@ -42,7 +42,7 @@ public class OptionsController(IVoteService votesService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Vote([FromRoute] int optionId, CancellationToken cancellationToken)
     {
-        return await _votesService.VoteAsync(optionId, User.GetSubjectId(), cancellationToken) switch
+        return await _votesService.VoteAsync(optionId, User.GetUserId(), cancellationToken) switch
         {
             VoteServiceResult.Success => NoContent(),
             VoteServiceResult.PollExpired => ForbidVote("The poll is not available for voting."),

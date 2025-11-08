@@ -1,5 +1,4 @@
-﻿using Duende.IdentityServer.Extensions;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -7,6 +6,7 @@ using PollsAppBlazor.Application.Services.Interfaces;
 using PollsAppBlazor.Application.Services.Results;
 using PollsAppBlazor.DataAccess.Repositories.Results;
 using PollsAppBlazor.Server.Extensions.Results;
+using PollsAppBlazor.Server.Extensions.Utils;
 using PollsAppBlazor.Server.Policy;
 using PollsAppBlazor.Shared.Polls;
 
@@ -35,7 +35,7 @@ public class PollsController(IPollService pollsService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status410Gone)]
     public async Task<IActionResult> GetById([FromRoute] int pollId)
     {
-        string? userId = User.IsAuthenticated() ? User.GetSubjectId() : null;
+        string? userId = User.IsAuthenticated() ? User.GetUserId() : null;
         var result = await _pollsService.GetByIdAsync(pollId, userId);
 
         return result.ToActionResult();
@@ -86,7 +86,7 @@ public class PollsController(IPollService pollsService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status410Gone)]
     public async Task<IActionResult> GetOptions([FromRoute] int pollId, CancellationToken cancellationToken)
     {
-        string? userId = User.IsAuthenticated() ? User.GetSubjectId() : null;
+        string? userId = User.IsAuthenticated() ? User.GetUserId() : null;
         var result = await _pollsService.GetOptionsWithVotesAsync(pollId, userId, cancellationToken);
 
         return result.Status switch
@@ -126,7 +126,7 @@ public class PollsController(IPollService pollsService) : ControllerBase
             return BadRequest(ModelState);
         }
 
-        string userId = User.GetSubjectId();
+        string userId = User.GetUserId();
         PollViewDto result = await _pollsService.CreatePollAsync(poll, userId, cancellationToken);
         var routeValues = new { pollId = result.Id };
 

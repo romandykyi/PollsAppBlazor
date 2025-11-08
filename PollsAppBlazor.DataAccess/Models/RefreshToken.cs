@@ -1,0 +1,44 @@
+﻿using Microsoft.EntityFrameworkCore;
+using PollsAppBlazor.Server.DataAccess.Models;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace PollsAppBlazor.DataAccess.Models;
+
+/// <summary>
+/// A class that represents the refresh token entity.
+/// </summary>
+[Index(nameof(TokenValue), Name = "IX_TokenValue", IsUnique = true)]
+public class RefreshToken
+{
+    /// <summary>
+    /// Maximum allowed length for the <see cref="TokenValue"/> property.
+    /// </summary>
+    public const int MaxTokenLength = 128;
+
+    /// <summary>
+    /// A primary key.
+    /// </summary>
+    [Key]
+    public int TokenId { get; set; }
+
+    /// <summary>
+    /// String value of the token.
+    /// </summary>
+    [MaxLength(MaxTokenLength)]
+    public required string TokenValue { get; set; }
+    /// <summary>
+    /// ID of the user who owns this token.
+    /// </summary>
+    [ForeignKey(nameof(User))]
+    public string UserId { get; set; } = null!;
+    /// <summary>
+    /// Date after which the token becomes invalid.
+    /// </summary>
+    public required DateTime ValidTo { get; set; }
+
+    /// <summary>
+    /// Navigation property to the user who owns this token.
+    /// </summary>
+    public ApplicationUser User { get; set; } = null!;
+}

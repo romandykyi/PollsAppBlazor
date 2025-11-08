@@ -1,5 +1,5 @@
-﻿using Duende.IdentityServer.Extensions;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
+using PollsAppBlazor.Server.Extensions.Utils;
 
 namespace PollsAppBlazor.Server.Policy;
 
