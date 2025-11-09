@@ -30,6 +30,18 @@ public class RefreshTokenRepository(ApplicationDbContext dbContext) : IRefreshTo
             .SingleOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<bool> ReplaceAsync(string oldTokenValue, string newTokenValue, CancellationToken cancellationToken)
+    {
+        int updated = await _dbContext.RefreshTokens
+            .Where(x => x.TokenValue == oldTokenValue)
+            .ExecuteUpdateAsync(
+                x => x.SetProperty(p => p.TokenValue, p => newTokenValue),
+                cancellationToken
+                );
+
+        return updated > 0;
+    }
+
     public async Task<bool> RevokeAsync(string tokenValue, CancellationToken cancellationToken)
     {
         int removed = await _dbContext.RefreshTokens

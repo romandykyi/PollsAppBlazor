@@ -20,6 +20,7 @@ public class AuthSessionManager(
     {
         var roles = await userManager.GetRolesAsync(user);
 
+        _cookieService.DeleteRefreshTokenCookie();
         string accessToken = _accessTokenService.GenerateAccessToken(user, roles);
         _cookieService.SetRefreshTokenCookie(
             refreshToken.Value,

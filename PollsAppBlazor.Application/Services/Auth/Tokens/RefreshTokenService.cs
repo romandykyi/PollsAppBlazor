@@ -16,6 +16,19 @@ public class RefreshTokenService(
     private readonly IRefreshTokenRepository _repository = repository;
     private readonly RefreshTokenOptions _tokenOptions = options.Value;
 
+    private string GenerateTokenValue()
+    {
+        string tokenValue;
+        using RandomNumberGenerator rng = RandomNumberGenerator.Create();
+
+        int bytesSize = ((4 * _tokenOptions.Size / 3) + 3) & ~3;
+        byte[] refreshTokenBytes = new byte[bytesSize];
+        rng.GetBytes(refreshTokenBytes);
+        tokenValue = Convert.ToBase64String(refreshTokenBytes);
+
+        return tokenValue;
+    }
+
     /// <summary>
     /// Generates a refresh token for the user and saves it asynchronously.
     /// </summary>
@@ -32,14 +45,7 @@ public class RefreshTokenService(
             return null;
 
         // Generate a token
-        string tokenValue;
-        using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
-        {
-            int bytesSize = ((4 * _tokenOptions.Size / 3) + 3) & ~3;
-            byte[] refreshTokenBytes = new byte[bytesSize];
-            rng.GetBytes(refreshTokenBytes);
-            tokenValue = Convert.ToBase64String(refreshTokenBytes);
-        }
+        string tokenValue = GenerateTokenValue();
 
         // Set the expiration date and assign token to the user
         DateTime validTo = persistent ?
@@ -104,8 +110,13 @@ public class RefreshTokenService(
             return RefreshTokenValidationResult.Fail(RefreshFailureReason.ExpiredToken);
         }
 
-        RefreshTokenValue updatedValue = new(refreshToken.TokenValue, refreshToken.Persistent, refreshToken.ValidTo);
+        string newTokenValue = GenerateTokenValue();
+        if (!await _repository.ReplaceAsync(token, newTokenValue, cancellationToken))
+        {
+            return RefreshTokenValidationResult.Fail(RefreshFailureReason.InvalidToken);
+        }
 
+        RefreshTokenValue updatedValue = new(newTokenValue, refreshToken.Persistent, refreshToken.ValidTo);
         return RefreshTokenValidationResult.Success(updatedValue, refreshToken.UserId);
     }
 }

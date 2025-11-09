@@ -9,6 +9,8 @@ public interface IRefreshTokenRepository
 
     Task CreateAsync(string userId, RefreshTokenValue token, CancellationToken cancellationToken);
 
+    Task<bool> ReplaceAsync(string oldTokenValue, string newTokenValue, CancellationToken cancellationToken);
+
     Task<bool> RevokeAsync(string tokenValue, CancellationToken cancellationToken);
 
     Task<bool> RevokeAllUserTokensAsync(string userId, CancellationToken cancellationToken);
