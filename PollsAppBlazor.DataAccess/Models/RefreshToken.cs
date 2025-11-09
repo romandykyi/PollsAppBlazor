@@ -14,7 +14,7 @@ public class RefreshToken
     /// <summary>
     /// Maximum allowed length for the <see cref="TokenValue"/> property.
     /// </summary>
-    public const int MaxTokenLength = 128;
+    public const int MaxTokenLength = 256;
 
     /// <summary>
     /// A primary key.

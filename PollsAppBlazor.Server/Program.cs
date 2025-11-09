@@ -60,8 +60,6 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseRateLimiter();
 
-app.UseCookiePolicy();
-
 app.UseAuthentication();
 app.UseAuthorization();
 

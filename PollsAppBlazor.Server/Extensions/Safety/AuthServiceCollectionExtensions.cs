@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -19,7 +20,7 @@ public static class AuthServiceCollectionExtensions
     public static IServiceCollection ConfigureIdentity(this IServiceCollection services)
     {
         services
-            .AddIdentity<ApplicationUser, IdentityRole>(options =>
+            .AddIdentityCore<ApplicationUser>(options =>
             {
                 options.Password.RequireDigit = true;
                 options.Password.RequireLowercase = true;
@@ -37,6 +38,7 @@ public static class AuthServiceCollectionExtensions
                 options.User.RequireUniqueEmail = true;
                 options.User.AllowedUserNameCharacters = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890_";
             })
+            .AddRoles<IdentityRole>()
             .AddDefaultTokenProviders()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddApiEndpoints();
@@ -46,7 +48,12 @@ public static class AuthServiceCollectionExtensions
 
     public static IServiceCollection AddCustomizedAuthentication(this IServiceCollection services)
     {
-        services.AddAuthentication()
+        services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
             .AddJwtBearer(options =>
             {
                 ServiceProvider sp = services.BuildServiceProvider();

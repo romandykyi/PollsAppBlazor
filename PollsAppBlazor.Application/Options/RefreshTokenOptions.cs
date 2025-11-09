@@ -20,5 +20,5 @@ public class RefreshTokenOptions
     /// </summary>
     public int ShortExpirationMinutes { get; set; }
 
-    public const string SectionName = "Auth:Refresh";
+    public const string SectionName = "Auth:RefreshToken";
 }

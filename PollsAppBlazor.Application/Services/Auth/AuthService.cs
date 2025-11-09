@@ -50,7 +50,7 @@ public class AuthService(
             return LoginResult.Fail(LoginFailureReason.InvalidCredentials, "Invalid login attempt.");
         }
 
-        var result = await _signInManager.PasswordSignInAsync(user, loginDto.Password, loginDto.RememberMe, lockoutOnFailure: true);
+        var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, lockoutOnFailure: true);
         if (result.Succeeded)
         {
             var session = await _sessionManager.StartSessionAsync(user, loginDto.RememberMe, cancellationToken);
@@ -196,6 +196,5 @@ public class AuthService(
     public async Task LogOutAsync(string userId, CancellationToken cancellationToken = default)
     {
         await _sessionManager.InvalidateCurrentSessionAsync(userId, cancellationToken);
-        await _signInManager.SignOutAsync();
     }
 }

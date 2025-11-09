@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text.Json.Serialization;
 
@@ -29,6 +30,25 @@ public static class APIServiceCollectionExtensions
     {
         services.AddSwaggerGen(options =>
         {
+            options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+            {
+                In = ParameterLocation.Header,
+                Description = "Please, enter access token (JWT)",
+                Name = "Authorization",
+                Type = SecuritySchemeType.ApiKey
+            });
+
+            OpenApiSecurityScheme scheme = new()
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            };
+
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement { { scheme, Array.Empty<string>() } });
+
             options.SwaggerDoc("v1", new()
             {
                 Title = "Polls App",
