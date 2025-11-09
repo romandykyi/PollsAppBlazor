@@ -54,17 +54,29 @@ public class RefreshTokenService(
     }
 
     /// <summary>
+    /// Revokes all refresh tokens of the user asynchronously.
+    /// </summary>
+    /// <param name="userId">ID of the user whose tokens will be revoked.</param>
+    /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
+    /// <returns>
+    /// <see langword="true" /> on success; <see langword="false" /> otherwise.
+    /// </returns>
+    public Task<bool> RevokeAllUserTokensAsync(string userId, CancellationToken cancellationToken)
+    {
+        return _repository.RevokeAllUserTokensAsync(userId, cancellationToken);
+    }
+
+    /// <summary>
     /// Revokes the refresh token of the user asynchronously
     /// </summary>
-    /// <param name="userId">ID of the user whose token is being revoked.</param>
     /// <param name="token">Value of the token to be revoked.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
     /// <returns>
     /// <see langword="true" /> on success; <see langword="false" /> otherwise.
     /// </returns>
-    public Task<bool> RevokeAsync(string userId, string token, CancellationToken cancellationToken)
+    public Task<bool> RevokeAsync(string token, CancellationToken cancellationToken)
     {
-        return _repository.RevokeAsync(userId, token, cancellationToken);
+        return _repository.RevokeAsync(token, cancellationToken);
     }
 
     /// <summary>
@@ -73,24 +85,27 @@ public class RefreshTokenService(
     /// <remarks>
     /// May rotate the token value as a side effect.
     /// </remarks>
-    /// <param name="userId">ID of the user whose token is being validated.</param>
     /// <param name="token">Value of the token to be validated.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
     /// <returns>
     /// A task that represents the asynchronous operation. 
-    /// The task result contains the validated refresh token value or 
-    /// <see langword="null" /> if the token is invalid.
+    /// The task result contains the validation result.
     /// </returns>
-    public async Task<RefreshTokenValue?> ValidateAsync(string userId, string token, CancellationToken cancellationToken)
+    public async Task<RefreshTokenValidationResult> ValidateAsync(string token, CancellationToken cancellationToken)
     {
-        var refreshToken = await _repository.GetAsync(userId, token, cancellationToken);
+        var refreshToken = await _repository.GetAsync(token, cancellationToken);
 
-        if (refreshToken == null || DateTime.UtcNow > refreshToken.ExpiresAt)
+        if (refreshToken == null)
         {
-            // Token is invalid or expired
-            return null;
+            return RefreshTokenValidationResult.Fail(RefreshFailureReason.InvalidToken);
+        }
+        if (DateTime.UtcNow > refreshToken.ValidTo)
+        {
+            return RefreshTokenValidationResult.Fail(RefreshFailureReason.ExpiredToken);
         }
 
-        return new RefreshTokenValue(refreshToken.Value, refreshToken.Persistent, refreshToken.ExpiresAt);
+        RefreshTokenValue updatedValue = new(refreshToken.TokenValue, refreshToken.Persistent, refreshToken.ValidTo);
+
+        return RefreshTokenValidationResult.Success(updatedValue, refreshToken.UserId);
     }
 }

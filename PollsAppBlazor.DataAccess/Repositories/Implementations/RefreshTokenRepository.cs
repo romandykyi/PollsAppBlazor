@@ -10,15 +10,6 @@ public class RefreshTokenRepository(ApplicationDbContext dbContext) : IRefreshTo
 {
     private readonly ApplicationDbContext _dbContext = dbContext;
 
-    public Task<RefreshTokenValue?> GetAsync(string userId, string tokenValue, CancellationToken cancellationToken)
-    {
-        return _dbContext.RefreshTokens
-            .AsNoTracking()
-            .Where(x => x.UserId == userId && x.TokenValue == tokenValue)
-            .Select(token => new RefreshTokenValue(token.TokenValue, token.Persistent, token.ValidTo))
-            .SingleOrDefaultAsync(cancellationToken);
-    }
-
     public Task CreateAsync(string userId, RefreshTokenValue token, CancellationToken cancellationToken)
     {
         _dbContext.RefreshTokens.Add(new RefreshToken
@@ -31,10 +22,27 @@ public class RefreshTokenRepository(ApplicationDbContext dbContext) : IRefreshTo
         return _dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<bool> RevokeAsync(string userId, string tokenValue, CancellationToken cancellationToken)
+    public Task<RefreshToken?> GetAsync(string tokenValue, CancellationToken cancellationToken)
+    {
+        return _dbContext.RefreshTokens
+            .AsNoTracking()
+            .Where(x => x.TokenValue == tokenValue)
+            .SingleOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<bool> RevokeAsync(string tokenValue, CancellationToken cancellationToken)
     {
         int removed = await _dbContext.RefreshTokens
-            .Where(x => x.UserId == userId && x.TokenValue == tokenValue)
+            .Where(x => x.TokenValue == tokenValue)
+            .ExecuteDeleteAsync(cancellationToken);
+
+        return removed > 0;
+    }
+
+    public async Task<bool> RevokeAllUserTokensAsync(string userId, CancellationToken cancellationToken)
+    {
+        int removed = await _dbContext.RefreshTokens
+            .Where(x => x.UserId == userId)
             .ExecuteDeleteAsync(cancellationToken);
 
         return removed > 0;

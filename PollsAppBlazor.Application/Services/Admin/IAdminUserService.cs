@@ -1,4 +1,4 @@
-﻿namespace PollsAppBlazor.Application.Admin;
+﻿namespace PollsAppBlazor.Application.Services.Admin;
 
 public interface IAdminUserService
 {

@@ -12,7 +12,7 @@ public interface IAuthService
     /// <summary>
     /// Attempts to refresh an access token.
     /// </summary>
-    Task<RefreshResult> RefreshAsync(RefreshDto refreshDto, CancellationToken cancellationToken = default);
+    Task<RefreshResult> RefreshAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Registers a new user.
@@ -37,5 +37,5 @@ public interface IAuthService
     /// <summary>
     /// Logs out the current user (clears cookies / auth session).
     /// </summary>
-    Task LogOutAsync(string userId, CancellationToken cancellationToken = default);
+    Task LogOutAsync(CancellationToken cancellationToken = default);
 }

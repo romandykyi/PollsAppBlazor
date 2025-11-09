@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using PollsAppBlazor.Application.Admin;
+using PollsAppBlazor.Application.Services.Admin;
 using PollsAppBlazor.Shared.Users;
 
 namespace PollsAppBlazor.Server.Controllers;

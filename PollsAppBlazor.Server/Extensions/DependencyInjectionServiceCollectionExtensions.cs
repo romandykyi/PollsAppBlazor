@@ -1,4 +1,4 @@
-﻿using PollsAppBlazor.Application.Admin;
+﻿using PollsAppBlazor.Application.Services.Admin;
 using PollsAppBlazor.Application.Services.Implementations;
 using PollsAppBlazor.Application.Services.Interfaces;
 using PollsAppBlazor.DataAccess.Repositories.Implementations;

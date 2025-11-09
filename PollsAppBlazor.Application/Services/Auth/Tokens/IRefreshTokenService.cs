@@ -19,13 +19,22 @@ public interface IRefreshTokenService
     /// <summary>
     /// Revokes the refresh token of the user asynchronously
     /// </summary>
-    /// <param name="userId">ID of the user whose token is being revoked.</param>
     /// <param name="token">Value of the token to be revoked.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
     /// <returns>
     /// <see langword="true" /> on success; <see langword="false" /> otherwise.
     /// </returns>
-    Task<bool> RevokeAsync(string userId, string token, CancellationToken cancellationToken);
+    Task<bool> RevokeAsync(string token, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Revokes all refresh tokens of the user asynchronously.
+    /// </summary>
+    /// <param name="userId">ID of the user whose tokens will be revoked.</param>
+    /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
+    /// <returns>
+    /// <see langword="true" /> on success; <see langword="false" /> otherwise.
+    /// </returns>
+    Task<bool> RevokeAllUserTokensAsync(string userId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Checks whether refresh token is valid asynchronously.
@@ -33,13 +42,11 @@ public interface IRefreshTokenService
     /// <remarks>
     /// May rotate the token value as a side effect.
     /// </remarks>
-    /// <param name="userId">ID of the user whose token is being validated.</param>
     /// <param name="token">Value of the token to be validated.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
     /// <returns>
     /// A task that represents the asynchronous operation. 
-    /// The task result contains the validated refresh token value or 
-    /// <see langword="null" /> if the token is invalid.
+    /// The task result contains the validation result.
     /// </returns>
-    Task<RefreshTokenValue?> ValidateAsync(string userId, string token, CancellationToken cancellationToken);
+    Task<RefreshTokenValidationResult> ValidateAsync(string token, CancellationToken cancellationToken);
 }

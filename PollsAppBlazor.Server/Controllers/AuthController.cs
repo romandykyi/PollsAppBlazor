@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using PollsAppBlazor.Application.Services.Auth;
-using PollsAppBlazor.Server.Extensions.Utils;
 using PollsAppBlazor.Server.Policy;
 using PollsAppBlazor.Shared.Auth;
 using PollsAppBlazor.Shared.Users;
@@ -73,13 +72,13 @@ public class AuthController(IAuthService authService) : ControllerBase
     [ProducesResponseType(typeof(AccessDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(InvalidLoginAttemptResponse), StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> Refresh([FromBody] RefreshDto refreshDto, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Refresh(CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
-        var result = await _authService.RefreshAsync(refreshDto, cancellationToken);
+        var result = await _authService.RefreshAsync(cancellationToken);
         if (result.Succeeded)
         {
             AccessDto accessDto = new(result.AccessToken!);
@@ -246,7 +245,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> LogOut(CancellationToken cancellationToken = default)
     {
-        await _authService.LogOutAsync(User.GetUserId(), cancellationToken);
+        await _authService.LogOutAsync(cancellationToken);
         return NoContent();
     }
 }

@@ -66,22 +66,9 @@ public class AuthService(
         return LoginResult.Fail(LoginFailureReason.InvalidCredentials, "Invalid login attempt.");
     }
 
-    public async Task<RefreshResult> RefreshAsync(RefreshDto refreshDto, CancellationToken cancellationToken = default)
+    public Task<RefreshResult> RefreshAsync(CancellationToken cancellationToken = default)
     {
-        string? userId = await _accessTokenService.GetUserIdFromExpiredTokenAsync(refreshDto.AccessToken);
-        if (userId == null) return RefreshResult.Fail(RefreshFailureReason.InvalidToken, "Invalid refresh attempt.");
-
-        var user = await _userManager.FindByIdAsync(userId);
-
-        if (user == null) return RefreshResult.Fail(RefreshFailureReason.UserNotFound, "Invalid refresh attempt.");
-        if (user.IsDeleted) return RefreshResult.Fail(RefreshFailureReason.UserDeleted, "Your account was deleted.");
-
-        var session = await _sessionManager.ResumeCurrentSessionAsync(user, cancellationToken);
-        if (session == null)
-        {
-            return RefreshResult.Fail(RefreshFailureReason.InvalidToken, "Invalid refresh attempt.");
-        }
-        return RefreshResult.Success(session.AccessToken);
+        return _sessionManager.ResumeCurrentSessionAsync(cancellationToken);
     }
 
     public async Task<RegisterResult> RegisterAsync(UserRegisterDto registerDto, CancellationToken cancellationToken = default)
@@ -193,8 +180,8 @@ public class AuthService(
         return ResetPasswordResult.Succeeded();
     }
 
-    public async Task LogOutAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task LogOutAsync(CancellationToken cancellationToken = default)
     {
-        await _sessionManager.InvalidateCurrentSessionAsync(userId, cancellationToken);
+        await _sessionManager.InvalidateCurrentSessionAsync(cancellationToken);
     }
 }

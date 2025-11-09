@@ -38,7 +38,31 @@ public class AuthSessionManager(
         return await InternalStartSessionAsync(user, refreshToken);
     }
 
-    public Task<bool> InvalidateCurrentSessionAsync(string userId, CancellationToken cancellationToken = default)
+    public async Task<RefreshResult> ResumeCurrentSessionAsync(CancellationToken cancellationToken = default)
+    {
+        string? refreshToken = _cookieService.GetRefreshTokenFromCookie();
+        if (refreshToken == null)
+        {
+            return RefreshResult.Fail(RefreshFailureReason.InvalidToken);
+        }
+
+        var validationResult = await _refreshTokenService.ValidateAsync(refreshToken, cancellationToken);
+        if (!validationResult.Succeeded)
+        {
+            return RefreshResult.Fail(validationResult.FailureReason);
+        }
+
+        var user = await userManager.FindByIdAsync(validationResult.UserId!);
+        if (user == null)
+        {
+            return RefreshResult.Fail(RefreshFailureReason.InvalidToken);
+        }
+
+        var session = await InternalStartSessionAsync(user, validationResult.UpdatedToken!);
+        return RefreshResult.Success(session.AccessToken);
+    }
+
+    public Task<bool> InvalidateCurrentSessionAsync(CancellationToken cancellationToken = default)
     {
         string? refreshToken = _cookieService.GetRefreshTokenFromCookie();
         if (refreshToken == null)
@@ -46,23 +70,6 @@ public class AuthSessionManager(
             return Task.FromResult(false);
         }
 
-        return _refreshTokenService.RevokeAsync(userId, refreshToken, cancellationToken);
-    }
-
-    public async Task<AuthSession?> ResumeCurrentSessionAsync(ApplicationUser user, CancellationToken cancellationToken = default)
-    {
-        string? refreshToken = _cookieService.GetRefreshTokenFromCookie();
-        if (refreshToken == null)
-        {
-            return null;
-        }
-
-        var updatedToken = await _refreshTokenService.ValidateAsync(user.Id, refreshToken, cancellationToken);
-        if (updatedToken == null)
-        {
-            return null;
-        }
-
-        return await InternalStartSessionAsync(user, updatedToken);
+        return _refreshTokenService.RevokeAsync(refreshToken, cancellationToken);
     }
 }

@@ -28,22 +28,18 @@ public enum RefreshFailureReason
 {
     None,
     InvalidToken,
-    ExpiredToken,
-    UserNotFound,
-    UserDeleted
+    ExpiredToken
 }
 public class RefreshResult
 {
     public bool Succeeded { get; init; }
     public RefreshFailureReason FailureReason { get; init; } = RefreshFailureReason.None;
     public string? AccessToken { get; init; }
-    public string? RefreshToken { get; init; }
-    public string? ErrorMessage { get; init; }
 
     public static RefreshResult Success(string accessToken) =>
         new() { Succeeded = true, AccessToken = accessToken };
-    public static RefreshResult Fail(RefreshFailureReason reason, string? message = null) =>
-        new() { Succeeded = false, FailureReason = reason, ErrorMessage = message };
+    public static RefreshResult Fail(RefreshFailureReason reason) =>
+        new() { Succeeded = false, FailureReason = reason };
 }
 
 // Register
