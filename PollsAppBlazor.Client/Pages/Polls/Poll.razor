@@ -180,7 +180,7 @@ else
 
 		try
 		{
-			var client = HttpClientFactory.CreateClient(HttpClientName.PublicApiClientName);
+			var client = HttpClientFactory.CreateClient(HttpClientName.AuthApiClientName);
 			// Get poll details
 			poll = (await client.GetFromJsonAsync<PollViewDto>($"/api/polls/{pollId}"))!;
 			selectedOptionId = poll.VotedOptionId;
@@ -206,7 +206,6 @@ else
 			if (user.Identity != null && user.Identity.IsAuthenticated)
 			{
 				string? userId = user.FindFirst("sub")?.Value;
-				var roles = user.FindAll("role").ToList();
 				bool isModerator = user.FindAll("role").Any(x => x.Value == "Administrator" || x.Value == "Moderator");
 				canEdit = isModerator || (userId != null && userId == poll.Creator.Id);
 

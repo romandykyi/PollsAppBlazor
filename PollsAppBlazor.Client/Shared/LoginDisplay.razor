@@ -9,7 +9,7 @@
 
 <AuthorizeView>
 	<Authorized>
-		Hello, @context.User.Identity?.Name!
+		Hello, @context.User.FindFirst("unique_name")!.Value
 		<button class="nav-link btn btn-link" @onclick="LogOut">Log out</button>
 	</Authorized>
 	<NotAuthorized>
