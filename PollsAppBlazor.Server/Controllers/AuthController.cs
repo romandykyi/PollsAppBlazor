@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using PollsAppBlazor.Application.Services.Auth;
+using PollsAppBlazor.Server.Extensions.Utils;
 using PollsAppBlazor.Server.Policy;
 using PollsAppBlazor.Shared.Auth;
 using PollsAppBlazor.Shared.Users;
@@ -16,18 +17,16 @@ public class AuthController(IAuthService authService) : ControllerBase
     /// <summary>
     /// Logs in a user
     /// </summary>
-    /// <response code="204">Success</response>
+    /// <response code="200">Success</response>
     /// <response code="400">Validation failed</response>
     /// <response code="401">Invalid login attempt</response>
-    /// <response code="403">Account is not confirmed</response>
     [HttpPost]
     [Route("login")]
     [EnableRateLimiting(RateLimitingPolicy.LogInPolicy)]
     [AllowAnonymous]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(AccessDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(InvalidLoginAttemptResponse), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> LogIn([FromBody] UserLoginDto login, CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid)
@@ -39,7 +38,7 @@ public class AuthController(IAuthService authService) : ControllerBase
 
         if (result.Succeeded)
         {
-            accessDto = new(result.AccessToken!);
+            AccessDto accessDto = new(result.AccessToken!);
             return Ok(accessDto);
         }
 
@@ -59,6 +58,34 @@ public class AuthController(IAuthService authService) : ControllerBase
         };
 
         return Unauthorized(response);
+    }
+
+    /// <summary>
+    /// Refreshes the auth session
+    /// </summary>
+    /// <response code="200">Success</response>
+    /// <response code="400">Validation failed</response>
+    /// <response code="401">Invalid refresh attempt</response>
+    [HttpPost]
+    [Route("refresh")]
+    [EnableRateLimiting(RateLimitingPolicy.LogInPolicy)]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AccessDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(InvalidLoginAttemptResponse), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Refresh([FromBody] RefreshDto refreshDto, CancellationToken cancellationToken = default)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        var result = await _authService.RefreshAsync(refreshDto, cancellationToken);
+        if (result.Succeeded)
+        {
+            AccessDto accessDto = new(result.AccessToken!);
+            return Ok(accessDto);
+        }
+        return Unauthorized();
     }
 
     /// <summary>
@@ -219,7 +246,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> LogOut(CancellationToken cancellationToken = default)
     {
-        await _authService.LogOutAsync(cancellationToken);
+        await _authService.LogOutAsync(User.GetUserId(), cancellationToken);
         return NoContent();
     }
 }

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using PollsAppBlazor.Application.Emails;
 using PollsAppBlazor.Application.Options;
+using PollsAppBlazor.Application.Services.Auth.Session;
+using PollsAppBlazor.Application.Services.Auth.Tokens;
 using PollsAppBlazor.Application.Services.Communication.Interfaces;
 using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Shared.Users;
@@ -11,6 +13,8 @@ using System.Text;
 namespace PollsAppBlazor.Application.Services.Auth;
 
 public class AuthService(
+    IAccessTokenService accessTokenService,
+    IAuthSessionManager sessionManager,
     UserManager<ApplicationUser> userManager,
     IUserStore<ApplicationUser> userStore,
     SignInManager<ApplicationUser> signInManager,
@@ -18,6 +22,8 @@ public class AuthService(
     IOptions<UriOptions> uriOptions
     ) : IAuthService
 {
+    private readonly IAccessTokenService _accessTokenService = accessTokenService;
+    private readonly IAuthSessionManager _sessionManager = sessionManager;
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly IUserStore<ApplicationUser> _userStore = userStore;
     private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
@@ -45,7 +51,11 @@ public class AuthService(
         }
 
         var result = await _signInManager.PasswordSignInAsync(user, loginDto.Password, loginDto.RememberMe, lockoutOnFailure: true);
-        if (result.Succeeded) return LoginResult.Success();
+        if (result.Succeeded)
+        {
+            var session = await _sessionManager.StartSessionAsync(user, loginDto.RememberMe, cancellationToken);
+            return LoginResult.Success(session.AccessToken);
+        }
 
         // Only disclose locked-out if the password was correct
         if (result.IsLockedOut && await _userManager.CheckPasswordAsync(user, loginDto.Password))
@@ -54,6 +64,24 @@ public class AuthService(
         }
 
         return LoginResult.Fail(LoginFailureReason.InvalidCredentials, "Invalid login attempt.");
+    }
+
+    public async Task<RefreshResult> RefreshAsync(RefreshDto refreshDto, CancellationToken cancellationToken = default)
+    {
+        string? userId = await _accessTokenService.GetUserIdFromExpiredTokenAsync(refreshDto.AccessToken);
+        if (userId == null) return RefreshResult.Fail(RefreshFailureReason.InvalidToken, "Invalid refresh attempt.");
+
+        var user = await _userManager.FindByIdAsync(userId);
+
+        if (user == null) return RefreshResult.Fail(RefreshFailureReason.UserNotFound, "Invalid refresh attempt.");
+        if (user.IsDeleted) return RefreshResult.Fail(RefreshFailureReason.UserDeleted, "Your account was deleted.");
+
+        var session = await _sessionManager.ResumeCurrentSessionAsync(user, cancellationToken);
+        if (session == null)
+        {
+            return RefreshResult.Fail(RefreshFailureReason.InvalidToken, "Invalid refresh attempt.");
+        }
+        return RefreshResult.Success(session.AccessToken);
     }
 
     public async Task<RegisterResult> RegisterAsync(UserRegisterDto registerDto, CancellationToken cancellationToken = default)
@@ -165,9 +193,9 @@ public class AuthService(
         return ResetPasswordResult.Succeeded();
     }
 
-    public async Task LogOutAsync(CancellationToken cancellationToken = default)
+    public async Task LogOutAsync(string userId, CancellationToken cancellationToken = default)
     {
+        await _sessionManager.InvalidateCurrentSessionAsync(userId, cancellationToken);
         await _signInManager.SignOutAsync();
     }
-
 }

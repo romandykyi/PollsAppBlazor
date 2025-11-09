@@ -15,12 +15,34 @@ public class LoginResult
     public bool Succeeded { get; init; }
     public LoginFailureReason FailureReason { get; init; } = LoginFailureReason.None;
     public string? AccessToken { get; init; }
+    public string? ErrorMessage { get; init; }
+
+    public static LoginResult Success(string accessToken) =>
+        new() { Succeeded = true, AccessToken = accessToken };
+    public static LoginResult Fail(LoginFailureReason reason, string? message = null) =>
+        new() { Succeeded = false, FailureReason = reason, ErrorMessage = message };
+}
+
+// Refresh
+public enum RefreshFailureReason
+{
+    None,
+    InvalidToken,
+    ExpiredToken,
+    UserNotFound,
+    UserDeleted
+}
+public class RefreshResult
+{
+    public bool Succeeded { get; init; }
+    public RefreshFailureReason FailureReason { get; init; } = RefreshFailureReason.None;
+    public string? AccessToken { get; init; }
     public string? RefreshToken { get; init; }
     public string? ErrorMessage { get; init; }
 
-    public static LoginResult Success(string accessToken, string refreshToken) =>
-        new() { Succeeded = true, AccessToken = accessToken, RefreshToken = refreshToken };
-    public static LoginResult Fail(LoginFailureReason reason, string? message = null) =>
+    public static RefreshResult Success(string accessToken) =>
+        new() { Succeeded = true, AccessToken = accessToken };
+    public static RefreshResult Fail(RefreshFailureReason reason, string? message = null) =>
         new() { Succeeded = false, FailureReason = reason, ErrorMessage = message };
 }
 
