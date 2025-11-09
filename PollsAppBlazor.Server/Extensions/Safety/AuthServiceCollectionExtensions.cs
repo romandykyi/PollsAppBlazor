@@ -4,6 +4,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using PollsAppBlazor.Application.Options;
 using PollsAppBlazor.Application.Services.Auth;
+using PollsAppBlazor.Application.Services.Auth.Http;
+using PollsAppBlazor.Application.Services.Auth.Session;
 using PollsAppBlazor.Application.Services.Auth.Tokens;
 using PollsAppBlazor.Server.DataAccess;
 using PollsAppBlazor.Server.DataAccess.Models;
@@ -54,7 +56,7 @@ public static class AuthServiceCollectionExtensions
                 options.SaveToken = true;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ClockSkew = TimeSpan.FromSeconds(5),
+                    ClockSkew = TimeSpan.FromSeconds(accessTokenOptions.ClockSkewSeconds),
                     ValidIssuer = accessTokenOptions.ValidIssuer,
                     ValidAudience = accessTokenOptions.ValidAudience,
                     IssuerSigningKey = new SymmetricSecurityKey(secretKey),
@@ -65,6 +67,8 @@ public static class AuthServiceCollectionExtensions
         return services
             .AddScoped<IRefreshTokenService, RefreshTokenService>()
             .AddScoped<IAccessTokenService, AccessTokenService>()
+            .AddScoped<IAuthSessionManager, AuthSessionManager>()
+            .AddScoped<IRefreshTokenCookieService, RefreshTokenCookeService>()
             .AddScoped<IAuthService, AuthService>();
     }
 

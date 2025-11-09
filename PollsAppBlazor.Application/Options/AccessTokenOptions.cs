@@ -21,6 +21,11 @@ public class AccessTokenOptions
     public int ExpirationSeconds { get; set; }
 
     /// <summary>
+    /// Clock skew in seconds.
+    /// </summary>
+    public int ClockSkewSeconds { get; set; }
+
+    /// <summary>
     /// A secret key used for signing access tokens.
     /// </summary>
     public string SecretKey { get; set; } = null!;
