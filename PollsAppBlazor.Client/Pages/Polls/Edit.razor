@@ -4,7 +4,7 @@
 @using PollsAppBlazor.Shared.Polls
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
-@inject HttpClient HttpClient
+@inject IHttpClientFactory HttpClientFactory
 @attribute [Authorize]
 
 <h2>Edit Poll</h2>
@@ -37,7 +37,8 @@ else
 
 	protected override async Task OnInitializedAsync()
 	{
-		var response = await HttpClient.GetAsync($"/api/polls/{pollId}/edit");
+        var client = HttpClientFactory.CreateClient(HttpClientName.AuthApiClientName);
+		var response = await client.GetAsync($"/api/polls/{pollId}/edit");
 		try
 		{
 			response.EnsureSuccessStatusCode();
@@ -66,7 +67,8 @@ else
 			ResultsVisibleBeforeVoting = _defaultVisibleBeforeVoting != poll!.ResultsVisibleBeforeVoting ? poll!.ResultsVisibleBeforeVoting : null
 		};
 
-		var response = await HttpClient.PatchAsJsonAsync($"/api/polls/{pollId}", editDto);
+        var client = HttpClientFactory.CreateClient(HttpClientName.AuthApiClientName);
+		var response = await client.PatchAsJsonAsync($"/api/polls/{pollId}", editDto);
 		try
 		{
 			response.EnsureSuccessStatusCode();

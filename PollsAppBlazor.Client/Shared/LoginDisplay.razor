@@ -1,9 +1,11 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using PollsAppBlazor.Client.Auth
 @inject NavigationManager NavigationManager
 @inject IDialogService DialogService
-@inject HttpClient HttpClient
+@inject IHttpClientFactory HttpClientFactory
 @inject ISnackbar Snackbar
+@inject TokenService TokenService
 
 <AuthorizeView>
 	<Authorized>
@@ -30,13 +32,16 @@
 
 		if (result == null || result.Canceled) return;
 
-		var httpResponse = await HttpClient.PostAsync("/api/auth/logout", null);
+		var client = HttpClientFactory.CreateClient(HttpClientName.AuthApiClientName);
+		var httpResponse = await client.PostAsync("/api/auth/logout", null);
 		try
 		{
 			httpResponse.EnsureSuccessStatusCode();
 
+			TokenService.Clear();
 			NavigationManager.NavigateTo("/", true);
 			StateHasChanged();
+
 		}
 		catch (HttpRequestException)
 		{

@@ -2,7 +2,7 @@
 <PageTitle>Confirm your Email - PollsAppBlazor</PageTitle>
 
 @inject NavigationManager Navigation
-@inject PublicClient PublicClient
+@inject IHttpClientFactory HttpClientFactory
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject ISnackbar Snackbar
 @inject LocalStorageUtils LocalStorage
@@ -47,7 +47,8 @@ else
             return;
         }
 
-        var response = await PublicClient.Client.PostAsync($"/api/auth/confirm-email?userId={Uri.EscapeDataString(userId)}&token={Uri.EscapeDataString(token)}", null);
+        var client = HttpClientFactory.CreateClient(HttpClientName.PublicApiClientName);
+        var response = await client.PostAsync($"/api/auth/confirm-email?userId={Uri.EscapeDataString(userId)}&token={Uri.EscapeDataString(token)}", null);
         try
         {
             response.EnsureSuccessStatusCode();

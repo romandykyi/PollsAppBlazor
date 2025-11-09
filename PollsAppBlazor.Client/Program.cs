@@ -1,24 +1,31 @@
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
-using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 using PollsAppBlazor.Client;
+using PollsAppBlazor.Client.Auth;
 using PollsAppBlazor.Client.Utils;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-builder.Services.AddHttpClient("PollsAppBlazor.ServerAPI", client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
-    .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
-builder.Services.AddHttpClient<PublicClient>(client => client.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
+builder.Services
+    .AddScoped<TokenService>()
+    .AddScoped<JwtHandler>()
+    .AddScoped<AuthenticationStateProvider, JwtAuthStateProvider>()
+    .AddAuthorizationCore()
+    .AddScoped<LocalStorageUtils>()
+    .AddMudServices();
 
-builder.Services.AddScoped<LocalStorageUtils>();
-builder.Services.AddMudServices();
+builder.Services.AddHttpClient(HttpClientName.AuthApiClientName, c =>
+{
+    c.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
+}).AddHttpMessageHandler<JwtHandler>();
 
-// Supply HttpClient instances that include access tokens when making requests to the server project
-builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("PollsAppBlazor.ServerAPI"));
-
-builder.Services.AddApiAuthorization();
+builder.Services.AddHttpClient(HttpClientName.PublicApiClientName, c =>
+{
+    c.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
+});
 
 await builder.Build().RunAsync();

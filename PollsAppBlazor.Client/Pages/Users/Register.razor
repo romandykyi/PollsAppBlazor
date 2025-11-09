@@ -6,7 +6,7 @@
 @using System.Text.Json
 @using PollsAppBlazor.Shared.Users
 @inject ISnackbar Snackbar
-@inject PublicClient PublicClient
+@inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject LocalStorageUtils LocalStorage
@@ -139,7 +139,8 @@
 		if (!form.IsValid) return;
 
 		HttpResponseMessage response;
-		response = await PublicClient.Client.PostAsJsonAsync("/api/auth/register", user);
+        var client = HttpClientFactory.CreateClient(HttpClientName.PublicApiClientName);
+		response = await client.PostAsJsonAsync("/api/auth/register", user);
 		try
 		{
 			response.EnsureSuccessStatusCode();
