@@ -4,7 +4,7 @@ public interface IRefreshTokenCookieService
 {
     string? GetRefreshTokenFromCookie();
 
-    void SetRefreshTokenCookie(string refreshToken, TimeSpan? maxAge);
+    void SetRefreshTokenCookie(string refreshToken, DateTime? expiresAt);
 
     void DeleteRefreshTokenCookie();
 }

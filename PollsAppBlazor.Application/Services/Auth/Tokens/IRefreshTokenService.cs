@@ -9,11 +9,12 @@ public interface IRefreshTokenService
     /// Generates a refresh token for the user and saves it asynchronously.
     /// </summary>
     /// <param name="userId">ID of the user who will receive the token.</param>
+    /// <param name="persistent">Indicates whether the token should be persistent.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
     /// <returns>
-    /// A string that represents a refresh token or <see langword="null" /> if user does not exist.
+    /// A a generated refresh token or <see langword="null" /> if user does not exist.
     /// </returns>
-    Task<string?> GenerateAsync(string userId, CancellationToken cancellationToken);
+    Task<RefreshTokenValue?> GenerateAsync(string userId, bool persistent, CancellationToken cancellationToken);
 
     /// <summary>
     /// Revokes the refresh token of the user asynchronously
@@ -29,12 +30,16 @@ public interface IRefreshTokenService
     /// <summary>
     /// Checks whether refresh token is valid asynchronously.
     /// </summary>
+    /// <remarks>
+    /// May rotate the token value as a side effect.
+    /// </remarks>
     /// <param name="userId">ID of the user whose token is being validated.</param>
     /// <param name="token">Value of the token to be validated.</param>
     /// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
     /// <returns>
-    /// <see langword="true" /> if token is valid;
-    /// <see langword="false" /> otherwise.
+    /// A task that represents the asynchronous operation. 
+    /// The task result contains the validated refresh token value or 
+    /// <see langword="null" /> if the token is invalid.
     /// </returns>
-    Task<bool> ValidateAsync(string userId, string token, CancellationToken cancellationToken);
+    Task<RefreshTokenValue?> ValidateAsync(string userId, string token, CancellationToken cancellationToken);
 }

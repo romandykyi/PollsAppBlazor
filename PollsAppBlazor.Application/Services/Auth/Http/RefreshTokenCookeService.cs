@@ -17,14 +17,14 @@ public class RefreshTokenCookeService(IHttpContextAccessor httpContextAccessor) 
         return null;
     }
 
-    public void SetRefreshTokenCookie(string refreshToken, TimeSpan? maxAge)
+    public void SetRefreshTokenCookie(string refreshToken, DateTime? expiresAt)
     {
         CookieOptions options = new()
         {
             HttpOnly = true,
             Secure = true,
             SameSite = SameSiteMode.Strict,
-            MaxAge = maxAge
+            Expires = expiresAt
         };
         _httpContext.Response.Cookies.Append(RefreshTokenCookieName, refreshToken, options);
     }

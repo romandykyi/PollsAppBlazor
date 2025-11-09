@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PollsAppBlazor.DataAccess.Dto;
+using PollsAppBlazor.Application.Services.Auth.Tokens;
 using PollsAppBlazor.DataAccess.Models;
 using PollsAppBlazor.DataAccess.Repositories.Interfaces;
 using PollsAppBlazor.Server.DataAccess;
@@ -10,22 +10,23 @@ public class RefreshTokenRepository(ApplicationDbContext dbContext) : IRefreshTo
 {
     private readonly ApplicationDbContext _dbContext = dbContext;
 
-    public Task<RefreshTokenValidationDto?> GetAsync(string userId, string tokenValue, CancellationToken cancellationToken)
+    public Task<RefreshTokenValue?> GetAsync(string userId, string tokenValue, CancellationToken cancellationToken)
     {
         return _dbContext.RefreshTokens
             .AsNoTracking()
             .Where(x => x.UserId == userId && x.TokenValue == tokenValue)
-            .Select(token => new RefreshTokenValidationDto(token.TokenId, token.ValidTo))
+            .Select(token => new RefreshTokenValue(token.TokenValue, token.Persistent, token.ValidTo))
             .SingleOrDefaultAsync(cancellationToken);
     }
 
-    public Task CreateAsync(string userId, string tokenValue, DateTime validTo, CancellationToken cancellationToken)
+    public Task CreateAsync(string userId, RefreshTokenValue token, CancellationToken cancellationToken)
     {
         _dbContext.RefreshTokens.Add(new RefreshToken
         {
             UserId = userId,
-            TokenValue = tokenValue,
-            ValidTo = validTo
+            Persistent = token.Persistent,
+            TokenValue = token.Value,
+            ValidTo = token.ExpiresAt
         });
         return _dbContext.SaveChangesAsync(cancellationToken);
     }

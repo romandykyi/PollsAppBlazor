@@ -36,6 +36,10 @@ public class RefreshToken
     /// Date after which the token becomes invalid.
     /// </summary>
     public required DateTime ValidTo { get; set; }
+    /// <summary>
+    /// Whether the token is persistent long-term.
+    /// </summary>
+    public required bool Persistent { get; set; }
 
     /// <summary>
     /// Navigation property to the user who owns this token.

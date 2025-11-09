@@ -15,5 +15,10 @@ public class RefreshTokenOptions
     /// </summary>
     public int ExpirationDays { get; set; }
 
+    /// <summary>
+    /// Minutes before short-lived token expires (remember me is unchecked).
+    /// </summary>
+    public int ShortExpirationMinutes { get; set; }
+
     public const string SectionName = "Auth:Refresh";
 }

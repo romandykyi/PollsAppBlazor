@@ -25,7 +25,7 @@ public interface IAuthSessionManager
     /// The task result contains the resumed authentication session or 
     /// <see langword="null" /> if the session could not be resumed.
     /// </returns>
-    Task<AuthSession> ResumeCurrentSessionAsync(ApplicationUser user, CancellationToken cancellationToken = default);
+    Task<AuthSession?> ResumeCurrentSessionAsync(ApplicationUser user, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Invalidates the current session for the specified user.
