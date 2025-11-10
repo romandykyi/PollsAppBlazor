@@ -12,7 +12,6 @@ public class TokenService(IHttpClientFactory http)
 
     public void SetToken(string token)
     {
-        Console.WriteLine("Setting access token: " + token);
         _accessToken = token;
     }
 

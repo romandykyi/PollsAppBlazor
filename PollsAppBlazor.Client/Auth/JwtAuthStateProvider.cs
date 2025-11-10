@@ -24,7 +24,6 @@ public class JwtAuthStateProvider(TokenService tokenService) : AuthenticationSta
         var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
         var identity = new ClaimsIdentity(jwt.Claims, "jwt");
         var user = new ClaimsPrincipal(identity);
-        Console.WriteLine("User is authenticated: " + user.Identity?.Name);
         return new AuthenticationState(user);
     }
 
