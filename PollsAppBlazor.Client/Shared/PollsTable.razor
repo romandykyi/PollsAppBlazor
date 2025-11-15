@@ -22,16 +22,10 @@
 			<MudTextField @bind-Value="Filter.Creator" For="@(() => Filter.Creator)"
 						  Label="Creator" />
 		</MudItem>
-		<MudItem xs="12">
-			<MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
-					   Color="Color.Primary" StartIcon="@Icons.Material.Filled.Search">
-				Find
-			</MudButton>
-		</MudItem>
 	</MudGrid>
-	<MudGrid>
+	<MudGrid Class="mb-5">
 		<MudItem xs="12" sm="5" lg="2">
-			<MudSelect @bind-Value="Filter.SortMode" @bind-Value:after="UpdateToFirstPage"
+			<MudSelect @bind-Value="Filter.SortMode"
 					   For="@(() => Filter.SortMode)"
 					   Label="Sort mode">
 				<MudSelectItem Value="@PollsSortMode.Newest">Newest</MudSelectItem>
@@ -40,7 +34,7 @@
 			</MudSelect>
 		</MudItem>
 		<MudItem xs="12" sm="5" lg="2">
-			<MudSelect @bind-Value="Filter.PageSize" @bind-Value:after="UpdateToFirstPage"
+			<MudSelect @bind-Value="Filter.PageSize"
 					   For="@(() => Filter.PageSize)"
 					   Label="Polls per page" Style="width: 120px">
 				<MudSelectItem Value="10">10</MudSelectItem>
@@ -50,9 +44,15 @@
 			</MudSelect>
 		</MudItem>
 		<MudItem xs="12" sm="6" lg="4">
-			<MudCheckBox @bind-Checked="Filter.ShowExpired" @bind-Checked:after="UpdateToFirstPage"
+			<MudCheckBox @bind-Value="Filter.ShowExpired"
 						 For="@(() => Filter.ShowExpired)"
 						 Label="Show expired polls" Color="Color.Primary" />
+		</MudItem>
+		<MudItem xs="12">
+			<MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled"
+					   Color="Color.Primary" StartIcon="@Icons.Material.Filled.Search">
+				Find
+			</MudButton>
 		</MudItem>
 	</MudGrid>
 </EditForm>
