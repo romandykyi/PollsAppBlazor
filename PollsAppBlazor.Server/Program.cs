@@ -27,8 +27,10 @@ if (builder.Environment.IsDevelopment())
     builder.AddDebugOptions();
 }
 
-builder.AddCustomizedAuth();
-services.AddCustomizedAuthorization();
+services
+    .ConfigureIdentity()
+    .AddCustomizedAuthentication()
+    .AddCustomizedAuthorization();
 
 services
     .ConfigureControllers(addAntiForgery: false)
@@ -57,9 +59,6 @@ app.UseStaticFiles();
 
 app.UseRouting();
 app.UseRateLimiter();
-
-app.UseCookiePolicy();
-app.UseIdentityServer();
 
 app.UseAuthentication();
 app.UseAuthorization();

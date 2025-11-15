@@ -6,7 +6,7 @@
 @using PollsAppBlazor.Shared.Polls
 @inject ISnackbar Snackbar
 @inject NavigationManager NavigationManager
-@inject HttpClient HttpClient
+@inject IHttpClientFactory HttpClientFactory
 @attribute [Authorize]
 
 <h2>Create Poll</h2>
@@ -34,7 +34,8 @@
 
 	private async Task Submit()
 	{
-		var response = await HttpClient.PostAsJsonAsync($"/api/polls", poll);
+		var client = HttpClientFactory.CreateClient(HttpClientName.AuthApiClientName);
+		var response = await client.PostAsJsonAsync($"/api/polls", poll);
 		try
 		{
 			response.EnsureSuccessStatusCode();

@@ -18,6 +18,7 @@ public static class Policies
     /// </returns>
     public static bool UserCanEditAnything(ClaimsPrincipal user)
     {
-        return user.IsInRole(Roles.Administrator) || user.IsInRole(Roles.Moderator);
+        return user.HasClaim(ClaimTypes.Role, Roles.Administrator) ||
+            user.HasClaim(ClaimTypes.Role, Roles.Moderator);
     }
 }

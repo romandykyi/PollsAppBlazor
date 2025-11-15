@@ -12,12 +12,11 @@ Live demo: https://pollsappblazor.online
 - Votes visibility options: always visible, visible only after voting, or only after the poll ends.
 - Users can mark polls as favorites.
 - Admin access for managing polls.
-- Authentication via Duende IdentityServer.
 
 ## Tech Stack
 
 - **Front End**: Blazor WebAssembly, MudBlazor
-- **Back End**: ASP.NET Core, Entity Framework Core, Duende IdentityServer, Swashbuckle (Swagger)
+- **Back End**: ASP.NET Core, Entity Framework Core, Swashbuckle (Swagger)
 - **Database**: PostgreSQL
 - **Communication**: Azure Communication Services (registration and reset password mails).
 - **Hosting**: Azure Web App Service (Linux), PostgreSQL database hosted on Aiven.
@@ -40,7 +39,7 @@ PollsAppBlazor follows a layered architecture with clear separation of concerns:
 
 **Server:**
   - Exposes controllers for the API endpoints.
-  - Handles authentication, authorization, and policies (via Duende IdentityServer).
+  - Handles authentication, authorization, and policies.
   - Provides configuration and dependency injection setup.
   - Performs simple validation using built-in data annotations.
 
@@ -91,4 +90,3 @@ PollsAppBlazor follows a layered architecture with clear separation of concerns:
 <img width="1914" height="860" alt="screen3" src="https://github.com/user-attachments/assets/63fa312b-a7e0-48bb-aeb8-73a096a0f061" />
 
 <img width="1919" height="857" alt="screen4" src="https://github.com/user-attachments/assets/5e379715-a823-4d69-8163-87462187117d" />
-

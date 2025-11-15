@@ -3,14 +3,16 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Options;
 using PollsAppBlazor.Application.Emails;
 using PollsAppBlazor.Application.Options;
+using PollsAppBlazor.Application.Services.Auth.Session;
 using PollsAppBlazor.Application.Services.Communication.Interfaces;
 using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Shared.Users;
 using System.Text;
 
-namespace PollsAppBlazor.Application.Auth;
+namespace PollsAppBlazor.Application.Services.Auth;
 
 public class AuthService(
+    IAuthSessionManager sessionManager,
     UserManager<ApplicationUser> userManager,
     IUserStore<ApplicationUser> userStore,
     SignInManager<ApplicationUser> signInManager,
@@ -18,6 +20,7 @@ public class AuthService(
     IOptions<UriOptions> uriOptions
     ) : IAuthService
 {
+    private readonly IAuthSessionManager _sessionManager = sessionManager;
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly IUserStore<ApplicationUser> _userStore = userStore;
     private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
@@ -44,8 +47,12 @@ public class AuthService(
             return LoginResult.Fail(LoginFailureReason.InvalidCredentials, "Invalid login attempt.");
         }
 
-        var result = await _signInManager.PasswordSignInAsync(user, loginDto.Password, loginDto.RememberMe, lockoutOnFailure: true);
-        if (result.Succeeded) return LoginResult.Success();
+        var result = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, lockoutOnFailure: true);
+        if (result.Succeeded)
+        {
+            var session = await _sessionManager.StartSessionAsync(user, loginDto.RememberMe, cancellationToken);
+            return LoginResult.Success(session.AccessToken);
+        }
 
         // Only disclose locked-out if the password was correct
         if (result.IsLockedOut && await _userManager.CheckPasswordAsync(user, loginDto.Password))
@@ -54,6 +61,11 @@ public class AuthService(
         }
 
         return LoginResult.Fail(LoginFailureReason.InvalidCredentials, "Invalid login attempt.");
+    }
+
+    public Task<RefreshResult> RefreshAsync(CancellationToken cancellationToken = default)
+    {
+        return _sessionManager.ResumeCurrentSessionAsync(cancellationToken);
     }
 
     public async Task<RegisterResult> RegisterAsync(UserRegisterDto registerDto, CancellationToken cancellationToken = default)
@@ -167,7 +179,6 @@ public class AuthService(
 
     public async Task LogOutAsync(CancellationToken cancellationToken = default)
     {
-        await _signInManager.SignOutAsync();
+        await _sessionManager.InvalidateCurrentSessionAsync(cancellationToken);
     }
-
 }

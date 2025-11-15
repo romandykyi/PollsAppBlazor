@@ -1,23 +1,26 @@
-﻿using Duende.IdentityServer.Services;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using PollsAppBlazor.Application.Auth;
+using PollsAppBlazor.Application.Options;
+using PollsAppBlazor.Application.Services.Auth;
+using PollsAppBlazor.Application.Services.Auth.Http;
+using PollsAppBlazor.Application.Services.Auth.Session;
+using PollsAppBlazor.Application.Services.Auth.Tokens;
 using PollsAppBlazor.Server.DataAccess;
 using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Server.Policy;
-using System.Net;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 
 namespace PollsAppBlazor.Server.Extensions.Safety;
 
 public static class AuthServiceCollectionExtensions
 {
-    private static IServiceCollection ConfigureIdentity(this IServiceCollection services)
+    public static IServiceCollection ConfigureIdentity(this IServiceCollection services)
     {
         services
-            .AddIdentity<ApplicationUser, IdentityRole>(options =>
+            .AddIdentityCore<ApplicationUser>(options =>
             {
                 options.Password.RequireDigit = true;
                 options.Password.RequireLowercase = true;
@@ -35,91 +38,47 @@ public static class AuthServiceCollectionExtensions
                 options.User.RequireUniqueEmail = true;
                 options.User.AllowedUserNameCharacters = "qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM1234567890_";
             })
+            .AddRoles<IdentityRole>()
             .AddDefaultTokenProviders()
-            .AddEntityFrameworkStores<ApplicationDbContext>();
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddApiEndpoints();
 
         return services;
     }
 
-    private static IServiceCollection ConfigureCookie(this IServiceCollection services)
+    public static IServiceCollection AddCustomizedAuthentication(this IServiceCollection services)
     {
-        return services.ConfigureApplicationCookie(options =>
-        {
-            options.Cookie.HttpOnly = true;
-            // Return 401 when user is not authrorized
-            options.Events.OnRedirectToLogin = context =>
+        services.AddAuthentication(options =>
             {
-                context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                return Task.CompletedTask;
-            };
-            // Return 403 when user don't have access permission
-            options.Events.OnRedirectToAccessDenied = context =>
-            {
-                context.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-                return Task.CompletedTask;
-            };
-        });
-    }
-
-    private static IServiceCollection ConfigureIdentityServer(this IServiceCollection services,
-        bool isProduction, IConfigurationSection identitySection)
-    {
-        SigningCredentials? credential = null;
-        if (isProduction)
-        {
-            string? base64Certificate = identitySection["SigningCertificate"];
-            string? base64Key = identitySection["SigningCertificateKey"];
-            if (string.IsNullOrWhiteSpace(base64Certificate))
-            {
-                throw new InvalidOperationException("IdentityServer:SigningCertificate is not defined");
-            }
-            if (string.IsNullOrWhiteSpace(base64Key))
-            {
-                throw new InvalidOperationException("IdentityServerKey:SigningCertificateKey is not defined");
-            }
-
-            var certBytes = Convert.FromBase64String(base64Certificate);
-            var keyBytes = Convert.FromBase64String(base64Key);
-            var certText = Encoding.UTF8.GetString(certBytes).AsSpan();
-            var keyText = Encoding.UTF8.GetString(keyBytes).AsSpan();
-
-            var cert = X509Certificate2.CreateFromPem(certText, keyText);
-
-            var key = new RsaSecurityKey(cert.GetRSAPrivateKey()!)
-            {
-                KeyId = cert.Thumbprint
-            };
-
-            credential = new(key, SecurityAlgorithms.RsaSha256);
-        }
-
-        var identityServices = services
-            .AddIdentityServer(options =>
-            {
-                options.LicenseKey = identitySection["LicenseKey"];
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            .AddApiAuthorization<ApplicationUser, ApplicationDbContext>(options =>
+            .AddJwtBearer(options =>
             {
-                if (credential != null) options.SigningCredential = credential;
+                ServiceProvider sp = services.BuildServiceProvider();
+                AccessTokenOptions accessTokenOptions = sp.GetRequiredService<IOptions<AccessTokenOptions>>().Value;
+
+                byte[] secretKey = Encoding.UTF8.GetBytes(accessTokenOptions.SecretKey);
+                options.SaveToken = true;
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ClockSkew = TimeSpan.FromSeconds(accessTokenOptions.ClockSkewSeconds),
+                    ValidIssuer = accessTokenOptions.ValidIssuer,
+                    ValidAudience = accessTokenOptions.ValidAudience,
+                    IssuerSigningKey = new SymmetricSecurityKey(secretKey),
+                    RoleClaimType = AppJwtClaim.Roles,
+                    NameClaimType = AppJwtClaim.UserName
+                };
             });
-
-        return services;
-    }
-
-    public static WebApplicationBuilder AddCustomizedAuth(this WebApplicationBuilder builder)
-    {
-        bool isProduction = builder.Environment.IsProduction();
-        var identitySection = builder.Configuration.GetSection("IdentityServer");
-
-        builder.Services
-            .ConfigureIdentity()
-            .ConfigureIdentityServer(isProduction, identitySection)
-            .ConfigureCookie()
-            .AddTransient<IProfileService, ApplicationProfileService>()
+        return services
+            .AddScoped<IRefreshTokenService, RefreshTokenService>()
+            .AddScoped<IAccessTokenService, AccessTokenService>()
+            .AddScoped<IAuthSessionManager, AuthSessionManager>()
+            .AddScoped<IRefreshTokenCookieService, RefreshTokenCookeService>()
             .AddScoped<IAuthService, AuthService>();
-
-        return builder;
     }
+
 
     public static IServiceCollection AddCustomizedAuthorization(this IServiceCollection services)
     {

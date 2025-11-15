@@ -1,6 +1,6 @@
 ﻿@using PollsAppBlazor.Shared.Polls
 @using System.Net.Http.Json
-@inject PublicClient PublicClient
+@inject IHttpClientFactory HttpClientFactory
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
 
@@ -132,7 +132,8 @@ else
 		try
 		{
 			string uri = $"{HttpGetPath}?{Filter.ToQueryString()}";
-			page = await PublicClient.Client.GetFromJsonAsync<PollsPage>(uri);
+            var client = HttpClientFactory.CreateClient(HttpClientName.AuthApiClientName);
+			page = await client.GetFromJsonAsync<PollsPage>(uri);
 			await JSRuntime.InvokeVoidAsync("scrollToTop");
 		}
 		catch (HttpRequestException e) when (e.StatusCode == HttpStatusCode.TooManyRequests)

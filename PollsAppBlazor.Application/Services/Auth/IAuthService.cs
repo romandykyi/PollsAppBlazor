@@ -1,6 +1,6 @@
 ﻿using PollsAppBlazor.Shared.Users;
 
-namespace PollsAppBlazor.Application.Auth;
+namespace PollsAppBlazor.Application.Services.Auth;
 
 public interface IAuthService
 {
@@ -8,6 +8,11 @@ public interface IAuthService
     /// Attempts to log in a user.
     /// </summary>
     Task<LoginResult> LogInAsync(UserLoginDto loginDto, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Attempts to refresh an access token.
+    /// </summary>
+    Task<RefreshResult> RefreshAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Registers a new user.

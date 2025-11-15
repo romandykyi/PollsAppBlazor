@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using PollsAppBlazor.Application.Auth;
+using PollsAppBlazor.Application.Services.Auth;
 using PollsAppBlazor.Server.Policy;
 using PollsAppBlazor.Shared.Auth;
 using PollsAppBlazor.Shared.Users;
@@ -16,18 +16,16 @@ public class AuthController(IAuthService authService) : ControllerBase
     /// <summary>
     /// Logs in a user
     /// </summary>
-    /// <response code="204">Success</response>
+    /// <response code="200">Success</response>
     /// <response code="400">Validation failed</response>
     /// <response code="401">Invalid login attempt</response>
-    /// <response code="403">Account is not confirmed</response>
     [HttpPost]
     [Route("login")]
     [EnableRateLimiting(RateLimitingPolicy.LogInPolicy)]
     [AllowAnonymous]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(AccessDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(InvalidLoginAttemptResponse), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> LogIn([FromBody] UserLoginDto login, CancellationToken cancellationToken = default)
     {
         if (!ModelState.IsValid)
@@ -37,7 +35,11 @@ public class AuthController(IAuthService authService) : ControllerBase
 
         var result = await _authService.LogInAsync(login, cancellationToken);
 
-        if (result.Succeeded) return NoContent();
+        if (result.Succeeded)
+        {
+            AccessDto accessDto = new(result.AccessToken!);
+            return Ok(accessDto);
+        }
 
         InvalidLoginAttemptResponse response = result.FailureReason switch
         {
@@ -55,6 +57,34 @@ public class AuthController(IAuthService authService) : ControllerBase
         };
 
         return Unauthorized(response);
+    }
+
+    /// <summary>
+    /// Refreshes the auth session
+    /// </summary>
+    /// <response code="200">Success</response>
+    /// <response code="400">Validation failed</response>
+    /// <response code="401">Invalid refresh attempt</response>
+    [HttpPost]
+    [Route("refresh")]
+    [EnableRateLimiting(RateLimitingPolicy.LogInPolicy)]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AccessDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(InvalidLoginAttemptResponse), StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Refresh(CancellationToken cancellationToken = default)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        var result = await _authService.RefreshAsync(cancellationToken);
+        if (result.Succeeded)
+        {
+            AccessDto accessDto = new(result.AccessToken!);
+            return Ok(accessDto);
+        }
+        return Unauthorized();
     }
 
     /// <summary>

@@ -1,4 +1,4 @@
-﻿using PollsAppBlazor.Application.Admin;
+﻿using PollsAppBlazor.Application.Services.Admin;
 using PollsAppBlazor.Application.Services.Implementations;
 using PollsAppBlazor.Application.Services.Interfaces;
 using PollsAppBlazor.DataAccess.Repositories.Implementations;
@@ -15,7 +15,8 @@ public static class DependencyInjectionServiceCollectionExtensions
             .AddScoped<IPollOptionRepository, PollOptionRepository>()
             .AddScoped<IPollRepository, PollRepository>()
             .AddScoped<IVoteRepository, VoteRepository>()
-            .AddScoped<IUserRepository, UserRepository>();
+            .AddScoped<IUserRepository, UserRepository>()
+            .AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
     }
 
     public static IServiceCollection RegisterApplicationServices(this IServiceCollection services)

@@ -3,7 +3,7 @@
 @using PollsAppBlazor.Shared.Options
 @using PollsAppBlazor.Shared.Polls
 @inject AuthenticationStateProvider AuthenticationStateProvider
-@inject PublicClient PublicClient
+@inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager NavigationManager
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
@@ -179,13 +179,14 @@ else
 
 		try
 		{
+			var client = HttpClientFactory.CreateClient(HttpClientName.AuthApiClientName);
 			// Get poll details
-			poll = (await PublicClient.Client.GetFromJsonAsync<PollViewDto>($"/api/polls/{pollId}"))!;
+			poll = (await client.GetFromJsonAsync<PollViewDto>($"/api/polls/{pollId}"))!;
 			selectedOptionId = poll.VotedOptionId;
 			isInFavorites = poll.IsInFavorites;
 
 			// Try to get options with votes
-			var optionsResponse = await PublicClient.Client.GetAsync($"/api/polls/{pollId}/options");
+			var optionsResponse = await client.GetAsync($"/api/polls/{pollId}/options");
 			if (optionsResponse.IsSuccessStatusCode)
 			{
 				canViewResults = true;
@@ -204,7 +205,6 @@ else
 			if (user.Identity != null && user.Identity.IsAuthenticated)
 			{
 				string? userId = user.FindFirst("sub")?.Value;
-				var roles = user.FindAll("role").ToList();
 				bool isModerator = user.FindAll("role").Any(x => x.Value == "Administrator" || x.Value == "Moderator");
 				canEdit = isModerator || (userId != null && userId == poll.Creator.Id);
 
@@ -247,7 +247,8 @@ else
 
 		if (result == null || result.Canceled) return;
 
-		var response = await PublicClient.Client.DeleteAsync($"api/polls/{pollId}");
+        var client = HttpClientFactory.CreateClient(HttpClientName.AuthApiClientName);
+		var response = await client.DeleteAsync($"api/polls/{pollId}");
 		try
 		{
 			response.EnsureSuccessStatusCode();
@@ -274,7 +275,8 @@ else
 
 		if (result == null || result.Canceled) return;
 
-		var response = await PublicClient.Client.PostAsync($"api/polls/{pollId}/expire", null);
+        var client = HttpClientFactory.CreateClient(HttpClientName.AuthApiClientName);
+		var response = await client.PostAsync($"api/polls/{pollId}/expire", null);
 		try
 		{
 			response.EnsureSuccessStatusCode();
@@ -295,7 +297,8 @@ else
 
 		try
 		{
-			var response = await PublicClient.Client.PostAsync($"api/options/{selectedOptionId}/vote", null);
+            var client = HttpClientFactory.CreateClient(HttpClientName.AuthApiClientName);
+			var response = await client.PostAsync($"api/options/{selectedOptionId}/vote", null);
 			response.EnsureSuccessStatusCode();
 			Snackbar.Add("Your vote was saved", Severity.Success);
 
@@ -327,10 +330,10 @@ else
 		isInFavorites = favorite;
 
 		string uri = $"api/user/favorites/{pollId}";
-		var http = PublicClient.Client;
+		var client = HttpClientFactory.CreateClient(HttpClientName.AuthApiClientName);
 
 		SetPollFavoriteStateDto dto = new() { IsInFavorites = favorite };
-		HttpResponseMessage response = await http.PutAsJsonAsync(uri, dto);
+		HttpResponseMessage response = await client.PutAsJsonAsync(uri, dto);
 		try
 		{
 			response.EnsureSuccessStatusCode();

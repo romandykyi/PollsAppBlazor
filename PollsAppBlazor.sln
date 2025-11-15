@@ -18,6 +18,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PollsAppBlazor.Shared", "Po
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PollsAppBlazor.Client", "PollsAppBlazor.Client\PollsAppBlazor.Client.csproj", "{97087488-1122-6B50-0B69-8F70896496B5}"
 EndProject
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

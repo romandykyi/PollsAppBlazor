@@ -1,12 +1,14 @@
 ﻿@page "/users/login"
 <PageTitle>Log In - PollsAppBlazor</PageTitle>
 
+@using PollsAppBlazor.Client.Auth
 @using PollsAppBlazor.Shared.Auth
 @using PollsAppBlazor.Shared.Users
 @inject ISnackbar Snackbar
-@inject PublicClient PublicClient
+@inject IHttpClientFactory HttpClientFactory
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
+@inject TokenService TokenService
 
 <AuthorizeView>
 	<Authorized>
@@ -37,7 +39,7 @@
 				</MudStack>
 			</div>
 			<div class="d-flex">
-				<MudCheckBox T="bool" Label="Remember me" @bind-Checked="user.RememberMe" />
+				<MudCheckBox T="bool" Label="Remember me" @bind-Value="user.RememberMe" />
 			</div>
 			<div class="d-flex">
 				<MudButton Variant="Variant.Filled" Color="Color.Primary"
@@ -75,10 +77,14 @@
 		await form.Validate();
 		if (!form.IsValid) return;
 
-		var response = await PublicClient.Client.PostAsJsonAsync("/api/auth/login", user);
+		var client = HttpClientFactory.CreateClient(HttpClientName.PublicApiClientName);
+		var response = await client.PostAsJsonAsync("/api/auth/login", user);
 		try
 		{
 			response.EnsureSuccessStatusCode();
+
+			var accessDto = await response.Content.ReadFromJsonAsync<AccessDto>();
+			TokenService.SetToken(accessDto!.AccessToken);
 
 			NavigationManager.NavigateTo("/polls", true);
 		}
