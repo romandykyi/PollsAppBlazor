@@ -90,4 +90,3 @@ PollsAppBlazor follows a layered architecture with clear separation of concerns:
 <img width="1914" height="860" alt="screen3" src="https://github.com/user-attachments/assets/63fa312b-a7e0-48bb-aeb8-73a096a0f061" />
 
 <img width="1919" height="857" alt="screen4" src="https://github.com/user-attachments/assets/5e379715-a823-4d69-8163-87462187117d" />
-
