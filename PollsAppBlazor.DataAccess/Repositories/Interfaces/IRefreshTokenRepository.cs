@@ -1,17 +1,16 @@
-﻿using PollsAppBlazor.Application.Services.Auth.Tokens;
-using PollsAppBlazor.DataAccess.Models;
+﻿using PollsAppBlazor.DataAccess.Models;
 
 namespace PollsAppBlazor.DataAccess.Repositories.Interfaces;
 
 public interface IRefreshTokenRepository
 {
-    Task<RefreshToken?> GetAsync(string tokenValue, CancellationToken cancellationToken);
+    Task<RefreshToken?> GetAsync(Guid tokenId, CancellationToken cancellationToken);
 
-    Task CreateAsync(string userId, RefreshTokenValue token, CancellationToken cancellationToken);
+    Task<RefreshToken> CreateAsync(string userId, RefreshToken token, CancellationToken cancellationToken);
 
-    Task<bool> ReplaceAsync(string oldTokenValue, string newTokenValue, CancellationToken cancellationToken);
+    Task<bool> ReplaceAsync(Guid tokenId, string newTokenValue, CancellationToken cancellationToken);
 
-    Task<bool> RevokeAsync(string tokenValue, CancellationToken cancellationToken);
+    Task<bool> RevokeAsync(Guid tokenId, CancellationToken cancellationToken);
 
     Task<bool> RevokeAllUserTokensAsync(string userId, CancellationToken cancellationToken);
 }

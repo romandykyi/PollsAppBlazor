@@ -8,25 +8,25 @@ namespace PollsAppBlazor.DataAccess.Models;
 /// <summary>
 /// A class that represents the refresh token entity.
 /// </summary>
-[Index(nameof(TokenValue), Name = "IX_TokenValue", IsUnique = true)]
+[Index(nameof(TokenHash), Name = "IX_TokenValue", IsUnique = true)]
 public class RefreshToken
 {
     /// <summary>
-    /// Maximum allowed length for the <see cref="TokenValue"/> property.
+    /// Maximum allowed length for the <see cref="TokenHash"/> property.
     /// </summary>
-    public const int MaxTokenLength = 256;
+    public const int MaxTokenHashLength = 128;
 
     /// <summary>
     /// A primary key.
     /// </summary>
     [Key]
-    public int TokenId { get; set; }
+    public Guid Id { get; set; }
 
     /// <summary>
-    /// String value of the token.
+    /// A hashed value of the token.
     /// </summary>
-    [MaxLength(MaxTokenLength)]
-    public required string TokenValue { get; set; }
+    [MaxLength(MaxTokenHashLength)]
+    public required string TokenHash { get; set; }
     /// <summary>
     /// ID of the user who owns this token.
     /// </summary>

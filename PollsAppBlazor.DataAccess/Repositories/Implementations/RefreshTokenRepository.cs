@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using PollsAppBlazor.Application.Services.Auth.Tokens;
 using PollsAppBlazor.DataAccess.Models;
 using PollsAppBlazor.DataAccess.Repositories.Interfaces;
 using PollsAppBlazor.Server.DataAccess;
@@ -10,42 +9,38 @@ public class RefreshTokenRepository(ApplicationDbContext dbContext) : IRefreshTo
 {
     private readonly ApplicationDbContext _dbContext = dbContext;
 
-    public Task CreateAsync(string userId, RefreshTokenValue token, CancellationToken cancellationToken)
+    public async Task<RefreshToken> CreateAsync(string userId, RefreshToken token, CancellationToken cancellationToken)
     {
-        _dbContext.RefreshTokens.Add(new RefreshToken
-        {
-            UserId = userId,
-            Persistent = token.Persistent,
-            TokenValue = token.Value,
-            ValidTo = token.ExpiresAt
-        });
-        return _dbContext.SaveChangesAsync(cancellationToken);
+        _dbContext.RefreshTokens.Add(token);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return token;
     }
 
-    public Task<RefreshToken?> GetAsync(string tokenValue, CancellationToken cancellationToken)
+    public Task<RefreshToken?> GetAsync(Guid tokenId, CancellationToken cancellationToken)
     {
         return _dbContext.RefreshTokens
             .AsNoTracking()
-            .Where(x => x.TokenValue == tokenValue)
+            .Where(x => x.Id == tokenId)
             .SingleOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<bool> ReplaceAsync(string oldTokenValue, string newTokenValue, CancellationToken cancellationToken)
+    public async Task<bool> ReplaceAsync(Guid tokenId, string newTokenValue, CancellationToken cancellationToken)
     {
         int updated = await _dbContext.RefreshTokens
-            .Where(x => x.TokenValue == oldTokenValue)
+            .Where(x => x.Id == tokenId)
             .ExecuteUpdateAsync(
-                x => x.SetProperty(p => p.TokenValue, p => newTokenValue),
+                x => x.SetProperty(p => p.TokenHash, p => newTokenValue),
                 cancellationToken
                 );
 
         return updated > 0;
     }
 
-    public async Task<bool> RevokeAsync(string tokenValue, CancellationToken cancellationToken)
+    public async Task<bool> RevokeAsync(Guid tokenId, CancellationToken cancellationToken)
     {
         int removed = await _dbContext.RefreshTokens
-            .Where(x => x.TokenValue == tokenValue)
+            .Where(x => x.Id == tokenId)
             .ExecuteDeleteAsync(cancellationToken);
 
         return removed > 0;

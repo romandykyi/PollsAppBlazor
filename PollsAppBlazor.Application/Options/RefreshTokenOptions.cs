@@ -20,5 +20,11 @@ public class RefreshTokenOptions
     /// </summary>
     public int ShortExpirationMinutes { get; set; }
 
+    /// <summary>
+    /// A secret key used for hashing refresh tokens.
+    /// </summary>
+    public string SecretKey { get; set; } = null!;
+
+
     public const string SectionName = "Auth:RefreshToken";
 }

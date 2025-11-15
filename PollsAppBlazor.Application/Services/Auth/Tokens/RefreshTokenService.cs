@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using PollsAppBlazor.Application.Options;
+using PollsAppBlazor.DataAccess.Models;
 using PollsAppBlazor.DataAccess.Repositories.Interfaces;
 using PollsAppBlazor.Server.DataAccess.Models;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace PollsAppBlazor.Application.Services.Auth.Tokens;
 
@@ -29,6 +31,14 @@ public class RefreshTokenService(
         return tokenValue;
     }
 
+    private string HashTokenValue(string tokenValue)
+    {
+        byte[] secretKey = Encoding.UTF8.GetBytes(_tokenOptions.SecretKey);
+        using var hmac = new HMACSHA256(secretKey);
+        var hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(tokenValue));
+        return Convert.ToBase64String(hashBytes);
+    }
+
     /// <summary>
     /// Generates a refresh token for the user and saves it asynchronously.
     /// </summary>
@@ -46,6 +56,7 @@ public class RefreshTokenService(
 
         // Generate a token
         string tokenValue = GenerateTokenValue();
+        string hashedTokenValue = HashTokenValue(tokenValue);
 
         // Set the expiration date and assign token to the user
         DateTime validTo = persistent ?
@@ -53,10 +64,17 @@ public class RefreshTokenService(
             DateTime.UtcNow.AddMinutes(_tokenOptions.ShortExpirationMinutes);
 
         // Save the token
-        RefreshTokenValue token = new(tokenValue, persistent, validTo);
+        RefreshToken token = new()
+        {
+            UserId = userId,
+            TokenHash = hashedTokenValue,
+            ValidTo = validTo,
+            Persistent = persistent
+        };
         await _repository.CreateAsync(userId, token, cancellationToken);
 
-        return token;
+        string encodedValue = RefreshTokenEncoder.Encode(token.Id, tokenValue);
+        return new RefreshTokenValue(encodedValue, persistent, validTo);
     }
 
     /// <summary>
@@ -82,7 +100,11 @@ public class RefreshTokenService(
     /// </returns>
     public Task<bool> RevokeAsync(string token, CancellationToken cancellationToken)
     {
-        return _repository.RevokeAsync(token, cancellationToken);
+        if (!RefreshTokenEncoder.TryDecode(token, out Guid tokenId, out _))
+        {
+            return Task.FromResult(false);
+        }
+        return _repository.RevokeAsync(tokenId, cancellationToken);
     }
 
     /// <summary>
@@ -99,9 +121,18 @@ public class RefreshTokenService(
     /// </returns>
     public async Task<RefreshTokenValidationResult> ValidateAsync(string token, CancellationToken cancellationToken)
     {
-        var refreshToken = await _repository.GetAsync(token, cancellationToken);
+        if (!RefreshTokenEncoder.TryDecode(token, out Guid tokenId, out string tokenValue))
+        {
+            return RefreshTokenValidationResult.Fail(RefreshFailureReason.InvalidToken);
+        }
 
+        var refreshToken = await _repository.GetAsync(tokenId, cancellationToken);
         if (refreshToken == null)
+        {
+            return RefreshTokenValidationResult.Fail(RefreshFailureReason.InvalidToken);
+        }
+        // Check the token validity
+        if (refreshToken.TokenHash != HashTokenValue(tokenValue))
         {
             return RefreshTokenValidationResult.Fail(RefreshFailureReason.InvalidToken);
         }
@@ -110,13 +141,16 @@ public class RefreshTokenService(
             return RefreshTokenValidationResult.Fail(RefreshFailureReason.ExpiredToken);
         }
 
+        // Rotate the token
         string newTokenValue = GenerateTokenValue();
-        if (!await _repository.ReplaceAsync(token, newTokenValue, cancellationToken))
+        string newHashedTokenValue = HashTokenValue(newTokenValue);
+        if (!await _repository.ReplaceAsync(tokenId, newHashedTokenValue, cancellationToken))
         {
             return RefreshTokenValidationResult.Fail(RefreshFailureReason.InvalidToken);
         }
 
-        RefreshTokenValue updatedValue = new(newTokenValue, refreshToken.Persistent, refreshToken.ValidTo);
+        string encodedNewTokenValue = RefreshTokenEncoder.Encode(tokenId, newTokenValue);
+        RefreshTokenValue updatedValue = new(encodedNewTokenValue, refreshToken.Persistent, refreshToken.ValidTo);
         return RefreshTokenValidationResult.Success(updatedValue, refreshToken.UserId);
     }
 }
