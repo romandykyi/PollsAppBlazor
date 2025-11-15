@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 using PollsAppBlazor.Application.Emails;
 using PollsAppBlazor.Application.Options;
 using PollsAppBlazor.Application.Services.Auth.Session;
-using PollsAppBlazor.Application.Services.Auth.Tokens;
 using PollsAppBlazor.Application.Services.Communication.Interfaces;
 using PollsAppBlazor.Server.DataAccess.Models;
 using PollsAppBlazor.Shared.Users;
@@ -13,7 +12,6 @@ using System.Text;
 namespace PollsAppBlazor.Application.Services.Auth;
 
 public class AuthService(
-    IAccessTokenService accessTokenService,
     IAuthSessionManager sessionManager,
     UserManager<ApplicationUser> userManager,
     IUserStore<ApplicationUser> userStore,
@@ -22,7 +20,6 @@ public class AuthService(
     IOptions<UriOptions> uriOptions
     ) : IAuthService
 {
-    private readonly IAccessTokenService _accessTokenService = accessTokenService;
     private readonly IAuthSessionManager _sessionManager = sessionManager;
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly IUserStore<ApplicationUser> _userStore = userStore;
