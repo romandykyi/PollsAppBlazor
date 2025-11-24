@@ -180,10 +180,6 @@ else
 		try
 		{
 			var client = HttpClientFactory.CreateClient(HttpClientName.AuthApiClientName);
-			// Get poll details
-			poll = (await client.GetFromJsonAsync<PollViewDto>($"/api/polls/{pollId}"))!;
-			selectedOptionId = poll.VotedOptionId;
-			isInFavorites = poll.IsInFavorites;
 
 			// Try to get options with votes
 			var optionsResponse = await client.GetAsync($"/api/polls/{pollId}/options");
@@ -197,6 +193,11 @@ else
 				canViewResults = false;
 				optionsWithVotes = [];
 			}
+
+			// Get poll details
+			poll = (await client.GetFromJsonAsync<PollViewDto>($"/api/polls/{pollId}"))!;
+			selectedOptionId = poll.VotedOptionId;
+			isInFavorites = poll.IsInFavorites;
 
 			// Determine whether user can edit the poll
 			canEdit = null;
