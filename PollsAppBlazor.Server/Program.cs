@@ -43,14 +43,14 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+
+    app.UseMigrationsEndPoint();
 }
 else
 {
     app.UseProductionErrorHandling();
     app.UseHsts();
 }
-
-app.UseMigrationsEndPoint();
 
 app.UseHttpsRedirection();
 
